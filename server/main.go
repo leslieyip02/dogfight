@@ -4,9 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"server/room"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -26,7 +28,23 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+	}))
 	r.Handle("/*", fs)
+
+	roomManager, err := room.NewRoomManager()
+	if err != nil {
+		log.Fatalf("failed to create roomManager: %v", err)
+		return
+	}
+	r.Route("/api/room", func(r chi.Router) {
+		r.Post("/join", roomManager.HandleJoin)
+	})
 
 	// TODO: handle websockets
 
