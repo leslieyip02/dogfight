@@ -29,8 +29,8 @@ class GameEngine {
   draw = () => {
     this.sendInput({
       clientId: this.clientId,
-      mouseX: window.innerWidth / 2 - this.instance.mouseX,
-      mouseY: window.innerHeight / 2 - this.instance.mouseY,
+      mouseX: this.normalize(this.instance.mouseX, window.innerWidth),
+      mouseY: this.normalize(this.instance.mouseY, window.innerHeight),
     });
 
     this.instance.background(BACKGROUND_COLOR);
@@ -96,6 +96,10 @@ class GameEngine {
         const [clientId, {x, y, theta}] = entry;
         this.players[clientId]?.update(x, y, theta);
       });
+  };
+
+  private normalize = (value: number, full: number): number => {
+    return Math.min((full / 2 - value) / (full / 2 * 0.8), 1.0);
   };
 };
 

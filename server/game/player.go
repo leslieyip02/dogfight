@@ -6,6 +6,7 @@ type Player struct {
 	x        float64
 	y        float64
 	theta    float64
+	speed    float64
 }
 
 type PlayerState struct {
