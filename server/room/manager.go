@@ -4,21 +4,30 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
-	"server/game"
+
+	"github.com/gorilla/websocket"
 )
 
-type RoomManager struct {
+var (
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+)
+
+type Manager struct {
 	rooms   map[string]*Room
 	roomIds []string
 }
 
-type JoinRoomRequest struct {
+type JoinRequest struct {
 	Username string  `json:"username"`
-	RoomId   *string `json:"roomId"`
+	RoomId   *string `json:"roomId,omitempty"`
 }
 
-func NewRoomManager() (*RoomManager, error) {
-	roomManager := RoomManager{
+func NewManager() (*Manager, error) {
+	roomManager := Manager{
 		rooms: map[string]*Room{},
 	}
 
@@ -33,31 +42,68 @@ func NewRoomManager() (*RoomManager, error) {
 	return &roomManager, nil
 }
 
-func (m RoomManager) HandleJoin(w http.ResponseWriter, r *http.Request) {
-	var request JoinRoomRequest
+func (m Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
+	var request JoinRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "unable to parse join room request", http.StatusBadRequest)
+		http.Error(w, "unable to parse room join request", http.StatusBadRequest)
 		return
 	}
 
-	player, err := game.NewPlayer(request.Username)
+	client, err := NewClient(request.Username)
 	if err != nil {
-		http.Error(w, "unable to create player", http.StatusInternalServerError)
+		http.Error(w, "unable to create client", http.StatusInternalServerError)
 		return
 	}
 
-	room := m.pickRoom(request.RoomId)
-	room.AddPlayer(player)
+	room := m.getRoom(request.RoomId)
+	room.Add(client)
 
+	// TODO: use JWT
 	body := map[string]string{
-		"playerId": player.Id,
+		"clientId": client.id,
+		"roomId":   room.id,
 	}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to create room manager", http.StatusInternalServerError)
 	}
 }
 
-func (m RoomManager) pickRoom(roomId *string) *Room {
+func (m Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
+	clientId := r.URL.Query().Get("clientId")
+	if clientId == "" {
+		http.Error(w, "missing client ID", http.StatusBadRequest)
+		return
+	}
+
+	roomId := r.URL.Query().Get("roomId")
+	if roomId == "" {
+		http.Error(w, "missing room ID", http.StatusBadRequest)
+		return
+	}
+
+	room, found := m.rooms[roomId]
+	if !found {
+		http.Error(w, "no such room", http.StatusNotFound)
+		return
+	}
+
+	client, found := room.clients[clientId]
+	if !found {
+		http.Error(w, "no such client", http.StatusNotFound)
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "unable to create connection", http.StatusInternalServerError)
+		return
+	}
+
+	client.conn = conn
+	room.Connect(client)
+}
+
+func (m Manager) getRoom(roomId *string) *Room {
 	if roomId != nil {
 		return m.rooms[*roomId]
 	}

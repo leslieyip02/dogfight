@@ -37,14 +37,16 @@ func main() {
 	}))
 	r.Handle("/*", fs)
 
-	roomManager, err := room.NewRoomManager()
+	roomManager, err := room.NewManager()
 	if err != nil {
 		log.Fatalf("failed to create roomManager: %v", err)
 		return
 	}
+
 	r.Route("/api/room", func(r chi.Router) {
 		r.Post("/join", roomManager.HandleJoin)
 	})
+	r.Get("/ws", roomManager.HandleConnect)
 
 	// TODO: handle websockets
 
