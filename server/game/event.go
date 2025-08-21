@@ -2,7 +2,6 @@ package game
 
 import (
 	"encoding/json"
-	"math/rand"
 )
 
 type EventType string
@@ -22,28 +21,32 @@ type Event struct {
 type JoinEventData struct {
 	ClientId string  `json:"clientId"`
 	Username string  `json:"username"`
-	X        float32 `json:"x"`
-	Y        float32 `json:"y"`
+	X        float64 `json:"x"`
+	Y        float64 `json:"y"`
+	Theta    float64 `json:"theta"`
 }
 
 type QuitEventData struct {
 	ClientId string `json:"clientId"`
 }
 
+type UpdateEventData map[string]PlayerState
+
 type InputEventData struct {
 	ClientId string  `json:"clientId"`
-	MouseX   float32 `json:"mouseX"`
-	MouseY   float32 `json:"mouseY"`
+	MouseX   float64 `json:"mouseX"`
+	MouseY   float64 `json:"mouseY"`
 }
 
-func NewJoinEventMessage(clientId string, username string) ([]byte, error) {
-	joinEvent := JoinEventData{
-		ClientId: clientId,
-		Username: username,
-		X:        rand.Float32() * 100,
-		Y:        rand.Float32() * 100,
+func NewJoinEventMessage(player *Player) ([]byte, error) {
+	joinEventData := JoinEventData{
+		ClientId: player.Id,
+		Username: player.Username,
+		X:        player.x,
+		Y:        player.y,
+		Theta:    player.theta,
 	}
-	data, err := json.Marshal(joinEvent)
+	data, err := json.Marshal(joinEventData)
 	if err != nil {
 		return nil, err
 	}
@@ -56,16 +59,34 @@ func NewJoinEventMessage(clientId string, username string) ([]byte, error) {
 }
 
 func NewQuitEventMessage(clientId string) ([]byte, error) {
-	quitEvent := QuitEventData{
+	quitEventData := QuitEventData{
 		ClientId: clientId,
 	}
-	data, err := json.Marshal(quitEvent)
+	data, err := json.Marshal(quitEventData)
 	if err != nil {
 		return nil, err
 	}
 
 	message := Event{
 		Type: QuitEventType,
+		Data: data,
+	}
+	return json.Marshal(message)
+}
+
+func NewUpdateEventMessage(game *Game) ([]byte, error) {
+	updateEventData := make(UpdateEventData)
+	for clientId, player := range game.players {
+		updateEventData[clientId] = player.getState()
+	}
+
+	data, err := json.Marshal(updateEventData)
+	if err != nil {
+		return nil, err
+	}
+
+	message := Event{
+		Type: UpdateEventType,
 		Data: data,
 	}
 	return json.Marshal(message)

@@ -10,6 +10,7 @@ export type GameJoinEventData = {
   username: string,
   x: number,
   y: number,
+  theta: number,
 };
 
 export type GameQuitEventData = {
@@ -20,6 +21,7 @@ export type GameUpdateEventData = {
   [clientId: string]: {
     x: number,
     y: number,
+    theta: number,
   }
 };
 

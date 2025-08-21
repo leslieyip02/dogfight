@@ -42,7 +42,6 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
       console.log("close");
     };
     ws.onmessage = (event: MessageEvent) => {
-      console.log("message:", event);
       gameEngineRef.current?.receive(event);
     };
     setSocket(ws);
