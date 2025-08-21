@@ -51,7 +51,7 @@ func (r *Room) Connect(client *Client) error {
 	go client.readPump(r.game.Send)
 	go client.writePump(r.game.Broadcast)
 
-	joinEventMessage, err := game.NewJoinEventMessage(client.id)
+	joinEventMessage, err := game.NewJoinEventMessage(client.id, client.username)
 	if err != nil {
 		return err
 	}

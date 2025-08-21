@@ -2,13 +2,15 @@ package game
 
 import (
 	"encoding/json"
+	"math/rand"
 )
 
 type EventType string
 
 const (
-	EventTypeJoin EventType = "join"
-	EventTypeQuit EventType = "quit"
+	JoinEventType   EventType = "join"
+	QuitEventType   EventType = "quit"
+	UpdateEventType EventType = "update"
 )
 
 type Event struct {
@@ -16,17 +18,23 @@ type Event struct {
 	Data json.RawMessage `json:"data"`
 }
 
-type JoinEvent struct {
+type JoinEventData struct {
+	ClientId string  `json:"clientId"`
+	Username string  `json:"username"`
+	X        float32 `json:"x"`
+	Y        float32 `json:"y"`
+}
+
+type QuitEventData struct {
 	ClientId string `json:"clientId"`
 }
 
-type QuitEvent struct {
-	ClientId string `json:"clientId"`
-}
-
-func NewJoinEventMessage(clientId string) ([]byte, error) {
-	joinEvent := JoinEvent{
+func NewJoinEventMessage(clientId string, username string) ([]byte, error) {
+	joinEvent := JoinEventData{
 		ClientId: clientId,
+		Username: username,
+		X:        rand.Float32() * 100,
+		Y:        rand.Float32() * 100,
 	}
 	data, err := json.Marshal(joinEvent)
 	if err != nil {
@@ -34,14 +42,14 @@ func NewJoinEventMessage(clientId string) ([]byte, error) {
 	}
 
 	message := Event{
-		Type: EventTypeJoin,
+		Type: JoinEventType,
 		Data: data,
 	}
 	return json.Marshal(message)
 }
 
 func NewQuitEventMessage(clientId string) ([]byte, error) {
-	quitEvent := QuitEvent{
+	quitEvent := QuitEventData{
 		ClientId: clientId,
 	}
 	data, err := json.Marshal(quitEvent)
@@ -50,7 +58,7 @@ func NewQuitEventMessage(clientId string) ([]byte, error) {
 	}
 
 	message := Event{
-		Type: EventTypeQuit,
+		Type: QuitEventType,
 		Data: data,
 	}
 	return json.Marshal(message)

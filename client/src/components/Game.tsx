@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
+import "./Game.css";
+import GameEngine from "../game/GameEngine";
+import p5 from "p5";
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
@@ -8,6 +12,8 @@ type Props = {
 }
 
 const Game: React.FC<Props> = ({ clientId, roomId }) => {
+  const gameEngineRef = useRef<GameEngine | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
   const onopen = () => {
@@ -21,6 +27,7 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
 
   const onmessage = (event: MessageEvent) => {
     console.log("message:", event);
+    gameEngineRef.current?.receive(event);
   };
 
   useEffect(() => { 
@@ -35,13 +42,16 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
     setSocket(ws);
   }, [clientId, roomId, socket]);
 
-  return (
-    <>
-      <h1>
-        Your client ID is <strong>{clientId}</strong>
-      </h1>
-    </>
-  );
+  useLayoutEffect(() => {
+    const sketch = (instance: p5) => {
+      gameEngineRef.current = new GameEngine(instance);
+    };
+    
+    const instance = new p5(sketch, containerRef.current!);
+    return () => instance.remove();
+  }, []);
+
+  return <div className="game__container" ref={containerRef} />;
 };
 
 export default Game;

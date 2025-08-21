@@ -24,10 +24,10 @@ func (g *Game) Run() {
 			json.Unmarshal(data, &event)
 
 			switch event.Type {
-			case EventTypeJoin:
+			case JoinEventType:
 				g.Broadcast <- data
 
-			case EventTypeQuit:
+			case QuitEventType:
 				g.Broadcast <- data
 			}
 		}

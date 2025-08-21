@@ -40,7 +40,6 @@ func (c *Client) readPump(send chan<- []byte) {
 		if err != nil {
 			break
 		}
-
 		send <- message
 	}
 }
