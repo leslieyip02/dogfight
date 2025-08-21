@@ -1,23 +1,36 @@
 import type p5 from "p5";
 import Player from "./entities/Player";
-import type { GameJoinEventData, GameQuitEventData, GameUpdateEventData } from "./GameEvent";
+import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdateEventData } from "./GameEvent";
+
+const FPS = 60;
 
 class GameEngine {
   instance: p5;
+  clientId: string;
   players: { [clientId: string]: Player };
+  sendInput: (data: GameInputEventData) => void;
 
-  constructor(instance: p5) {
+  constructor(instance: p5, clientId: string, sendInput: (data: GameInputEventData) => void) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
+    this.clientId = clientId;
     this.players = {};
+    this.sendInput = sendInput;
   }
 
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
+    this.instance.frameRate(FPS);
   };
 
   draw = () => {
+    this.sendInput({
+      clientId: this.clientId,
+      mouseX: this.instance.mouseX,
+      mouseY: this.instance.mouseY,
+    });
+
     Object.values(this.players)
       .forEach(player => {
         this.instance.circle(player.position.x, player.position.y, 80);

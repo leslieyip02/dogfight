@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import "./Game.css";
 import GameEngine from "../game/GameEngine";
 import p5 from "p5";
+import type { GameEvent, GameInputEventData } from "../game/GameEvent";
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
@@ -16,19 +17,17 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
-  const onopen = () => {
-    console.log("open");
-  };
+  const sendInput = useCallback((data: GameInputEventData) => {
+    if (socket?.readyState !== WebSocket.OPEN) {
+      return;
+    }
 
-  const onclose = () => {
-    console.log("close");
-    setSocket(null);
-  };
-
-  const onmessage = (event: MessageEvent) => {
-    console.log("message:", event);
-    gameEngineRef.current?.receive(event);
-  };
+    const event: GameEvent = {
+      type: "input",
+      data: data
+    };
+    socket?.send(JSON.stringify(event));
+  }, [socket]);
 
   useEffect(() => { 
     if (socket !== null) {
@@ -36,20 +35,27 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
     }
 
     const ws = new WebSocket(`${WS_URL}?clientId=${clientId}&roomId=${roomId}`);
-    ws.onopen = onopen;
-    ws.onclose = onclose;
-    ws.onmessage = onmessage;
+    ws.onopen = () => {
+      console.log("open");
+    };
+    ws.onclose = () => {
+      console.log("close");
+    };
+    ws.onmessage = (event: MessageEvent) => {
+      console.log("message:", event);
+      gameEngineRef.current?.receive(event);
+    };
     setSocket(ws);
   }, [clientId, roomId, socket]);
 
   useLayoutEffect(() => {
     const sketch = (instance: p5) => {
-      gameEngineRef.current = new GameEngine(instance);
+      gameEngineRef.current = new GameEngine(instance, clientId, sendInput);
     };
     
     const instance = new p5(sketch, containerRef.current!);
     return () => instance.remove();
-  }, []);
+  }, [clientId, sendInput]);
 
   return <div className="game__container" ref={containerRef} />;
 };

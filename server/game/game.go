@@ -17,19 +17,22 @@ func NewGame() Game {
 }
 
 func (g *Game) Run() {
-	for {
-		select {
-		case data := <-g.Send:
-			var event Event
-			json.Unmarshal(data, &event)
+	for message := range g.Send {
+		var event Event
+		json.Unmarshal(message, &event)
 
-			switch event.Type {
-			case JoinEventType:
-				g.Broadcast <- data
+		switch event.Type {
+		case JoinEventType:
+			g.Broadcast <- message
 
-			case QuitEventType:
-				g.Broadcast <- data
-			}
+		case QuitEventType:
+			g.Broadcast <- message
+
+		case InputEventType:
+			var data InputEventData
+			json.Unmarshal(event.Data, &data)
+
+			// TODO: handle input
 		}
 	}
 }

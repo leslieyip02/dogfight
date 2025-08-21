@@ -11,6 +11,7 @@ const (
 	JoinEventType   EventType = "join"
 	QuitEventType   EventType = "quit"
 	UpdateEventType EventType = "update"
+	InputEventType  EventType = "input"
 )
 
 type Event struct {
@@ -27,6 +28,12 @@ type JoinEventData struct {
 
 type QuitEventData struct {
 	ClientId string `json:"clientId"`
+}
+
+type InputEventData struct {
+	ClientId string  `json:"clientId"`
+	MouseX   float32 `json:"mouseX"`
+	MouseY   float32 `json:"mouseY"`
 }
 
 func NewJoinEventMessage(clientId string, username string) ([]byte, error) {
