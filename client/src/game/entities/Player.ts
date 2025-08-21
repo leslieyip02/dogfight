@@ -1,6 +1,8 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
 
+const DEBUG = import.meta.env.VITE_DEBUG;
+
 class Player implements Entity {
   position: p5.Vector;
   theta: number;
@@ -41,15 +43,21 @@ class Player implements Entity {
       40, -40,
     );
     instance.pop();
-
+  
     instance.noFill();
     instance.stroke("#ffffff");
-    instance.circle(0, 0, 80);
-  
     instance.strokeWeight(1);
     instance.textAlign(instance.CENTER);
     instance.rectMode(instance.CENTER);
     instance.text(this.username, 0, -65);
+
+    if (DEBUG) {
+      instance.stroke("#ff0000");
+      instance.circle(0, 0, 80);
+      instance.line(0, 0, -Math.cos(this.theta) * 120, -Math.sin(this.theta) * 120);
+      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.theta.toFixed(2)}`, 0, -85);
+    }
+
     instance.pop();
   };
 };
