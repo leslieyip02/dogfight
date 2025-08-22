@@ -19,18 +19,16 @@ type Event struct {
 }
 
 type JoinEventData struct {
-	ClientId string  `json:"clientId"`
-	Username string  `json:"username"`
-	X        float64 `json:"x"`
-	Y        float64 `json:"y"`
-	Theta    float64 `json:"theta"`
+	ClientId string         `json:"clientId"`
+	Username string         `json:"username"`
+	Position EntityPosition `json:"position"`
 }
 
 type QuitEventData struct {
 	ClientId string `json:"clientId"`
 }
 
-type UpdateEventData map[string]PlayerState
+type UpdateEventData map[string]EntityPosition
 
 type InputEventData struct {
 	ClientId string  `json:"clientId"`
@@ -42,9 +40,7 @@ func NewJoinEventMessage(player *Player) ([]byte, error) {
 	joinEventData := JoinEventData{
 		ClientId: player.Id,
 		Username: player.Username,
-		X:        player.x,
-		Y:        player.y,
-		Theta:    player.theta,
+		Position: player.position,
 	}
 	data, err := json.Marshal(joinEventData)
 	if err != nil {
@@ -77,7 +73,7 @@ func NewQuitEventMessage(clientId string) ([]byte, error) {
 func NewUpdateEventMessage(game *Game) ([]byte, error) {
 	updateEventData := make(UpdateEventData)
 	for clientId, player := range game.players {
-		updateEventData[clientId] = player.getState()
+		updateEventData[clientId] = player.position
 	}
 
 	data, err := json.Marshal(updateEventData)

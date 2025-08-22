@@ -1,8 +1,9 @@
 import p5 from "p5";
+import type { EntityPosition } from "../GameEvent";
 
 export interface Entity {
-    position: p5.Vector;
+    position: EntityPosition;
 
-    update: (x: number, y: number, theta: number) => void;
+    update: (position: EntityPosition) => void;
     draw: (instance: p5) => void;
 };

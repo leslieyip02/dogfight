@@ -83,7 +83,7 @@ class GameEngine {
   };
 
   private handleJoin = (data: GameJoinEventData) => {
-    this.players[data.clientId] = new Player(data.username, data.x, data.y, data.theta);
+    this.players[data.clientId] = new Player(data.username, data.position);
   };
 
   private handleQuit = (data: GameQuitEventData) => {
@@ -93,8 +93,11 @@ class GameEngine {
   private handleUpdate = (data: GameUpdateEventData) => {
     Object.entries(data)
       .forEach(entry => {
-        const [clientId, {x, y, theta}] = entry;
-        this.players[clientId]?.update(x, y, theta);
+        const [id, data] = entry;
+        if (!data) {
+          return;
+        }
+        this.players[id]?.update(data);
       });
   };
 

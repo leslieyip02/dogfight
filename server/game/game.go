@@ -23,13 +23,16 @@ func NewGame() Game {
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
+	position := EntityPosition{
+		X:     rand.Float64()*WIDTH - WIDTH/2,
+		Y:     rand.Float64()*HEIGHT - WIDTH/2,
+		Theta: math.Pi / 2,
+	}
 	player := Player{
 		Id:       id,
 		Username: username,
-		x:        rand.Float64()*WIDTH - WIDTH/2,
-		y:        rand.Float64()*HEIGHT - WIDTH/2,
-		theta:    math.Pi / 2,
-		speed:    MAX_VELOCITY,
+		position: position,
+		speed:    MAX_SPEED,
 	}
 
 	g.players[id] = &player
@@ -83,14 +86,7 @@ func (g *Game) input(data InputEventData) {
 	if !found {
 		return
 	}
-
-	delta := normalizeAngle(math.Atan2(data.MouseY, data.MouseX) - player.theta)
-	player.theta = normalizeAngle(player.theta + delta*0.1)
-
-	// TODO: consider non-linear multiplier (e.g. -(x - 1)^2 + 1)
-	length := math.Sqrt(data.MouseX*data.MouseX + data.MouseY*data.MouseY)
-	player.x += math.Cos(player.theta) * length * player.speed
-	player.y += math.Sin(player.theta) * length * player.speed
+	player.update(data.MouseX, data.MouseY)
 }
 
 func (g *Game) update() {
@@ -99,14 +95,4 @@ func (g *Game) update() {
 		return
 	}
 	g.Outgoing <- message
-}
-
-func normalizeAngle(angle float64) float64 {
-	angle = math.Mod(angle, 2*math.Pi)
-	if angle > math.Pi {
-		angle -= 2 * math.Pi
-	} else if angle < -math.Pi {
-		angle += 2 * math.Pi
-	}
-	return angle
 }

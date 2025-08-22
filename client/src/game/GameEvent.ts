@@ -8,21 +8,21 @@ export type GameEvent = {
 export type GameJoinEventData = {
   clientId: string,
   username: string,
-  x: number,
-  y: number,
-  theta: number,
+  position: EntityPosition
 };
 
 export type GameQuitEventData = {
   clientId: string,
 };
 
+export type EntityPosition = {
+  x: number,
+  y: number,
+  theta: number,
+}
+
 export type GameUpdateEventData = {
-  [clientId: string]: {
-    x: number,
-    y: number,
-    theta: number,
-  }
+  [id: string]: EntityPosition | null,
 };
 
 export type GameInputEventData = {

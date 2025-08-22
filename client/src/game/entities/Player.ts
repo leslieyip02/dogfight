@@ -1,27 +1,23 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
+import type { EntityPosition } from "../GameEvent";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 class Player implements Entity {
-  position: p5.Vector;
-  theta: number;
+  position: EntityPosition;
   username: string;
   roll: number;
 
-  constructor(username: string, x: number, y: number, theta: number) {
+  constructor(username: string, position: EntityPosition) {
     this.username = username;
-    this.position = new p5.Vector(x, y);
-    this.theta = theta;
+    this.position = position;
     this.roll = 0;
   }
 
-  update = (x: number, y: number, theta: number) => {
-    this.position.x = x;
-    this.position.y = y;
-
-    this.roll = Math.sign(theta - this.theta);
-    this.theta = theta;
+  update = (position: EntityPosition) => {
+    this.roll = Math.sign(position.theta - this.position.theta);
+    this.position = position;
   };
 
   draw = (instance: p5) => {
@@ -35,7 +31,7 @@ class Player implements Entity {
     instance.translate(this.position.x, this.position.y);
   
     instance.push();
-    instance.rotate(this.theta);
+    instance.rotate(this.position.theta);
     instance.fill("#ffffff");
     instance.triangle(
       -40, 0,
@@ -54,8 +50,8 @@ class Player implements Entity {
     if (DEBUG) {
       instance.stroke("#ff0000");
       instance.circle(0, 0, 80);
-      instance.line(0, 0, -Math.cos(this.theta) * 120, -Math.sin(this.theta) * 120);
-      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.theta.toFixed(2)}`, 0, -85);
+      instance.line(0, 0, -Math.cos(this.position.theta) * 120, -Math.sin(this.position.theta) * 120);
+      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
     }
 
     instance.pop();
