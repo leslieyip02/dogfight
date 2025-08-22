@@ -12,7 +12,7 @@ var (
 	mu         sync.Mutex
 )
 
-func GetShortId() (string, error) {
+func NewShortId() (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 

@@ -18,7 +18,7 @@ type Room struct {
 }
 
 func NewRoom() (*Room, error) {
-	id, err := utils.GetShortId()
+	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"server/utils"
 )
 
 type Player struct {
@@ -11,13 +12,16 @@ type Player struct {
 	position EntityPosition
 }
 
-type PlayerState struct {
-	X     float64 `json:"x"`
-	Y     float64 `json:"y"`
-	Theta float64 `json:"theta"`
+func (p *Player) input(data InputEventData) *Projectile {
+	p.updatePosition(data.MouseX, data.MouseY)
+	if data.MousePressed {
+		return p.shootProjectile()
+	} else {
+		return nil
+	}
 }
 
-func (p *Player) update(mouseX float64, mouseY float64) {
+func (p *Player) updatePosition(mouseX float64, mouseY float64) {
 	delta := normalizeAngle(math.Atan2(mouseY, mouseX) - p.position.Theta)
 	p.position.Theta = normalizeAngle(p.position.Theta + delta*0.1)
 
@@ -25,6 +29,34 @@ func (p *Player) update(mouseX float64, mouseY float64) {
 	length := math.Sqrt(mouseX*mouseX + mouseY*mouseY)
 	p.position.X += math.Cos(p.position.Theta) * length * p.speed
 	p.position.Y += math.Sin(p.position.Theta) * length * p.speed
+}
+
+func (p *Player) shootProjectile() *Projectile {
+	id, err := utils.NewShortId()
+	if err != nil {
+		return nil
+	}
+
+	projectile := Projectile{
+		Id:       id,
+		position: p.position,
+		speed:    MAX_SPEED,
+	}
+	return &projectile
+}
+
+func (p *Player) shoot() Projectile {
+	position := EntityPosition{
+		X:     p.position.X,
+		Y:     p.position.Y,
+		Theta: p.position.Theta,
+	}
+	return Projectile{
+		Id:       "",
+		speed:    0,
+		position: position,
+		lifetime: 3 * FPS,
+	}
 }
 
 func normalizeAngle(angle float64) float64 {

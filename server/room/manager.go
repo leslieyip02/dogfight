@@ -28,7 +28,8 @@ type JoinRequest struct {
 
 func NewManager() (*Manager, error) {
 	roomManager := Manager{
-		rooms: map[string]*Room{},
+		rooms:   map[string]*Room{},
+		roomIds: []string{},
 	}
 
 	// TODO: handle adding more rooms

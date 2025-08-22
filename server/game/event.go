@@ -76,6 +76,9 @@ func NewUpdateEventMessage(game *Game) ([]byte, error) {
 	for clientId, player := range game.players {
 		updateEventData[clientId] = player.position
 	}
+	for id, projectile := range game.projectiles {
+		updateEventData[id] = projectile.position
+	}
 
 	data, err := json.Marshal(updateEventData)
 	if err != nil {

@@ -4,28 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"math"
-	"math/rand"
 	"time"
 )
 
 type Game struct {
-	Incoming chan []byte
-	Outgoing chan []byte
-	players  map[string]*Player
+	Incoming    chan []byte
+	Outgoing    chan []byte
+	players     map[string]*Player
+	projectiles map[string]*Projectile
 }
 
 func NewGame() Game {
 	return Game{
-		Incoming: make(chan []byte),
-		Outgoing: make(chan []byte),
-		players:  map[string]*Player{},
+		Incoming:    make(chan []byte),
+		Outgoing:    make(chan []byte),
+		players:     map[string]*Player{},
+		projectiles: map[string]*Projectile{},
 	}
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
 	position := EntityPosition{
-		X:     rand.Float64()*WIDTH - WIDTH/2,
-		Y:     rand.Float64()*HEIGHT - WIDTH/2,
+		// X:     rand.Float64()*WIDTH - WIDTH/2,
+		// Y:     rand.Float64()*HEIGHT - WIDTH/2,
+		X:     0,
+		Y:     0,
 		Theta: math.Pi / 2,
 	}
 	player := Player{
@@ -86,10 +89,26 @@ func (g *Game) input(data InputEventData) {
 	if !found {
 		return
 	}
-	player.update(data.MouseX, data.MouseY)
+
+	projectile := player.input(data)
+	if projectile != nil {
+		g.projectiles[projectile.Id] = projectile
+	}
 }
 
 func (g *Game) update() {
+	expiredIds := []string{}
+	for _, projectile := range g.projectiles {
+		projectile.update()
+		if projectile.lifetime <= 0 {
+			expiredIds = append(expiredIds, projectile.Id)
+		}
+	}
+
+	for _, id := range expiredIds {
+		delete(g.projectiles, id)
+	}
+
 	message, err := NewUpdateEventMessage(g)
 	if err != nil {
 		return

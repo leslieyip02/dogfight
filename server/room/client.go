@@ -1,6 +1,7 @@
 package room
 
 import (
+	"log"
 	"server/game"
 	"server/utils"
 
@@ -14,7 +15,7 @@ type Client struct {
 }
 
 func NewClient(username string) (*Client, error) {
-	id, err := utils.GetShortId()
+	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
 	}
@@ -26,11 +27,11 @@ func NewClient(username string) (*Client, error) {
 	return &client, nil
 }
 
-func (c *Client) readPump(send chan<- []byte) {
+func (c *Client) readPump(incoming chan<- []byte) {
 	defer func() {
 		quitEventMessage, err := game.NewQuitEventMessage(c.id)
 		if err == nil {
-			send <- quitEventMessage
+			incoming <- quitEventMessage
 		}
 		c.conn.Close()
 	}()
@@ -40,14 +41,15 @@ func (c *Client) readPump(send chan<- []byte) {
 		if err != nil {
 			break
 		}
-		send <- message
+		incoming <- message
 	}
 }
 
-func (c *Client) writePump(broadcast <-chan []byte) {
+func (c *Client) writePump(outgoing <-chan []byte) {
 	defer c.conn.Close()
 
-	for data := range broadcast {
+	for data := range outgoing {
+		log.Println(string(data))
 		err := c.conn.WriteMessage(websocket.TextMessage, data)
 		if err != nil {
 			break
