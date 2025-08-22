@@ -4,25 +4,35 @@ import type { EntityPosition } from "../GameEvent";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
+const RADIUS = 40;
 const GRID_SIZE = 64;
 
 class Player implements Entity {
   position: EntityPosition;
   username: string;
   roll: number;
+  destroyed: boolean;
 
   constructor(username: string, position: EntityPosition) {
     this.username = username;
     this.position = position;
     this.roll = 0;
+    this.destroyed = false;
   }
 
   update = (position: EntityPosition) => {
+    if (this.destroyed) {
+      return;
+    }
     this.roll = Math.sign(position.theta - this.position.theta);
     this.position = position;
   };
 
   draw = (instance: p5) => {
+    if (this.destroyed) {
+      return;
+    }
+
     instance.push();
 
     instance.translate(this.position.x, this.position.y);
@@ -30,10 +40,11 @@ class Player implements Entity {
     instance.push();
     instance.rotate(this.position.theta);
     instance.fill("#ffffff");
+    // TODO: consider changing to a sprite
     instance.triangle(
-      40, 0,
-      -40, 40,
-      -40, -40,
+      RADIUS, 0,
+      -RADIUS, RADIUS,
+      -RADIUS, -RADIUS,
     );
     instance.pop();
 
@@ -46,7 +57,7 @@ class Player implements Entity {
 
     if (DEBUG) {
       instance.stroke("#ff0000");
-      instance.circle(0, 0, 80);
+      instance.circle(0, 0, 2 * RADIUS);
       instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
       instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
     }
@@ -77,6 +88,7 @@ class Player implements Entity {
 
   destroy = () => {
     // TODO: implement
+    this.destroyed = true;
   };
 };
 

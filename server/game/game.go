@@ -105,10 +105,21 @@ func (g *Game) input(data InputEventData) {
 }
 
 func (g *Game) update() {
+	g.updateProjectiles()
+	g.resolveCollisions()
+
+	message, err := NewUpdatePositionEventMessage(&g.players, &g.projectiles)
+	if err != nil {
+		return
+	}
+	g.Outgoing <- message
+}
+
+func (g *Game) updateProjectiles() {
 	expiredIds := []string{}
 	for _, projectile := range g.projectiles {
 		projectile.update()
-		if projectile.lifetime <= 0 {
+		if projectile.lifetime < 0 {
 			expiredIds = append(expiredIds, projectile.Id)
 		}
 	}
@@ -116,10 +127,28 @@ func (g *Game) update() {
 	for _, id := range expiredIds {
 		delete(g.projectiles, id)
 	}
+}
 
-	message, err := NewUpdatePositionEventMessage(&g.players, &g.projectiles)
-	if err != nil {
-		return
+func (g *Game) resolveCollisions() {
+	// TODO: use line sweep to lower time complexity to O(n log(n))
+	collidedIds := []string{}
+	for i, player := range g.players {
+		for j, other := range g.players {
+			if i == j {
+				continue
+			}
+
+			// players are modelled as circles
+			dx := player.Position.X - other.Position.X
+			dy := player.Position.Y - other.Position.Y
+			distance := math.Sqrt(dx*dx + dy*dy)
+			if distance <= 2*PLAYER_BOUNDING_CIRCLE_RADIUS {
+				collidedIds = append(collidedIds, i, j)
+			}
+		}
 	}
-	g.Outgoing <- message
+
+	for _, id := range collidedIds {
+		delete(g.players, id)
+	}
 }

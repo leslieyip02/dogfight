@@ -105,7 +105,13 @@ class GameEngine {
   };
 
   private handleUpdate = async (data: GameUpdatePositionEventData) => {
+    this.updatePlayers(data);
+    this.updateProjectiles(data);
+  };
+
+  private updatePlayers = async (data: GameUpdatePositionEventData) => {
     let needFetch = false;
+    const destroyedIds = new Set(Object.keys(this.players));
     Object.entries(data.players)
       .forEach(entry => {
         const [id, position] = entry;
@@ -115,29 +121,20 @@ class GameEngine {
           return;
         }
         player.update(position);
+        destroyedIds.delete(id);
       });
 
+    destroyedIds.forEach(id => {
+      this.players[id]?.destroy();
+      if (id === this.clientId) {
+        return;
+      }
+      delete this.players[id];
+    });
+    
     if (needFetch) {
       await this.fetchPlayers();
     }
-
-    const expiredIds = new Set(Object.keys(this.projectiles));
-    Object.entries(data.projectiles)
-      .forEach(entry => {
-        const [id, position] = entry;
-        const projectile = this.projectiles[id];
-        if (!projectile) {
-          this.projectiles[id] = new Projectile(position);
-          return;
-        }
-        projectile.update(position);
-        expiredIds.delete(id);
-      });
-
-    expiredIds.forEach(id => {
-      this.projectiles[id].destroy();
-      delete this.projectiles[id];
-    });
   };
 
   private fetchPlayers = async () => {
@@ -149,6 +146,26 @@ class GameEngine {
           this.players[player.id] = new Player(player.username, player.position);
         });
       });
+  };
+
+  private updateProjectiles = async (data: GameUpdatePositionEventData) => {
+    const destroyedIds = new Set(Object.keys(this.projectiles));
+    Object.entries(data.projectiles)
+      .forEach(entry => {
+        const [id, position] = entry;
+        const projectile = this.projectiles[id];
+        if (!projectile) {
+          this.projectiles[id] = new Projectile(position);
+          return;
+        }
+        projectile.update(position);
+        destroyedIds.delete(id);
+      });
+
+    destroyedIds.forEach(id => {
+      this.projectiles[id]?.destroy();
+      delete this.projectiles[id];
+    });
   };
 
   private normalize = (value: number, full: number): number => {

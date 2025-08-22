@@ -9,3 +9,5 @@ const FPS = 60
 const FRAME_DURATION = time.Second / FPS
 
 const MAX_SPEED = 2.0
+
+const PLAYER_BOUNDING_CIRCLE_RADIUS = 40.0
