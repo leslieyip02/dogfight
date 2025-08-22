@@ -2,6 +2,7 @@ import p5 from "p5";
 import Player from "./entities/Player";
 import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdatePositionEventData } from "./GameEvent";
 import Projectile from "./entities/Projectile";
+import Explosion from "./entities/Explosion";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,8 +15,9 @@ class GameEngine {
   clientId: string;
   roomId: string;
 
-  players: { [clientId: string]: Player };
+  players: { [id: string]: Player };
   projectiles: { [id: string]: Projectile };
+  explosions: { [id: string]: Explosion };
 
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
@@ -31,6 +33,7 @@ class GameEngine {
 
     this.players = {};
     this.projectiles = {};
+    this.explosions = {};
 
     this.pressed = false;
     this.sendInput = sendInput;
@@ -71,7 +74,12 @@ class GameEngine {
 
     Object.values(this.projectiles)
       .forEach(projectile => projectile.draw(this.instance));
-    
+
+    Object.values(this.explosions).forEach(explosion => {
+      explosion.update();
+      explosion.draw(this.instance);
+    });
+
     this.instance.pop();
   };
 
@@ -126,12 +134,17 @@ class GameEngine {
 
     destroyedIds.forEach(id => {
       this.players[id]?.destroy();
+
+      if (!this.explosions[id]) {
+        this.explosions[id] = new Explosion({ ...this.players[id].position });
+      }
+
       if (id === this.clientId) {
         return;
       }
       delete this.players[id];
     });
-    
+
     if (needFetch) {
       await this.fetchPlayers();
     }
@@ -162,10 +175,7 @@ class GameEngine {
         destroyedIds.delete(id);
       });
 
-    destroyedIds.forEach(id => {
-      this.projectiles[id]?.destroy();
-      delete this.projectiles[id];
-    });
+    destroyedIds.forEach(id => delete this.projectiles[id]);
   };
 
   private normalize = (value: number, full: number): number => {

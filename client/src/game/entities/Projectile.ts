@@ -11,7 +11,10 @@ class Projectile implements Entity {
     this.position = position;
   }
 
-  update = (position: EntityPosition) => {
+  update = (position?: EntityPosition) => {
+    if (!position) {
+      return;
+    }
     this.position = position;
   };
 
@@ -44,10 +47,6 @@ class Projectile implements Entity {
     }
 
     instance.pop();
-  };
-
-  destroy = () => {
-    // do nothing
   };
 }
 

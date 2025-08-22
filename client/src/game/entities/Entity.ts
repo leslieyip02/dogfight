@@ -4,7 +4,6 @@ import type { EntityPosition } from "../GameEvent";
 export interface Entity {
     position: EntityPosition;
 
-    update: (position: EntityPosition) => void;
+    update: (position?: EntityPosition) => void;
     draw: (instance: p5) => void;
-    destroy: () => void;
 };

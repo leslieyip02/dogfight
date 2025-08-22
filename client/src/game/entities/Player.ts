@@ -20,8 +20,8 @@ class Player implements Entity {
     this.destroyed = false;
   }
 
-  update = (position: EntityPosition) => {
-    if (this.destroyed) {
+  update = (position?: EntityPosition) => {
+    if (!position || this.destroyed) {
       return;
     }
     this.roll = Math.sign(position.theta - this.position.theta);
@@ -87,7 +87,6 @@ class Player implements Entity {
   };
 
   destroy = () => {
-    // TODO: implement
     this.destroyed = true;
   };
 };
