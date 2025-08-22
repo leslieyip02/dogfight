@@ -28,7 +28,10 @@ type QuitEventData struct {
 	Id string `json:"id"`
 }
 
-type UpdateEventData map[string]EntityPosition
+type UpdatePositionEventData struct {
+	Players     map[string]EntityPosition `json:"players"`
+	Projectiles map[string]EntityPosition `json:"projectiles"`
+}
 
 type InputEventData struct {
 	ClientId     string  `json:"clientId"`
@@ -71,16 +74,20 @@ func NewQuitEventMessage(clientId string) ([]byte, error) {
 	return json.Marshal(message)
 }
 
-func NewUpdateEventMessage(game *Game) ([]byte, error) {
-	updateEventData := make(UpdateEventData)
-	for clientId, player := range game.players {
-		updateEventData[clientId] = player.Position
+func NewUpdatePositionEventMessage(players *map[string]*Player, projectiles *map[string]*Projectile) ([]byte, error) {
+	playerPositions := map[string]EntityPosition{}
+	for id, player := range *players {
+		playerPositions[id] = player.Position
 	}
-	for id, projectile := range game.projectiles {
-		updateEventData[id] = projectile.position
+	projectilePositions := map[string]EntityPosition{}
+	for id, projectile := range *projectiles {
+		projectilePositions[id] = projectile.position
 	}
 
-	data, err := json.Marshal(updateEventData)
+	data, err := json.Marshal(UpdatePositionEventData{
+		Players:     playerPositions,
+		Projectiles: projectilePositions,
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -117,7 +117,7 @@ func (g *Game) update() {
 		delete(g.projectiles, id)
 	}
 
-	message, err := NewUpdateEventMessage(g)
+	message, err := NewUpdatePositionEventMessage(&g.players, &g.projectiles)
 	if err != nil {
 		return
 	}

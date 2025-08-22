@@ -26,7 +26,7 @@ class Player implements Entity {
     instance.push();
 
     instance.translate(this.position.x, this.position.y);
-    
+
     instance.push();
     instance.rotate(this.position.theta);
     instance.fill("#ffffff");
@@ -73,6 +73,10 @@ class Player implements Entity {
     }
 
     instance.pop();
+  };
+
+  destroy = () => {
+    // TODO: implement
   };
 };
 

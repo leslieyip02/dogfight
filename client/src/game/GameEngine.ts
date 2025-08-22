@@ -1,6 +1,7 @@
 import p5 from "p5";
 import Player from "./entities/Player";
-import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdateEventData } from "./GameEvent";
+import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdatePositionEventData } from "./GameEvent";
+import Projectile from "./entities/Projectile";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,6 +15,7 @@ class GameEngine {
   roomId: string;
 
   players: { [clientId: string]: Player };
+  projectiles: { [id: string]: Projectile };
 
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
@@ -28,6 +30,7 @@ class GameEngine {
     this.roomId = roomId;
 
     this.players = {};
+    this.projectiles = {};
 
     this.pressed = false;
     this.sendInput = sendInput;
@@ -62,8 +65,13 @@ class GameEngine {
       -clientPlayer.position.x + window.innerWidth / 2,
       -clientPlayer.position.y + window.innerHeight / 2
     );
+
     Object.values(this.players)
       .forEach(player => player.draw(this.instance));
+
+    Object.values(this.projectiles)
+      .forEach(projectile => projectile.draw(this.instance));
+    
     this.instance.pop();
   };
 
@@ -81,7 +89,7 @@ class GameEngine {
       this.handleQuit(data.data as GameQuitEventData);
       break;
     case "update":
-      this.handleUpdate(data.data as GameUpdateEventData);
+      this.handleUpdate(data.data as GameUpdatePositionEventData);
       break;
     default:
       return;
@@ -96,22 +104,40 @@ class GameEngine {
     delete this.players[data.id];
   };
 
-  private handleUpdate = async (data: GameUpdateEventData) => {
+  private handleUpdate = async (data: GameUpdatePositionEventData) => {
     let needFetch = false;
-    Object.entries(data)
+    Object.entries(data.players)
       .forEach(entry => {
-        const [id, data] = entry;
+        const [id, position] = entry;
         const player = this.players[id];
         if (!player) {
           needFetch = true;
           return;
         }
-        player.update(data);
+        player.update(position);
       });
 
     if (needFetch) {
       await this.fetchPlayers();
     }
+
+    const expiredIds = new Set(Object.keys(this.projectiles));
+    Object.entries(data.projectiles)
+      .forEach(entry => {
+        const [id, position] = entry;
+        const projectile = this.projectiles[id];
+        if (!projectile) {
+          this.projectiles[id] = new Projectile(position);
+          return;
+        }
+        projectile.update(position);
+        expiredIds.delete(id);
+      });
+
+    expiredIds.forEach(id => {
+      this.projectiles[id].destroy();
+      delete this.projectiles[id];
+    });
   };
 
   private fetchPlayers = async () => {

@@ -40,23 +40,10 @@ func (p *Player) shootProjectile() *Projectile {
 	projectile := Projectile{
 		Id:       id,
 		position: p.Position,
-		speed:    MAX_SPEED,
+		speed:    8.0,
+		lifetime: 1 * FPS,
 	}
 	return &projectile
-}
-
-func (p *Player) shoot() Projectile {
-	position := EntityPosition{
-		X:     p.Position.X,
-		Y:     p.Position.Y,
-		Theta: p.Position.Theta,
-	}
-	return Projectile{
-		Id:       "",
-		speed:    0,
-		position: position,
-		lifetime: 3 * FPS,
-	}
 }
 
 func normalizeAngle(angle float64) float64 {
