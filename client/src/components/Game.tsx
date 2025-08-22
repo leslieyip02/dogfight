@@ -51,7 +51,7 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
     const sketch = (instance: p5) => {
       gameEngineRef.current = new GameEngine(instance, clientId, sendInput);
     };
-    
+
     const instance = new p5(sketch, containerRef.current!);
     return () => instance.remove();
   }, [clientId, sendInput]);

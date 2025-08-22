@@ -29,4 +29,5 @@ export type GameInputEventData = {
   clientId: string,
   mouseX: number,
   mouseY: number,
+  mousePressed: boolean,
 }

@@ -8,16 +8,23 @@ const GRID_SIZE = 64;
 
 class GameEngine {
   instance: p5;
+
   clientId: string;
   players: { [clientId: string]: Player };
+
+  pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
 
   constructor(instance: p5, clientId: string, sendInput: (data: GameInputEventData) => void) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
+    this.instance.mousePressed = this.mousePressed;
+
     this.clientId = clientId;
     this.players = {};
+
+    this.pressed = false;
     this.sendInput = sendInput;
   }
 
@@ -31,7 +38,9 @@ class GameEngine {
       clientId: this.clientId,
       mouseX: this.normalize(this.instance.mouseX, window.innerWidth),
       mouseY: this.normalize(this.instance.mouseY, window.innerHeight),
+      mousePressed: this.pressed,
     });
+    this.pressed = false;
 
     this.instance.background(BACKGROUND_COLOR);
     this.drawGrid();
@@ -63,6 +72,10 @@ class GameEngine {
     for (let c = 0; c < cols; c++) {
       this.instance.line(c * GRID_SIZE + dx, 0, c * GRID_SIZE + dx,  window.innerHeight);
     }
+  };
+
+  mousePressed = () => {
+    this.pressed = true;
   };
 
   receive = (event: MessageEvent) => {

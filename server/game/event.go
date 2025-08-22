@@ -31,9 +31,10 @@ type QuitEventData struct {
 type UpdateEventData map[string]EntityPosition
 
 type InputEventData struct {
-	ClientId string  `json:"clientId"`
-	MouseX   float64 `json:"mouseX"`
-	MouseY   float64 `json:"mouseY"`
+	ClientId     string  `json:"clientId"`
+	MouseX       float64 `json:"mouseX"`
+	MouseY       float64 `json:"mouseY"`
+	MousePressed bool    `json:"mousePressed"`
 }
 
 func NewJoinEventMessage(player *Player) ([]byte, error) {
