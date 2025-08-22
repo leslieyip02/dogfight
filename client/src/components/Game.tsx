@@ -24,7 +24,7 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
 
     const event: GameEvent = {
       type: "input",
-      data: data
+      data: data,
     };
     socket?.send(JSON.stringify(event));
   }, [socket]);
@@ -49,12 +49,12 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
 
   useLayoutEffect(() => {
     const sketch = (instance: p5) => {
-      gameEngineRef.current = new GameEngine(instance, clientId, sendInput);
+      gameEngineRef.current = new GameEngine(instance, clientId, roomId, sendInput);
     };
 
     const instance = new p5(sketch, containerRef.current!);
     return () => instance.remove();
-  }, [clientId, sendInput]);
+  }, [clientId, roomId, sendInput]);
 
   return <div className="game__container" ref={containerRef} />;
 };

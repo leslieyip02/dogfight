@@ -34,7 +34,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 	player := Player{
 		Id:       id,
 		Username: username,
-		position: position,
+		Position: position,
 		speed:    MAX_SPEED,
 	}
 
@@ -45,6 +45,14 @@ func (g *Game) AddPlayer(id string, username string) error {
 	}
 	g.Outgoing <- message
 	return nil
+}
+
+func (g *Game) GetPlayers() []*Player {
+	players := []*Player{}
+	for _, player := range g.players {
+		players = append(players, player)
+	}
+	return players
 }
 
 func (g *Game) Run(ctx context.Context) {
@@ -69,7 +77,7 @@ func (g *Game) Run(ctx context.Context) {
 				case QuitEventType:
 					var data QuitEventData
 					json.Unmarshal(event.Data, &data)
-					delete(g.players, data.ClientId)
+					delete(g.players, data.Id)
 
 					g.Outgoing <- message
 

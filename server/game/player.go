@@ -6,10 +6,10 @@ import (
 )
 
 type Player struct {
-	Id       string
-	Username string
+	Id       string         `json:"id"`
+	Username string         `json:"username"`
+	Position EntityPosition `json:"position"`
 	speed    float64
-	position EntityPosition
 }
 
 func (p *Player) input(data InputEventData) *Projectile {
@@ -22,13 +22,13 @@ func (p *Player) input(data InputEventData) *Projectile {
 }
 
 func (p *Player) updatePosition(mouseX float64, mouseY float64) {
-	delta := normalizeAngle(math.Atan2(mouseY, mouseX) - p.position.Theta)
-	p.position.Theta = normalizeAngle(p.position.Theta + delta*0.1)
+	delta := normalizeAngle(math.Atan2(mouseY, mouseX) - p.Position.Theta)
+	p.Position.Theta = normalizeAngle(p.Position.Theta + delta*0.1)
 
 	// TODO: consider non-linear multiplier (e.g. -(x - 1)^2 + 1)
 	length := math.Sqrt(mouseX*mouseX + mouseY*mouseY)
-	p.position.X += math.Cos(p.position.Theta) * length * p.speed
-	p.position.Y += math.Sin(p.position.Theta) * length * p.speed
+	p.Position.X += math.Cos(p.Position.Theta) * length * p.speed
+	p.Position.Y += math.Sin(p.Position.Theta) * length * p.speed
 }
 
 func (p *Player) shootProjectile() *Projectile {
@@ -39,7 +39,7 @@ func (p *Player) shootProjectile() *Projectile {
 
 	projectile := Projectile{
 		Id:       id,
-		position: p.position,
+		position: p.Position,
 		speed:    MAX_SPEED,
 	}
 	return &projectile
@@ -47,9 +47,9 @@ func (p *Player) shootProjectile() *Projectile {
 
 func (p *Player) shoot() Projectile {
 	position := EntityPosition{
-		X:     p.position.X,
-		Y:     p.position.Y,
-		Theta: p.position.Theta,
+		X:     p.Position.X,
+		Y:     p.Position.Y,
+		Theta: p.Position.Theta,
 	}
 	return Projectile{
 		Id:       "",

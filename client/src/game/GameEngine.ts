@@ -2,26 +2,31 @@ import p5 from "p5";
 import Player from "./entities/Player";
 import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdateEventData } from "./GameEvent";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const FPS = 60;
 const BACKGROUND_COLOR = "#111111";
-const GRID_SIZE = 64;
 
 class GameEngine {
   instance: p5;
 
   clientId: string;
+  roomId: string;
+
   players: { [clientId: string]: Player };
 
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
 
-  constructor(instance: p5, clientId: string, sendInput: (data: GameInputEventData) => void) {
+  constructor(instance: p5, clientId: string, roomId: string, sendInput: (data: GameInputEventData) => void) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
     this.instance.mousePressed = this.mousePressed;
 
     this.clientId = clientId;
+    this.roomId = roomId;
+
     this.players = {};
 
     this.pressed = false;
@@ -33,7 +38,7 @@ class GameEngine {
     this.instance.frameRate(FPS);
   };
 
-  draw = () => {
+  draw = async () => {
     this.sendInput({
       clientId: this.clientId,
       mouseX: this.normalize(this.instance.mouseX, window.innerWidth),
@@ -43,35 +48,23 @@ class GameEngine {
     this.pressed = false;
 
     this.instance.background(BACKGROUND_COLOR);
-    this.drawGrid();
 
-    const player = this.players[this.clientId];
-    player.draw(this.instance);
-
-    // TODO: filter nearby players
-    // Object.values(this.players)
-    //   .forEach(player => {
-    //     this.instance.circle(player.position.x, player.position.y, 80);
-    //     this.instance.text(player.username, player.position.x, player.position.y);
-    //   });
-  };
-
-  private drawGrid = () => {
-    const player = this.players[this.clientId];
-    const dx = player.position.x % GRID_SIZE;
-    const dy = player.position.y % GRID_SIZE;
-
-    const rows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
-    const cols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
-
-    this.instance.stroke("#ffffff33");
-    this.instance.strokeWeight(2);
-    for (let r = 0; r < rows; r++) {
-      this.instance.line(0, r * GRID_SIZE + dy, window.innerWidth, r * GRID_SIZE + dy);
+    const clientPlayer = this.players[this.clientId];
+    if (!clientPlayer) {
+      await this.fetchPlayers();
+      return;
     }
-    for (let c = 0; c < cols; c++) {
-      this.instance.line(c * GRID_SIZE + dx, 0, c * GRID_SIZE + dx,  window.innerHeight);
-    }
+
+    clientPlayer.drawGrid(this.instance);
+
+    this.instance.push();
+    this.instance.translate(
+      -clientPlayer.position.x + window.innerWidth / 2,
+      -clientPlayer.position.y + window.innerHeight / 2
+    );
+    Object.values(this.players)
+      .forEach(player => player.draw(this.instance));
+    this.instance.pop();
   };
 
   mousePressed = () => {
@@ -96,26 +89,45 @@ class GameEngine {
   };
 
   private handleJoin = (data: GameJoinEventData) => {
-    this.players[data.clientId] = new Player(data.username, data.position);
+    this.players[data.id] = new Player(data.username, data.position);
   };
 
   private handleQuit = (data: GameQuitEventData) => {
-    delete this.players[data.clientId];
+    delete this.players[data.id];
   };
 
-  private handleUpdate = (data: GameUpdateEventData) => {
+  private handleUpdate = async (data: GameUpdateEventData) => {
+    let needFetch = false;
     Object.entries(data)
       .forEach(entry => {
         const [id, data] = entry;
-        if (!data) {
+        const player = this.players[id];
+        if (!player) {
+          needFetch = true;
           return;
         }
-        this.players[id]?.update(data);
+        player.update(data);
+      });
+
+    if (needFetch) {
+      await this.fetchPlayers();
+    }
+  };
+
+  private fetchPlayers = async () => {
+    // fallback
+    await fetch(`${API_URL}/room/players?roomId=${this.roomId}`)
+      .then(response => response.json())
+      .then(data => {
+        data.map((player: GameJoinEventData) => {
+          this.players[player.id] = new Player(player.username, player.position);
+        });
       });
   };
 
   private normalize = (value: number, full: number): number => {
-    return Math.min((full / 2 - value) / (full / 2 * 0.8), 1.0);
+    const delta = value - full / 2;
+    return Math.sign(delta) * Math.min(Math.abs(delta / (full / 2 * 0.8)), 1.0);
   };
 };
 

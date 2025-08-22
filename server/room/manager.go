@@ -43,7 +43,7 @@ func NewManager() (*Manager, error) {
 	return &roomManager, nil
 }
 
-func (m Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 	var request JoinRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "unable to parse room join request", http.StatusBadRequest)
@@ -69,7 +69,21 @@ func (m Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) HandleFetchPlayers(w http.ResponseWriter, r *http.Request) {
+	roomId := r.URL.Query().Get("roomId")
+	if roomId == "" {
+		http.Error(w, "missing room ID", http.StatusBadRequest)
+		return
+	}
+
+	room := m.getRoom(&roomId)
+	body := room.game.GetPlayers()
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		http.Error(w, "unable to get players", http.StatusInternalServerError)
+	}
+}
+
+func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 	clientId := r.URL.Query().Get("clientId")
 	if clientId == "" {
 		http.Error(w, "missing client ID", http.StatusBadRequest)

@@ -8,4 +8,4 @@ const HEIGHT = 10000.0
 const FPS = 60
 const FRAME_DURATION = time.Second / FPS
 
-const MAX_SPEED = 8.0
+const MAX_SPEED = 2.0

@@ -45,10 +45,9 @@ func main() {
 
 	r.Route("/api/room", func(r chi.Router) {
 		r.Post("/join", roomManager.HandleJoin)
+		r.Get("/players", roomManager.HandleFetchPlayers)
 	})
 	r.Get("/ws", roomManager.HandleConnect)
-
-	// TODO: handle websockets
 
 	log.Printf("server is running on %s:%s", host, port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {

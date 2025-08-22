@@ -1,7 +1,6 @@
 package room
 
 import (
-	"log"
 	"server/game"
 	"server/utils"
 
@@ -49,7 +48,6 @@ func (c *Client) writePump(outgoing <-chan []byte) {
 	defer c.conn.Close()
 
 	for data := range outgoing {
-		log.Println(string(data))
 		err := c.conn.WriteMessage(websocket.TextMessage, data)
 		if err != nil {
 			break

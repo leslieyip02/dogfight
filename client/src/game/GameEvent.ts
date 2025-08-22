@@ -2,17 +2,17 @@ export type GameEventType = "join" | "quit" | "update" | "input";
 
 export type GameEvent = {
   type: GameEventType
-  data: GameJoinEventData | GameQuitEventData | GameUpdateEventData
+  data: GameJoinEventData | GameQuitEventData | GameUpdateEventData | GameInputEventData
 };
 
 export type GameJoinEventData = {
-  clientId: string,
+  id: string,
   username: string,
   position: EntityPosition
 };
 
 export type GameQuitEventData = {
-  clientId: string,
+  id: string,
 };
 
 export type EntityPosition = {
@@ -22,7 +22,7 @@ export type EntityPosition = {
 }
 
 export type GameUpdateEventData = {
-  [id: string]: EntityPosition | null,
+  [id: string]: EntityPosition,
 };
 
 export type GameInputEventData = {
