@@ -37,9 +37,14 @@ func (p *Player) shootProjectile() *Projectile {
 		return nil
 	}
 
+	position := EntityPosition{
+		X:     p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
+		Y:     p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
+		Theta: p.Position.Theta,
+	}
 	projectile := Projectile{
 		Id:       id,
-		position: p.Position,
+		position: position,
 		speed:    8.0,
 		lifetime: 1 * FPS,
 	}

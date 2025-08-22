@@ -131,7 +131,7 @@ func (g *Game) updateProjectiles() {
 
 func (g *Game) resolveCollisions() {
 	// TODO: use line sweep to lower time complexity to O(n log(n))
-	collidedIds := []string{}
+	collidedPlayerIds := []string{}
 	for i, player := range g.players {
 		for j, other := range g.players {
 			if i == j {
@@ -142,13 +142,30 @@ func (g *Game) resolveCollisions() {
 			dx := player.Position.X - other.Position.X
 			dy := player.Position.Y - other.Position.Y
 			distance := math.Sqrt(dx*dx + dy*dy)
-			if distance <= 2*PLAYER_BOUNDING_CIRCLE_RADIUS {
-				collidedIds = append(collidedIds, i, j)
+			if distance <= 2*PLAYER_RADIUS {
+				collidedPlayerIds = append(collidedPlayerIds, i, j)
 			}
 		}
 	}
 
-	for _, id := range collidedIds {
+	collidedProjectileIds := []string{}
+	for i, player := range g.players {
+		for j, projectile := range g.projectiles {
+			// projectiles are modelled as circles
+			dx := player.Position.X - projectile.position.X
+			dy := player.Position.Y - projectile.position.Y
+			distance := math.Sqrt(dx*dx + dy*dy)
+			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
+				collidedPlayerIds = append(collidedPlayerIds, i)
+				collidedProjectileIds = append(collidedProjectileIds, j)
+			}
+		}
+	}
+
+	for _, id := range collidedPlayerIds {
 		delete(g.players, id)
+	}
+	for _, id := range collidedProjectileIds {
+		delete(g.projectiles, id)
 	}
 }
