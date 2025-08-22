@@ -33,10 +33,10 @@ const App = () => {
   if (!clientId || !roomId) {
     return (
       <>
-        <h1>Join a room</h1>
         <form onSubmit={onSubmit}>
-          <div>
-            <label htmlFor="username">Username</label><br />
+          <h1 className="form__header">dogfight</h1>
+          <div className="form__username">
+            <label htmlFor="username">username:</label><br />
             <input
               type="text"
               id="username"
@@ -47,8 +47,7 @@ const App = () => {
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
-          <br />
-          <button type="submit">Join</button>
+          <button className="form__submit" type="submit">Join</button>
         </form>
       </>
     );
