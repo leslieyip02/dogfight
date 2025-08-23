@@ -35,7 +35,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 		Id:       id,
 		Username: username,
 		Position: position,
-		speed:    MAX_SPEED,
+		speed:    MAX_PLAYER_SPEED,
 	}
 
 	g.players[id] = &player
@@ -97,11 +97,7 @@ func (g *Game) input(data InputEventData) {
 	if !found {
 		return
 	}
-
-	projectile := player.input(data)
-	if projectile != nil {
-		g.projectiles[projectile.Id] = projectile
-	}
+	player.input(data, g)
 }
 
 func (g *Game) update() {

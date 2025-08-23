@@ -12,43 +12,30 @@ type Player struct {
 	speed    float64
 }
 
-func (p *Player) input(data InputEventData) *Projectile {
-	p.updatePosition(data.MouseX, data.MouseY)
-	if data.MousePressed {
-		return p.shootProjectile()
-	} else {
-		return nil
-	}
+func (p *Player) input(data InputEventData, game *Game) {
+	p.updatePosition(data)
+	p.shootProjectiles(data, game)
 }
 
-func (p *Player) updatePosition(mouseX float64, mouseY float64) {
-	delta := normalizeAngle(math.Atan2(mouseY, mouseX) - p.Position.Theta)
-	p.Position.Theta = normalizeAngle(p.Position.Theta + delta*0.1)
-
-	// TODO: consider non-linear multiplier (e.g. -(x - 1)^2 + 1)
-	length := math.Sqrt(mouseX*mouseX + mouseY*mouseY)
-	p.Position.X += math.Cos(p.Position.Theta) * length * p.speed
-	p.Position.Y += math.Sin(p.Position.Theta) * length * p.speed
+func (p *Player) updatePosition(data InputEventData) {
+	p.move(data.MouseX, data.MouseY)
+	p.turn(data.MouseX, data.MouseY)
 }
 
-func (p *Player) shootProjectile() *Projectile {
-	id, err := utils.NewShortId()
-	if err != nil {
-		return nil
-	}
+func (p *Player) move(mouseX float64, mouseY float64) {
+	acceleration := 1 / (1 + ACCELERATION_DECAY*p.speed)
+	throttle := math.Sqrt(mouseX*mouseX+mouseY*mouseY) / math.Sqrt(2)
+	speedDifference := throttle*MAX_PLAYER_SPEED - p.speed
+	p.speed += speedDifference * acceleration
 
-	position := EntityPosition{
-		X:     p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
-		Y:     p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
-		Theta: p.Position.Theta,
-	}
-	projectile := Projectile{
-		Id:       id,
-		position: position,
-		speed:    8.0,
-		lifetime: 1 * FPS,
-	}
-	return &projectile
+	p.Position.X += math.Cos(p.Position.Theta) * p.speed
+	p.Position.Y += math.Sin(p.Position.Theta) * p.speed
+}
+
+func (p *Player) turn(mouseX float64, mouseY float64) {
+	turnRate := 1 / (1 + TURN_RATE_DECAY*p.speed) * MAX_TURN_RATE
+	angleDifference := normalizeAngle(math.Atan2(mouseY, mouseX) - p.Position.Theta)
+	p.Position.Theta = normalizeAngle(p.Position.Theta + angleDifference*turnRate)
 }
 
 func normalizeAngle(angle float64) float64 {
@@ -59,4 +46,29 @@ func normalizeAngle(angle float64) float64 {
 		angle += 2 * math.Pi
 	}
 	return angle
+}
+
+func (p *Player) shootProjectiles(data InputEventData, game *Game) {
+	if !data.MousePressed {
+		return
+	}
+
+	id, err := utils.NewShortId()
+	if err != nil {
+		return
+	}
+
+	// TODO: consider multishot
+	position := EntityPosition{
+		X:     p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
+		Y:     p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
+		Theta: p.Position.Theta,
+	}
+	projectile := Projectile{
+		Id:       id,
+		position: position,
+		speed:    PROJECTILE_SPEED,
+		lifetime: 1 * FPS,
+	}
+	game.projectiles[id] = &projectile
 }
