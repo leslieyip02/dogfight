@@ -28,11 +28,10 @@ class Projectile implements Entity {
     instance.rotate(this.position.theta);
 
     instance.noStroke();
-    instance.fill("#ffffffaa");
+    instance.fill("#ffffff");
     instance.circle(-20, 0, 10);
     instance.rect(-20, -5, 20, 10);
 
-    instance.fill("#ffffff");
     if (DEBUG) {
       instance.stroke("#ff0000");
     }
