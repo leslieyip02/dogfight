@@ -7,10 +7,11 @@ import (
 type EventType string
 
 const (
-	JoinEventType   EventType = "join"
-	QuitEventType   EventType = "quit"
-	UpdateEventType EventType = "update"
-	InputEventType  EventType = "input"
+	JoinEventType           EventType = "join"
+	QuitEventType           EventType = "quit"
+	UpdatePositionEventType EventType = "position"
+	UpdatePowerupEventType  EventType = "powerup"
+	InputEventType          EventType = "input"
 )
 
 type Event struct {
@@ -31,6 +32,12 @@ type QuitEventData struct {
 type UpdatePositionEventData struct {
 	Players     map[string]EntityPosition `json:"players"`
 	Projectiles map[string]EntityPosition `json:"projectiles"`
+}
+
+type UpdatePowerupEventData struct {
+	Id       string         `json:"id"`
+	Type     PowerupType    `json:"type"`
+	Position EntityPosition `json:"position"`
 }
 
 type InputEventData struct {
@@ -93,7 +100,7 @@ func NewUpdatePositionEventMessage(players *map[string]*Player, projectiles *map
 	}
 
 	message := Event{
-		Type: UpdateEventType,
+		Type: UpdatePositionEventType,
 		Data: data,
 	}
 	return json.Marshal(message)

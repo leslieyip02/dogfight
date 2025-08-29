@@ -1,8 +1,9 @@
 import p5 from "p5";
 import Player from "./entities/Player";
-import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdatePositionEventData } from "./GameEvent";
+import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdatePositionEventData, GameUpdatePowerupEventData } from "./GameEvent";
 import Projectile from "./entities/Projectile";
 import Explosion from "./entities/Explosion";
+import Powerup from "./entities/Powerup";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,6 +18,7 @@ class GameEngine {
 
   players: { [id: string]: Player };
   projectiles: { [id: string]: Projectile };
+  powerups: { [id: string]: Powerup };
   explosions: { [id: string]: Explosion };
 
   pressed: boolean;
@@ -33,6 +35,7 @@ class GameEngine {
 
     this.players = {};
     this.projectiles = {};
+    this.powerups = {};
     this.explosions = {};
 
     this.pressed = false;
@@ -71,10 +74,13 @@ class GameEngine {
 
     Object.values(this.players)
       .forEach(player => player.draw(this.instance));
-
     Object.values(this.projectiles)
       .forEach(projectile => projectile.draw(this.instance));
 
+    Object.values(this.powerups).forEach(powerup => {
+      powerup.update();
+      powerup.draw(this.instance);
+    });
     Object.values(this.explosions).forEach(explosion => {
       explosion.update();
       explosion.draw(this.instance);
@@ -96,9 +102,17 @@ class GameEngine {
     case "quit":     
       this.handleQuit(data.data as GameQuitEventData);
       break;
-    case "update":
-      this.handleUpdate(data.data as GameUpdatePositionEventData);
+    case "position": {
+      const positionData = data.data as GameUpdatePositionEventData;
+      this.updatePlayers(positionData);
+      this.updateProjectiles(positionData);
       break;
+    }
+    case "powerup": {
+      const powerupData = data.data as GameUpdatePowerupEventData;
+      this.updatePowerups(powerupData);
+      break;
+    }
     default:
       return;
     }
@@ -110,11 +124,6 @@ class GameEngine {
 
   private handleQuit = (data: GameQuitEventData) => {
     delete this.players[data.id];
-  };
-
-  private handleUpdate = async (data: GameUpdatePositionEventData) => {
-    this.updatePlayers(data);
-    this.updateProjectiles(data);
   };
 
   private updatePlayers = async (data: GameUpdatePositionEventData) => {
@@ -161,7 +170,7 @@ class GameEngine {
       });
   };
 
-  private updateProjectiles = async (data: GameUpdatePositionEventData) => {
+  private updateProjectiles = (data: GameUpdatePositionEventData) => {
     const destroyedIds = new Set(Object.keys(this.projectiles));
     Object.entries(data.projectiles)
       .forEach(entry => {
@@ -176,6 +185,15 @@ class GameEngine {
       });
 
     destroyedIds.forEach(id => delete this.projectiles[id]);
+  };
+
+  private updatePowerups = (data: GameUpdatePowerupEventData) => {
+    if (!data.position) {
+      delete this.powerups[data.id];
+      return;
+    }
+
+    this.powerups[data.id] = new Powerup(data.type, data.position);
   };
 
   private normalize = (value: number, full: number): number => {

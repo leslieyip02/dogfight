@@ -1,8 +1,14 @@
-export type GameEventType = "join" | "quit" | "update" | "input";
+import type { PowerupType } from "./entities/Powerup";
+
+export type GameEventType = "join" | "quit" | "position" | "input";
 
 export type GameEvent = {
   type: GameEventType
-  data: GameJoinEventData | GameQuitEventData | GameUpdatePositionEventData | GameInputEventData
+  data: GameJoinEventData
+    | GameQuitEventData
+    | GameUpdatePositionEventData
+    | GameUpdatePowerupEventData
+    | GameInputEventData
 };
 
 export type GameJoinEventData = {
@@ -19,7 +25,7 @@ export type EntityPosition = {
   x: number,
   y: number,
   theta: number,
-}
+};
 
 export type GameUpdatePositionEventData = {
   players: {
@@ -30,17 +36,15 @@ export type GameUpdatePositionEventData = {
   }
 };
 
-export type EntityStatus = {
-  health: number,
-}
-
-export type GameUpdateStatusEventData = {
-  [id: string]: EntityStatus,
-}
+export type GameUpdatePowerupEventData = {
+  id: string,
+  type: PowerupType
+  position: EntityPosition | undefined,
+};
 
 export type GameInputEventData = {
   clientId: string,
   mouseX: number,
   mouseY: number,
   mousePressed: boolean,
-}
+};
