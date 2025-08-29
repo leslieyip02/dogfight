@@ -11,17 +11,19 @@ class Player implements Entity {
   position: EntityPosition;
   username: string;
   roll: number;
-  destroyed: boolean;
+  removed: boolean;
+  onRemove: () => void;
 
-  constructor(username: string, position: EntityPosition) {
+  constructor(username: string, position: EntityPosition, onRemove: () => void) {
     this.username = username;
     this.position = position;
     this.roll = 0;
-    this.destroyed = false;
+    this.removed = false;
+    this.onRemove = onRemove;
   }
 
   update = (position?: EntityPosition) => {
-    if (!position || this.destroyed) {
+    if (!position || this.removed) {
       return;
     }
     this.roll = Math.sign(position.theta - this.position.theta);
@@ -29,7 +31,7 @@ class Player implements Entity {
   };
 
   draw = (instance: p5) => {
-    if (this.destroyed) {
+    if (this.removed) {
       return;
     }
 
@@ -86,8 +88,9 @@ class Player implements Entity {
     instance.pop();
   };
 
-  destroy = () => {
-    this.destroyed = true;
+  remove = () => {
+    this.removed = true;
+    this.onRemove();
   };
 };
 

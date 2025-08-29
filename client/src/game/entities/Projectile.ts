@@ -6,9 +6,11 @@ const DEBUG = import.meta.env.VITE_DEBUG;
 
 class Projectile implements Entity {
   position: EntityPosition;
+  onRemove: () => void;
 
-  constructor(position: EntityPosition) {
+  constructor(position: EntityPosition, onRemove: () => void) {
     this.position = position;
+    this.onRemove = onRemove;
   }
 
   update = (position?: EntityPosition) => {
@@ -46,6 +48,10 @@ class Projectile implements Entity {
     }
 
     instance.pop();
+  };
+
+  remove = () => {
+    this.onRemove();
   };
 }
 

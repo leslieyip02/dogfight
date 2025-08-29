@@ -1,6 +1,12 @@
 import p5 from "p5";
 import Player from "./entities/Player";
-import type { GameInputEventData, GameJoinEventData, GameQuitEventData, GameUpdatePositionEventData, GameUpdatePowerupEventData } from "./GameEvent";
+import type {
+  GameInputEventData,
+  GameJoinEventData,
+  GameQuitEventData,
+  GameUpdatePositionEventData,
+  GameUpdatePowerupEventData
+} from "./GameEvent";
 import Projectile from "./entities/Projectile";
 import Explosion from "./entities/Explosion";
 import Powerup from "./entities/Powerup";
@@ -119,7 +125,7 @@ class GameEngine {
   };
 
   private handleJoin = (data: GameJoinEventData) => {
-    this.players[data.id] = new Player(data.username, data.position);
+    this.players[data.id] = new Player(data.username, data.position, this.onRemovePlayer(data.id));
   };
 
   private handleQuit = (data: GameQuitEventData) => {
@@ -141,18 +147,7 @@ class GameEngine {
         destroyedIds.delete(id);
       });
 
-    destroyedIds.forEach(id => {
-      this.players[id]?.destroy();
-
-      if (!this.explosions[id]) {
-        this.explosions[id] = new Explosion({ ...this.players[id].position });
-      }
-
-      if (id === this.clientId) {
-        return;
-      }
-      delete this.players[id];
-    });
+    destroyedIds.forEach(id => this.players[id].remove());
 
     if (needFetch) {
       await this.fetchPlayers();
@@ -165,7 +160,11 @@ class GameEngine {
       .then(response => response.json())
       .then(data => {
         data.map((player: GameJoinEventData) => {
-          this.players[player.id] = new Player(player.username, player.position);
+          this.players[player.id] = new Player(
+            player.username,
+            player.position,
+            this.onRemovePlayer(player.id)
+          );
         });
       });
   };
@@ -177,14 +176,16 @@ class GameEngine {
         const [id, position] = entry;
         const projectile = this.projectiles[id];
         if (!projectile) {
-          this.projectiles[id] = new Projectile(position);
+          this.projectiles[id] = new Projectile(position, () => {
+            delete this.projectiles[id];
+          });
           return;
         }
         projectile.update(position);
         destroyedIds.delete(id);
       });
 
-    destroyedIds.forEach(id => delete this.projectiles[id]);
+    destroyedIds.forEach(id => this.projectiles[id].remove());
   };
 
   private updatePowerups = (data: GameUpdatePowerupEventData) => {
@@ -193,7 +194,26 @@ class GameEngine {
       return;
     }
 
-    this.powerups[data.id] = new Powerup(data.type, data.position);
+    this.powerups[data.id] = new Powerup(data.type, data.position, () => {
+      delete this.powerups[data.id];
+    });
+  };
+
+  private onRemovePlayer = (id: string) => {
+    return () => {
+      if (!this.explosions[id]) {
+        this.explosions[id] = new Explosion({ ...this.players[id].position }, () => {
+          delete this.explosions[id];
+        });
+      }
+
+      // do not remove the client's player
+      // to continue showing the background
+      if (id === this.clientId) {
+        return;
+      }
+      delete this.players[id];
+    };
   };
 
   private normalize = (value: number, full: number): number => {

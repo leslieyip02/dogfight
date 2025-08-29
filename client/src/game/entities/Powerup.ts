@@ -9,10 +9,12 @@ const DEBUG = import.meta.env.VITE_DEBUG;
 class Powerup implements Entity {
   type: PowerupType;
   position: EntityPosition;
+  onRemove: () => void;
 
-  constructor(type: PowerupType, position: EntityPosition) {
+  constructor(type: PowerupType, position: EntityPosition, onRemove: () => void) {
     this.type = type;
     this.position = position;
+    this.onRemove = onRemove;
   }
 
   update = (position?: EntityPosition) => {
@@ -40,6 +42,10 @@ class Powerup implements Entity {
 
     instance.pop();
     instance.pop();
+  };
+
+  remove = () => {
+    this.onRemove();
   };
 }
 

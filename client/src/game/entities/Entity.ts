@@ -6,4 +6,5 @@ export interface Entity {
 
     update: (position?: EntityPosition) => void;
     draw: (instance: p5) => void;
+    remove: () => void;
 };
