@@ -3,6 +3,7 @@ package room
 import (
 	"server/game"
 	"server/utils"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -11,6 +12,7 @@ type Client struct {
 	id       string
 	username string
 	conn     *websocket.Conn
+	mu       sync.Mutex
 }
 
 func NewClient(username string) (*Client, error) {
@@ -48,9 +50,15 @@ func (c *Client) writePump(outgoing <-chan []byte) {
 	defer c.conn.Close()
 
 	for data := range outgoing {
-		err := c.conn.WriteMessage(websocket.TextMessage, data)
+		err := c.writeMessage(data)
 		if err != nil {
 			break
 		}
 	}
+}
+
+func (c *Client) writeMessage(data []byte) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn.WriteMessage(websocket.TextMessage, data)
 }

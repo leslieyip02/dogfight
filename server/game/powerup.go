@@ -9,5 +9,5 @@ const (
 type Powerup struct {
 	Id       string
 	Type     PowerupType
-	Position EntityPosition
+	position EntityPosition
 }

@@ -10,6 +10,7 @@ type Player struct {
 	Username string         `json:"username"`
 	Position EntityPosition `json:"position"`
 	speed    float64
+	powerup  *Powerup
 }
 
 func (p *Player) input(data InputEventData, game *Game) {
@@ -53,22 +54,34 @@ func (p *Player) shootProjectiles(data InputEventData, game *Game) {
 		return
 	}
 
-	id, err := utils.NewShortId()
-	if err != nil {
-		return
+	// TODO: consider multishot
+	var shots int
+	if p.powerup == nil {
+		shots = 1
+	} else {
+		shots = 3
 	}
 
-	// TODO: consider multishot
-	position := EntityPosition{
-		X:     p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
-		Y:     p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS),
-		Theta: p.Position.Theta,
+	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
+	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
+	for i := 0; i < shots; i++ {
+		id, err := utils.NewShortId()
+		if err != nil {
+			continue
+		}
+
+		offset := (i - shots/2) * 32
+		position := EntityPosition{
+			X:     centerX + math.Sin(p.Position.Theta)*float64(offset),
+			Y:     centerY - math.Cos(p.Position.Theta)*float64(offset),
+			Theta: p.Position.Theta,
+		}
+		projectile := Projectile{
+			Id:       id,
+			position: position,
+			speed:    PROJECTILE_SPEED,
+			lifetime: 1 * FPS,
+		}
+		game.projectiles[id] = &projectile
 	}
-	projectile := Projectile{
-		Id:       id,
-		position: position,
-		speed:    PROJECTILE_SPEED,
-		lifetime: 1 * FPS,
-	}
-	game.projectiles[id] = &projectile
 }

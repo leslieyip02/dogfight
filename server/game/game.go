@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math"
+	"server/utils"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type Game struct {
 	Outgoing    chan []byte
 	players     map[string]*Player
 	projectiles map[string]*Projectile
+	powerups    map[string]*Powerup
 }
 
 func NewGame() Game {
@@ -20,6 +22,7 @@ func NewGame() Game {
 		Outgoing:    make(chan []byte),
 		players:     map[string]*Player{},
 		projectiles: map[string]*Projectile{},
+		powerups:    map[string]*Powerup{},
 	}
 }
 
@@ -36,6 +39,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 		Username: username,
 		Position: position,
 		speed:    MAX_PLAYER_SPEED,
+		powerup:  nil,
 	}
 
 	g.players[id] = &player
@@ -44,6 +48,8 @@ func (g *Game) AddPlayer(id string, username string) error {
 		return err
 	}
 	g.Outgoing <- message
+
+	g.addPowerup()
 	return nil
 }
 
@@ -145,6 +151,7 @@ func (g *Game) resolveCollisions() {
 	}
 
 	collidedProjectileIds := []string{}
+	consumedPowerupIds := []string{}
 	for i, player := range g.players {
 		for j, projectile := range g.projectiles {
 			// projectiles are modelled as circles
@@ -156,6 +163,16 @@ func (g *Game) resolveCollisions() {
 				collidedProjectileIds = append(collidedProjectileIds, j)
 			}
 		}
+
+		for j, powerup := range g.powerups {
+			dx := player.Position.X - powerup.position.X
+			dy := player.Position.Y - powerup.position.Y
+			distance := math.Sqrt(dx*dx + dy*dy)
+			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
+				player.powerup = powerup
+				consumedPowerupIds = append(consumedPowerupIds, j)
+			}
+		}
 	}
 
 	for _, id := range collidedPlayerIds {
@@ -164,4 +181,35 @@ func (g *Game) resolveCollisions() {
 	for _, id := range collidedProjectileIds {
 		delete(g.projectiles, id)
 	}
+	for _, id := range consumedPowerupIds {
+		message, err := NewUpdatePowerupEventMessage(g.powerups[id], false)
+		if err == nil {
+			g.Outgoing <- message
+		}
+		delete(g.powerups, id)
+	}
+}
+
+func (g *Game) addPowerup() error {
+	id, err := utils.NewShortId()
+	if err != nil {
+		return err
+	}
+
+	powerup := Powerup{
+		Id:   id,
+		Type: "multishot",
+		position: EntityPosition{
+			X:     500,
+			Y:     500,
+			Theta: 0,
+		},
+	}
+	g.powerups[id] = &powerup
+	message, err := NewUpdatePowerupEventMessage(&powerup, true)
+	if err != nil {
+		return err
+	}
+	g.Outgoing <- message
+	return nil
 }

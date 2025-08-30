@@ -37,6 +37,7 @@ type UpdatePositionEventData struct {
 type UpdatePowerupEventData struct {
 	Id       string         `json:"id"`
 	Type     PowerupType    `json:"type"`
+	Active   bool           `json:"active"`
 	Position EntityPosition `json:"position"`
 }
 
@@ -101,6 +102,24 @@ func NewUpdatePositionEventMessage(players *map[string]*Player, projectiles *map
 
 	message := Event{
 		Type: UpdatePositionEventType,
+		Data: data,
+	}
+	return json.Marshal(message)
+}
+
+func NewUpdatePowerupEventMessage(powerup *Powerup, active bool) ([]byte, error) {
+	data, err := json.Marshal(UpdatePowerupEventData{
+		Id:       powerup.Id,
+		Type:     powerup.Type,
+		Active:   active,
+		Position: powerup.position,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	message := Event{
+		Type: UpdatePowerupEventType,
 		Data: data,
 	}
 	return json.Marshal(message)

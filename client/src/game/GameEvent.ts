@@ -1,6 +1,6 @@
 import type { PowerupType } from "./entities/Powerup";
 
-export type GameEventType = "join" | "quit" | "position" | "input";
+export type GameEventType = "join" | "quit" | "position" | "powerup" | "input";
 
 export type GameEvent = {
   type: GameEventType
@@ -33,13 +33,14 @@ export type GameUpdatePositionEventData = {
   },
   projectiles: {
     [id: string]: EntityPosition,
-  }
+  },
 };
 
 export type GameUpdatePowerupEventData = {
   id: string,
   type: PowerupType
-  position: EntityPosition | undefined,
+  active: boolean,
+  position?: EntityPosition,
 };
 
 export type GameInputEventData = {

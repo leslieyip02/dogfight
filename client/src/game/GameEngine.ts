@@ -1,6 +1,7 @@
 import p5 from "p5";
 import Player from "./entities/Player";
 import type {
+  GameEventType,
   GameInputEventData,
   GameJoinEventData,
   GameQuitEventData,
@@ -101,7 +102,7 @@ class GameEngine {
 
   receive = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
-    switch (data["type"]) {
+    switch (data["type"] as GameEventType) {
     case "join":
       this.handleJoin(data.data as GameJoinEventData);
       break;
@@ -189,14 +190,14 @@ class GameEngine {
   };
 
   private updatePowerups = (data: GameUpdatePowerupEventData) => {
-    if (!data.position) {
-      delete this.powerups[data.id];
-      return;
+    console.log(data);
+    if (data.active) {
+      this.powerups[data.id] = new Powerup(data.type, data.position!, () => {
+        delete this.powerups[data.id];
+      });
+    } else {
+      this.powerups[data.id].onRemove();
     }
-
-    this.powerups[data.id] = new Powerup(data.type, data.position, () => {
-      delete this.powerups[data.id];
-    });
   };
 
   private onRemovePlayer = (id: string) => {
