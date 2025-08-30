@@ -45,7 +45,7 @@ func main() {
 
 	r.Route("/api/room", func(r chi.Router) {
 		r.Post("/join", roomManager.HandleJoin)
-		r.Get("/players", roomManager.HandleFetchPlayers)
+		r.Get("/state", roomManager.HandleFetchState)
 	})
 	r.Get("/ws", roomManager.HandleConnect)
 

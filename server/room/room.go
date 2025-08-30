@@ -35,6 +35,7 @@ func NewRoom() (*Room, error) {
 	}
 
 	game.Run(ctx)
+	go room.broadcast()
 
 	return &room, nil
 }
@@ -54,10 +55,30 @@ func (r *Room) Remove(client *Client) {
 	delete(r.clients, client.id)
 }
 
-func (r *Room) Connect(client *Client) error {
+func (r *Room) connect(client *Client) error {
 	go client.readPump(r.game.Incoming)
-	go client.writePump(r.game.Outgoing)
+	go client.writePump()
 	return r.game.AddPlayer(client.id, client.username)
+}
+
+func (r *Room) broadcast() {
+	for {
+		select {
+		case <-r.ctx.Done():
+			return
+		case data := <-r.game.Outgoing:
+			for _, client := range r.clients {
+				client.send <- data
+			}
+		}
+	}
+}
+
+func (r *Room) getClient(id string) (*Client, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	c, ok := r.clients[id]
+	return c, ok
 }
 
 func (r *Room) Stop() {

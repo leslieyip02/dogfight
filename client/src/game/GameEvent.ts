@@ -39,7 +39,6 @@ export type GameUpdatePositionEventData = {
 export type GameUpdatePowerupEventData = {
   id: string,
   type: PowerupType
-  active: boolean,
   position?: EntityPosition,
 };
 

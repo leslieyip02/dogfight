@@ -12,6 +12,7 @@ type Client struct {
 	id       string
 	username string
 	conn     *websocket.Conn
+	send     chan []byte
 	mu       sync.Mutex
 }
 
@@ -24,6 +25,8 @@ func NewClient(username string) (*Client, error) {
 	client := Client{
 		id:       id,
 		username: username,
+		send:     make(chan []byte),
+		mu:       sync.Mutex{},
 	}
 	return &client, nil
 }
@@ -46,10 +49,9 @@ func (c *Client) readPump(incoming chan<- []byte) {
 	}
 }
 
-func (c *Client) writePump(outgoing <-chan []byte) {
+func (c *Client) writePump() {
 	defer c.conn.Close()
-
-	for data := range outgoing {
+	for data := range c.send {
 		err := c.writeMessage(data)
 		if err != nil {
 			break

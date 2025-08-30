@@ -78,7 +78,7 @@ func (p *Player) shootProjectiles(data InputEventData, game *Game) {
 		}
 		projectile := Projectile{
 			Id:       id,
-			position: position,
+			Position: position,
 			speed:    PROJECTILE_SPEED,
 			lifetime: 1 * FPS,
 		}

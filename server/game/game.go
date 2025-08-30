@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"math"
+	"math/rand"
 	"server/utils"
 	"time"
 )
@@ -14,6 +15,11 @@ type Game struct {
 	players     map[string]*Player
 	projectiles map[string]*Projectile
 	powerups    map[string]*Powerup
+}
+
+type GameState struct {
+	Players  []*Player  `json:"players"`
+	Powerups []*Powerup `json:"powerups"`
 }
 
 func NewGame() Game {
@@ -53,12 +59,19 @@ func (g *Game) AddPlayer(id string, username string) error {
 	return nil
 }
 
-func (g *Game) GetPlayers() []*Player {
+func (g *Game) GetState() GameState {
 	players := []*Player{}
 	for _, player := range g.players {
 		players = append(players, player)
 	}
-	return players
+	powerups := []*Powerup{}
+	for _, powerup := range g.powerups {
+		powerups = append(powerups, powerup)
+	}
+	return GameState{
+		Players:  players,
+		Powerups: powerups,
+	}
 }
 
 func (g *Game) Run(ctx context.Context) {
@@ -155,8 +168,8 @@ func (g *Game) resolveCollisions() {
 	for i, player := range g.players {
 		for j, projectile := range g.projectiles {
 			// projectiles are modelled as circles
-			dx := player.Position.X - projectile.position.X
-			dy := player.Position.Y - projectile.position.Y
+			dx := player.Position.X - projectile.Position.X
+			dy := player.Position.Y - projectile.Position.Y
 			distance := math.Sqrt(dx*dx + dy*dy)
 			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
 				collidedPlayerIds = append(collidedPlayerIds, i)
@@ -165,8 +178,8 @@ func (g *Game) resolveCollisions() {
 		}
 
 		for j, powerup := range g.powerups {
-			dx := player.Position.X - powerup.position.X
-			dy := player.Position.Y - powerup.position.Y
+			dx := player.Position.X - powerup.Position.X
+			dy := player.Position.Y - powerup.Position.Y
 			distance := math.Sqrt(dx*dx + dy*dy)
 			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
 				player.powerup = powerup
@@ -199,9 +212,9 @@ func (g *Game) addPowerup() error {
 	powerup := Powerup{
 		Id:   id,
 		Type: "multishot",
-		position: EntityPosition{
-			X:     500,
-			Y:     500,
+		Position: EntityPosition{
+			X:     500 + rand.Float64()*100,
+			Y:     500 + rand.Float64()*100,
 			Theta: 0,
 		},
 	}

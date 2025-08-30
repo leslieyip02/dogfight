@@ -7,7 +7,7 @@ const (
 )
 
 type Powerup struct {
-	Id       string
-	Type     PowerupType
-	position EntityPosition
+	Id       string         `json:"id"`
+	Type     PowerupType    `json:"type"`
+	Position EntityPosition `json:"position"`
 }

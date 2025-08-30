@@ -35,11 +35,8 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
     }
 
     const ws = new WebSocket(`${WS_URL}?clientId=${clientId}&roomId=${roomId}`);
-    ws.onopen = () => {
-      console.log("open");
-    };
-    ws.onclose = () => {
-      console.log("close");
+    ws.onopen = async () => {
+      await gameEngineRef.current?.init();
     };
     ws.onmessage = (event: MessageEvent) => {
       gameEngineRef.current?.receive(event);

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,6 +20,7 @@ var (
 type Manager struct {
 	rooms   map[string]*Room
 	roomIds []string
+	mu      sync.Mutex
 }
 
 type JoinRequest struct {
@@ -30,6 +32,7 @@ func NewManager() (*Manager, error) {
 	roomManager := Manager{
 		rooms:   map[string]*Room{},
 		roomIds: []string{},
+		mu:      sync.Mutex{},
 	}
 
 	// TODO: handle adding more rooms
@@ -69,7 +72,7 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m *Manager) HandleFetchPlayers(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
 	roomId := r.URL.Query().Get("roomId")
 	if roomId == "" {
 		http.Error(w, "missing room ID", http.StatusBadRequest)
@@ -77,9 +80,9 @@ func (m *Manager) HandleFetchPlayers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	room := m.getRoom(&roomId)
-	body := room.game.GetPlayers()
+	body := room.game.GetState()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
-		http.Error(w, "unable to get players", http.StatusInternalServerError)
+		http.Error(w, "unable to get room state", http.StatusInternalServerError)
 	}
 }
 
@@ -115,10 +118,13 @@ func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client.conn = conn
-	room.Connect(client)
+	room.connect(client)
 }
 
-func (m Manager) getRoom(roomId *string) *Room {
+func (m *Manager) getRoom(roomId *string) *Room {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if roomId != nil {
 		return m.rooms[*roomId]
 	}

@@ -12,6 +12,11 @@ import Projectile from "./entities/Projectile";
 import Explosion from "./entities/Explosion";
 import Powerup from "./entities/Powerup";
 
+type FetchedGameState = {
+  players: GameJoinEventData[],
+  powerups: GameUpdatePowerupEventData[],
+};
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 const FPS = 60;
@@ -49,6 +54,12 @@ class GameEngine {
     this.sendInput = sendInput;
   }
 
+  init = async () => {
+    await this.fetchState();
+  };
+
+  // p5.js
+  
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
@@ -67,7 +78,7 @@ class GameEngine {
 
     const clientPlayer = this.players[this.clientId];
     if (!clientPlayer) {
-      await this.fetchPlayers();
+      await this.fetchState();
       return;
     }
 
@@ -99,6 +110,8 @@ class GameEngine {
   mousePressed = () => {
     this.pressed = true;
   };
+
+  // server messaging
 
   receive = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
@@ -133,6 +146,23 @@ class GameEngine {
     delete this.players[data.id];
   };
 
+  private fetchState = async () => {
+    await fetch(`${API_URL}/room/state?roomId=${this.roomId}`)
+      .then(response => response.json())
+      .then((data: FetchedGameState) => {
+        data.players.map(player => {
+          this.players[player.id] = new Player(
+            player.username,
+            player.position,
+            this.onRemovePlayer(player.id)
+          );
+        });
+        data.powerups.map(powerup => this.updatePowerups(powerup));
+      });
+  };
+
+  // updates
+
   private updatePlayers = async (data: GameUpdatePositionEventData) => {
     let needFetch = false;
     const destroyedIds = new Set(Object.keys(this.players));
@@ -151,23 +181,8 @@ class GameEngine {
     destroyedIds.forEach(id => this.players[id].remove());
 
     if (needFetch) {
-      await this.fetchPlayers();
+      await this.fetchState();
     }
-  };
-
-  private fetchPlayers = async () => {
-    // fallback
-    await fetch(`${API_URL}/room/players?roomId=${this.roomId}`)
-      .then(response => response.json())
-      .then(data => {
-        data.map((player: GameJoinEventData) => {
-          this.players[player.id] = new Player(
-            player.username,
-            player.position,
-            this.onRemovePlayer(player.id)
-          );
-        });
-      });
   };
 
   private updateProjectiles = (data: GameUpdatePositionEventData) => {
@@ -190,13 +205,16 @@ class GameEngine {
   };
 
   private updatePowerups = (data: GameUpdatePowerupEventData) => {
-    console.log(data);
-    if (data.active) {
-      this.powerups[data.id] = new Powerup(data.type, data.position!, () => {
+    if (data.position) {
+      if (this.powerups[data.id]) {
+        return;
+      }
+
+      this.powerups[data.id] = new Powerup(data.type, data.position, () => {
         delete this.powerups[data.id];
       });
     } else {
-      this.powerups[data.id].onRemove();
+      this.powerups[data.id]?.onRemove();
     }
   };
 
@@ -216,6 +234,8 @@ class GameEngine {
       delete this.players[id];
     };
   };
+
+  // helpers
 
   private normalize = (value: number, full: number): number => {
     const delta = value - full / 2;
