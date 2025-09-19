@@ -1,4 +1,5 @@
 import p5 from "p5";
+
 import Player from "./entities/Player";
 import type {
   GameEventType,
@@ -8,9 +9,10 @@ import type {
   GameUpdatePositionEventData,
   GameUpdatePowerupEventData
 } from "./GameEvent";
-import Projectile from "./entities/Projectile";
 import Explosion from "./entities/Explosion";
+import Minimap from "./Minimap";
 import Powerup from "./entities/Powerup";
+import Projectile from "./entities/Projectile";
 
 type FetchedGameState = {
   players: GameJoinEventData[],
@@ -20,7 +22,7 @@ type FetchedGameState = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 const FPS = 60;
-const BACKGROUND_COLOR = "#111111";
+export const BACKGROUND_COLOR = "#111111";
 
 class GameEngine {
   instance: p5;
@@ -32,6 +34,8 @@ class GameEngine {
   projectiles: { [id: string]: Projectile };
   powerups: { [id: string]: Powerup };
   explosions: { [id: string]: Explosion };
+
+  minimap: Minimap;
 
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
@@ -49,6 +53,8 @@ class GameEngine {
     this.projectiles = {};
     this.powerups = {};
     this.explosions = {};
+
+    this.minimap = new Minimap();
 
     this.pressed = false;
     this.sendInput = sendInput;
@@ -103,8 +109,9 @@ class GameEngine {
       explosion.update();
       explosion.draw(this.instance);
     });
-
     this.instance.pop();
+
+    this.minimap.draw(this.instance, clientPlayer, this.players);
   };
 
   mousePressed = () => {
