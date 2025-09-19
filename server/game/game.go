@@ -46,8 +46,6 @@ func (g *Game) AddPlayer(id string, username string) error {
 		return err
 	}
 	g.Outgoing <- message
-
-	g.addPowerup()
 	return nil
 }
 
@@ -72,12 +70,20 @@ func (g *Game) Run(ctx context.Context) {
 	go func() {
 		defer ticker.Stop()
 
+		var frameCounter = 0
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 
 			case <-ticker.C:
+				frameCounter++
+				if frameCounter%POWERUP_SPAWN_INTERVAL == 0 {
+					g.addPowerup()
+					frameCounter = 0
+				}
+
 				g.update()
 
 			case message := <-g.Incoming:

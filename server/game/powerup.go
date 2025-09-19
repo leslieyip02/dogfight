@@ -11,3 +11,6 @@ type Powerup struct {
 	Type     PowerupType    `json:"type"`
 	Position EntityPosition `json:"position"`
 }
+
+const MAX_POWERUP_COUNT = 16
+const POWERUP_SPAWN_INTERVAL = FPS * 30
