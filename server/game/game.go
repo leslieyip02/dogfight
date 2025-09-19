@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"math"
-	"math/rand"
 	"server/utils"
 	"time"
 )
@@ -33,17 +32,10 @@ func NewGame() Game {
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
-	position := EntityPosition{
-		// X:     rand.Float64()*WIDTH - WIDTH/2,
-		// Y:     rand.Float64()*HEIGHT - WIDTH/2,
-		X:     0,
-		Y:     0,
-		Theta: math.Pi / 2,
-	}
 	player := Player{
 		Id:       id,
 		Username: username,
-		Position: position,
+		Position: randomEntityPosition(),
 		speed:    MAX_PLAYER_SPEED,
 		powerup:  nil,
 	}
@@ -210,13 +202,9 @@ func (g *Game) addPowerup() error {
 	}
 
 	powerup := Powerup{
-		Id:   id,
-		Type: "multishot",
-		Position: EntityPosition{
-			X:     500 + rand.Float64()*100,
-			Y:     500 + rand.Float64()*100,
-			Theta: 0,
-		},
+		Id:       id,
+		Type:     "multishot",
+		Position: randomEntityPosition(),
 	}
 	g.powerups[id] = &powerup
 	message, err := NewUpdatePowerupEventMessage(&powerup, true)

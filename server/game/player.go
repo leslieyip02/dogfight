@@ -54,7 +54,6 @@ func (p *Player) shootProjectiles(data InputEventData, game *Game) {
 		return
 	}
 
-	// TODO: consider multishot
 	var shots int
 	if p.powerup == nil {
 		shots = 1
