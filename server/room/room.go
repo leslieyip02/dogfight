@@ -2,6 +2,7 @@ package room
 
 import (
 	"context"
+	"encoding/json"
 	"server/game"
 	"server/utils"
 
@@ -48,11 +49,11 @@ func (r *Room) Add(client *Client) {
 	r.clients[client.id] = client
 }
 
-func (r *Room) Remove(client *Client) {
+func (r *Room) Remove(clientId string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	delete(r.clients, client.id)
+	delete(r.clients, clientId)
 }
 
 func (r *Room) connect(client *Client) error {
@@ -66,9 +67,19 @@ func (r *Room) broadcast() {
 		select {
 		case <-r.ctx.Done():
 			return
-		case data := <-r.game.Outgoing:
+		case message := <-r.game.Outgoing:
 			for _, client := range r.clients {
-				client.send <- data
+				client.send <- message
+			}
+
+			var event game.Event
+			json.Unmarshal(message, &event)
+			switch event.Type {
+			case game.QuitEventType:
+				var data game.QuitEventData
+				json.Unmarshal(event.Data, &data)
+
+				r.Remove(data.Id)
 			}
 		}
 	}
