@@ -111,7 +111,7 @@ class GameEngine {
     });
     this.instance.pop();
 
-    this.minimap.draw(this.instance, clientPlayer, this.players);
+    this.minimap.draw(this.instance, clientPlayer, this.players, this.powerups);
   };
 
   mousePressed = () => {
