@@ -22,10 +22,14 @@ type FetchedGameState = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 const FPS = 60;
+const GRID_SIZE = 64;
+
 export const BACKGROUND_COLOR = "#111111";
 
 class GameEngine {
   instance: p5;
+
+  zoom: number;
 
   clientId: string;
   roomId: string;
@@ -45,6 +49,8 @@ class GameEngine {
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
     this.instance.mousePressed = this.mousePressed;
+
+    this.zoom = 1.0;
 
     this.clientId = clientId;
     this.roomId = roomId;
@@ -72,10 +78,12 @@ class GameEngine {
   };
 
   draw = async () => {
+    const mouseX = this.normalize(this.instance.mouseX, window.innerWidth);
+    const mouseY = this.normalize(this.instance.mouseY, window.innerHeight);
     this.sendInput({
       clientId: this.clientId,
-      mouseX: this.normalize(this.instance.mouseX, window.innerWidth),
-      mouseY: this.normalize(this.instance.mouseY, window.innerHeight),
+      mouseX,
+      mouseY,
       mousePressed: this.pressed,
     });
     this.pressed = false;
@@ -88,12 +96,50 @@ class GameEngine {
       return;
     }
 
-    clientPlayer.drawGrid(this.instance);
+    const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
+    if (throttle > 0.8) {
+      this.zoom = Math.max(this.zoom - 0.005, 0.8);
+    } else {
+      this.zoom = Math.min(this.zoom + 0.005, 1.0);
+    }
+    
+    this.drawGrid();
+    this.drawEntities();
+    this.minimap.draw(this.instance, clientPlayer, this.players, this.powerups);
+  };
+
+  private drawGrid = () => {
+    this.instance.push();
+
+    const clientPlayer = this.players[this.clientId];
+    const dx = clientPlayer.position.x % GRID_SIZE;
+    const dy = clientPlayer.position.y % GRID_SIZE;
+
+    const rows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
+    const cols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
+
+    this.instance.stroke("#ffffff33");
+    this.instance.strokeWeight(2);
+    for (let r = 0; r < rows; r++) {
+      this.instance.line(0, r * GRID_SIZE - dy, window.innerWidth, r * GRID_SIZE - dy);
+    }
+    for (let c = 0; c < cols; c++) {
+      this.instance.line(c * GRID_SIZE - dx, 0, c * GRID_SIZE - dx,  window.innerHeight);
+    }
+    this.instance.pop();
+  };
+
+  private drawEntities = () => {
+    const clientPlayer = this.players[this.clientId];
+    if (!clientPlayer) {
+      return;
+    }
 
     this.instance.push();
+    this.instance.scale(this.zoom);
     this.instance.translate(
-      -clientPlayer.position.x + window.innerWidth / 2,
-      -clientPlayer.position.y + window.innerHeight / 2
+      -clientPlayer.position.x + window.innerWidth / 2 / this.zoom,
+      -clientPlayer.position.y + window.innerHeight / 2 / this.zoom,
     );
 
     Object.values(this.players)
@@ -110,8 +156,6 @@ class GameEngine {
       explosion.draw(this.instance);
     });
     this.instance.pop();
-
-    this.minimap.draw(this.instance, clientPlayer, this.players, this.powerups);
   };
 
   mousePressed = () => {
@@ -129,6 +173,8 @@ class GameEngine {
     case "quit":     
       this.handleQuit(data.data as GameQuitEventData);
       break;
+
+    // TODO: batch updates
     case "position": {
       const positionData = data.data as GameUpdatePositionEventData;
       this.updatePlayers(positionData);

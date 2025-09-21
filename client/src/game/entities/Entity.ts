@@ -5,6 +5,7 @@ export interface Entity {
     position: EntityPosition;
 
     update: (position?: EntityPosition) => void;
+    // TODO: add debug argument
     draw: (instance: p5) => void;
     remove: () => void;
 };

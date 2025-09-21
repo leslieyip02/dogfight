@@ -12,7 +12,7 @@ class Minimap {
     instance: p5,
     clientPlayer: Player,
     players: { [id: string]: Player },
-    powerups: { [id: string]: Powerup }
+    powerups: { [id: string]: Powerup },
   ) => {
     instance.push();
     instance.translate(window.innerWidth - OFFSET, window.innerHeight - OFFSET);
