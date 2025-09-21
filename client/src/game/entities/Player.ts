@@ -80,6 +80,10 @@ class Player implements Entity {
   };
 
   drawTrail = (instance: p5) => {
+    if (this.removed) {
+      return;
+    }
+
     instance.push();
     instance.stroke("#888888");
     instance.strokeWeight(4);
