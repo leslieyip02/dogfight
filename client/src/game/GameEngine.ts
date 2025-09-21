@@ -150,13 +150,15 @@ class GameEngine {
     );
 
     Object.values(this.players)
+      .forEach(player => player.drawTrail(this.instance));
+    Object.values(this.players)
       .forEach(player => player.draw(this.instance));
     Object.values(this.projectiles)
-      .forEach(player => player.draw(this.instance));
+      .forEach(projectile => projectile.draw(this.instance));
     Object.values(this.powerups)
-      .forEach(player => player.draw(this.instance));
+      .forEach(powerup => powerup.draw(this.instance));
     Object.values(this.explosions)
-      .forEach(player => player.draw(this.instance));
+      .forEach(explosion => explosion.draw(this.instance));
     this.instance.pop();
   };
 
@@ -232,6 +234,11 @@ class GameEngine {
     this.updatePlayers(updatePositionEventData);
     this.updateProjectiles(updatePositionEventData);
     this.updateEventBuffer = [];
+
+    Object.values(this.powerups)
+      .forEach(powerup => powerup.update());
+    Object.values(this.explosions)
+      .forEach(explosion => explosion.update());
   };
 
   private updatePlayers = async (data: GameUpdatePositionEventData | null) => {

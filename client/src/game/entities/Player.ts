@@ -5,11 +5,15 @@ import type { EntityPosition } from "../GameEvent";
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const RADIUS = 40;
+const MAX_TRAIL_POINTS = 32;
 
 class Player implements Entity {
   position: EntityPosition;
   username: string;
   roll: number;
+
+  previousPositions: EntityPosition[];
+
   removed: boolean;
   onRemove: () => void;
 
@@ -17,6 +21,9 @@ class Player implements Entity {
     this.username = username;
     this.position = position;
     this.roll = 0;
+
+    this.previousPositions = [];
+
     this.removed = false;
     this.onRemove = onRemove;
   }
@@ -25,6 +32,12 @@ class Player implements Entity {
     if (!position || this.removed) {
       return;
     }
+
+    this.previousPositions.push({ ...this.position });
+    if (this.previousPositions.length > MAX_TRAIL_POINTS) {
+      this.previousPositions.shift();
+    }
+
     this.roll = Math.sign(position.theta - this.position.theta);
     this.position = position;
   };
@@ -63,6 +76,20 @@ class Player implements Entity {
       instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
     }
 
+    instance.pop();
+  };
+
+  drawTrail = (instance: p5) => {
+    instance.push();
+    instance.stroke("#888888");
+    instance.strokeWeight(4);
+    instance.noFill();
+    for (let i = 0; i < this.previousPositions.length - 1; i++) {
+      instance.line(
+        this.previousPositions[i].x, this.previousPositions[i].y,
+        this.previousPositions[i + 1].x, this.previousPositions[i + 1].y,
+      );
+    }
     instance.pop();
   };
 
