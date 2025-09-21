@@ -21,6 +21,7 @@ type FetchedGameState = {
 };
 
 const API_URL = import.meta.env.VITE_API_URL;
+const DEBUG = import.meta.env.VITE_DEBUG;
 
 const FPS = 60;
 const GRID_SIZE = 64;
@@ -152,11 +153,11 @@ class GameEngine {
     Object.values(this.players)
       .forEach(player => player.drawTrail(this.instance));
     Object.values(this.players)
-      .forEach(player => player.draw(this.instance));
+      .forEach(player => player.draw(this.instance, DEBUG));
     Object.values(this.projectiles)
-      .forEach(projectile => projectile.draw(this.instance));
+      .forEach(projectile => projectile.draw(this.instance, DEBUG));
     Object.values(this.powerups)
-      .forEach(powerup => powerup.draw(this.instance));
+      .forEach(powerup => powerup.draw(this.instance, DEBUG));
     Object.values(this.explosions)
       .forEach(explosion => explosion.draw(this.instance));
     this.instance.pop();

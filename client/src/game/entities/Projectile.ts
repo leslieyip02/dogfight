@@ -2,8 +2,6 @@ import p5 from "p5";
 import type { Entity } from "./Entity";
 import type { EntityPosition } from "../GameEvent";
 
-const DEBUG = import.meta.env.VITE_DEBUG;
-
 class Projectile implements Entity {
   position: EntityPosition;
   onRemove: () => void;
@@ -20,7 +18,7 @@ class Projectile implements Entity {
     this.position = position;
   };
 
-  draw = (instance: p5) => {
+  draw = (instance: p5, debug?: boolean) => {
     instance.push();
 
     instance.translate(this.position.x, this.position.y);
@@ -34,13 +32,13 @@ class Projectile implements Entity {
     instance.circle(-20, 0, 10);
     instance.rect(-20, -5, 20, 10);
 
-    if (DEBUG) {
+    if (debug) {
       instance.stroke("#ff0000");
     }
     instance.circle(0, 0, 10);
     instance.pop();
 
-    if (DEBUG) {
+    if (debug) {
       instance.stroke("#ff0000");
       instance.noFill();
       instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
