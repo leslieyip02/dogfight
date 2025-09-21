@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import Player from "./entities/Player";
 import type {
+  GameEvent,
   GameEventType,
   GameInputEventData,
   GameJoinEventData,
@@ -33,11 +34,13 @@ class GameEngine {
 
   clientId: string;
   roomId: string;
-
+  
   players: { [id: string]: Player };
   projectiles: { [id: string]: Projectile };
   powerups: { [id: string]: Powerup };
   explosions: { [id: string]: Explosion };
+
+  updateEventBuffer: GameEvent[];
 
   minimap: Minimap;
 
@@ -59,6 +62,8 @@ class GameEngine {
     this.projectiles = {};
     this.powerups = {};
     this.explosions = {};
+
+    this.updateEventBuffer = [];
 
     this.minimap = new Minimap();
 
@@ -135,6 +140,8 @@ class GameEngine {
       return;
     }
 
+    this.updateEntities();
+
     this.instance.push();
     this.instance.scale(this.zoom);
     this.instance.translate(
@@ -145,16 +152,11 @@ class GameEngine {
     Object.values(this.players)
       .forEach(player => player.draw(this.instance));
     Object.values(this.projectiles)
-      .forEach(projectile => projectile.draw(this.instance));
-
-    Object.values(this.powerups).forEach(powerup => {
-      powerup.update();
-      powerup.draw(this.instance);
-    });
-    Object.values(this.explosions).forEach(explosion => {
-      explosion.update();
-      explosion.draw(this.instance);
-    });
+      .forEach(player => player.draw(this.instance));
+    Object.values(this.powerups)
+      .forEach(player => player.draw(this.instance));
+    Object.values(this.explosions)
+      .forEach(player => player.draw(this.instance));
     this.instance.pop();
   };
 
@@ -164,28 +166,18 @@ class GameEngine {
 
   // server messaging
 
-  receive = (event: MessageEvent) => {
-    const data = JSON.parse(event.data);
-    switch (data["type"] as GameEventType) {
+  receive = (event: GameEvent) => {
+    switch (event["type"] as GameEventType) {
     case "join":
-      this.handleJoin(data.data as GameJoinEventData);
+      this.handleJoin(event.data as GameJoinEventData);
       break;
     case "quit":     
-      this.handleQuit(data.data as GameQuitEventData);
+      this.handleQuit(event.data as GameQuitEventData);
       break;
-
-    // TODO: batch updates
-    case "position": {
-      const positionData = data.data as GameUpdatePositionEventData;
-      this.updatePlayers(positionData);
-      this.updateProjectiles(positionData);
+    case "position":
+    case "powerup":
+      this.updateEventBuffer.push(event);
       break;
-    }
-    case "powerup": {
-      const powerupData = data.data as GameUpdatePowerupEventData;
-      this.updatePowerups(powerupData);
-      break;
-    }
     default:
       return;
     }
@@ -216,7 +208,37 @@ class GameEngine {
 
   // updates
 
-  private updatePlayers = async (data: GameUpdatePositionEventData) => {
+  private updateEntities = () => {
+    let updatePositionEventData: GameUpdatePositionEventData | null = null;
+    this.updateEventBuffer.forEach(event => {
+      switch (event.type) {
+      case "position": {
+        const data = event.data as GameUpdatePositionEventData;
+        if (!updatePositionEventData || data.timestamp > updatePositionEventData.timestamp) {
+          updatePositionEventData = data;
+        }
+        break;
+      };
+      case "powerup": {
+        const data = event.data as GameUpdatePowerupEventData;
+        this.updatePowerups(data);
+        break;
+      };
+      default:
+        break;
+      }
+    });
+
+    this.updatePlayers(updatePositionEventData);
+    this.updateProjectiles(updatePositionEventData);
+    this.updateEventBuffer = [];
+  };
+
+  private updatePlayers = async (data: GameUpdatePositionEventData | null) => {
+    if (!data) {
+      return;
+    }
+
     let needFetch = false;
     const destroyedIds = new Set(Object.keys(this.players));
     Object.entries(data.players)
@@ -230,15 +252,19 @@ class GameEngine {
         player.update(position);
         destroyedIds.delete(id);
       });
-
-    destroyedIds.forEach(id => this.players[id].remove());
-
+      
     if (needFetch) {
       await this.fetchState();
     }
+
+    destroyedIds.forEach(id => this.players[id].remove());
   };
 
-  private updateProjectiles = (data: GameUpdatePositionEventData) => {
+  private updateProjectiles = (data: GameUpdatePositionEventData | null) => {
+    if (!data) {
+      return;
+    }
+
     const destroyedIds = new Set(Object.keys(this.projectiles));
     Object.entries(data.projectiles)
       .forEach(entry => {

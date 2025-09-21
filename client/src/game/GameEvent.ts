@@ -28,6 +28,7 @@ export type EntityPosition = {
 };
 
 export type GameUpdatePositionEventData = {
+  timestamp: number,
   players: {
     [id: string]: EntityPosition,
   },

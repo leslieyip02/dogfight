@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"time"
 )
 
 type EventType string
@@ -30,6 +31,7 @@ type QuitEventData struct {
 }
 
 type UpdatePositionEventData struct {
+	Timestamp   int64                     `json:"timestamp"`
 	Players     map[string]EntityPosition `json:"players"`
 	Projectiles map[string]EntityPosition `json:"projectiles"`
 }
@@ -92,6 +94,7 @@ func NewUpdatePositionEventMessage(players *map[string]*Player, projectiles *map
 	}
 
 	data, err := json.Marshal(UpdatePositionEventData{
+		Timestamp:   time.Now().UnixNano(),
 		Players:     playerPositions,
 		Projectiles: projectilePositions,
 	})

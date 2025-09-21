@@ -39,7 +39,7 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
       await gameEngineRef.current?.init();
     };
     ws.onmessage = (event: MessageEvent) => {
-      gameEngineRef.current?.receive(event);
+      gameEngineRef.current?.receive(JSON.parse(event.data));
     };
     setSocket(ws);
   }, [clientId, roomId, socket]);
