@@ -2,6 +2,12 @@ package game
 
 import "math"
 
+const (
+	PROJECTILE_RADIUS   = 10.0
+	PROJECTILE_SPEED    = 24.0
+	PROJECTILE_LIFETIME = 2.4 * FPS
+)
+
 type Projectile struct {
 	Id       string         `json:"id"`
 	Position EntityPosition `json:"position"`

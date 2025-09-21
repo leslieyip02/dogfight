@@ -3,6 +3,12 @@ package game
 type PowerupType string
 
 const (
+	MAX_POWERUP_COUNT      = 16
+	POWERUP_SPAWN_INTERVAL = 30 * FPS
+)
+
+// TODO: add more powerups (e.g. invincibilty)
+const (
 	MultishotPowerupType PowerupType = "multishot"
 )
 
@@ -11,6 +17,3 @@ type Powerup struct {
 	Type     PowerupType    `json:"type"`
 	Position EntityPosition `json:"position"`
 }
-
-const MAX_POWERUP_COUNT = 16
-const POWERUP_SPAWN_INTERVAL = FPS * 30

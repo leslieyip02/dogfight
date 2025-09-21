@@ -5,6 +5,17 @@ import (
 	"server/utils"
 )
 
+const (
+	ACCELERATION_DECAY = 2.0
+	MAX_PLAYER_SPEED   = 12.0
+
+	TURN_RATE_DECAY   = 8.0
+	MAX_TURN_RATE     = 0.4
+	MINIMUM_TURN_RATE = 0.01
+
+	PLAYER_RADIUS = 40.0
+)
+
 type Player struct {
 	Id       string         `json:"id"`
 	Username string         `json:"username"`
@@ -19,15 +30,17 @@ func (p *Player) input(data InputEventData, game *Game) {
 }
 
 func (p *Player) updatePosition(data InputEventData) {
+	// mouseX and mouseY are normalized (i.e. range is [0.0, 1.0])
 	p.move(data.MouseX, data.MouseY)
 	p.turn(data.MouseX, data.MouseY)
 }
 
 func (p *Player) move(mouseX float64, mouseY float64) {
 	acceleration := 1 / (1 + ACCELERATION_DECAY*p.speed)
-	throttle := math.Sqrt(mouseX*mouseX+mouseY*mouseY) / math.Sqrt(2)
+	throttle := min(math.Sqrt(mouseX*mouseX+mouseY*mouseY), 1.0)
 	speedDifference := throttle*MAX_PLAYER_SPEED - p.speed
-	p.speed += speedDifference * acceleration
+	dv := speedDifference * acceleration
+	p.speed += dv
 
 	p.Position.X += math.Cos(p.Position.Theta) * p.speed
 	p.Position.Y += math.Sin(p.Position.Theta) * p.speed
@@ -36,7 +49,8 @@ func (p *Player) move(mouseX float64, mouseY float64) {
 func (p *Player) turn(mouseX float64, mouseY float64) {
 	turnRate := 1 / (1 + TURN_RATE_DECAY*p.speed) * MAX_TURN_RATE
 	angleDifference := normalizeAngle(math.Atan2(mouseY, mouseX) - p.Position.Theta)
-	p.Position.Theta = normalizeAngle(p.Position.Theta + angleDifference*turnRate)
+	dtheta := math.Copysign(max(math.Abs(angleDifference*turnRate), MINIMUM_TURN_RATE), angleDifference)
+	p.Position.Theta = normalizeAngle(p.Position.Theta + dtheta)
 }
 
 func normalizeAngle(angle float64) float64 {
@@ -79,7 +93,7 @@ func (p *Player) shootProjectiles(data InputEventData, game *Game) {
 			Id:       id,
 			Position: position,
 			speed:    PROJECTILE_SPEED,
-			lifetime: 1 * FPS,
+			lifetime: PROJECTILE_LIFETIME,
 		}
 		game.projectiles[id] = &projectile
 	}
