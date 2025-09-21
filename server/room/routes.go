@@ -18,7 +18,11 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room := m.getRoom(request.RoomId)
+	room, err := m.getRoom(request.RoomId)
+	if err != nil {
+		http.Error(w, "unable to get room", http.StatusInternalServerError)
+		return
+	}
 	room.Add(client)
 
 	// TODO: use JWT
@@ -27,7 +31,7 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		"roomId":   room.id,
 	}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
-		http.Error(w, "unable to create room manager", http.StatusInternalServerError)
+		http.Error(w, "unable to write body", http.StatusInternalServerError)
 	}
 }
 
@@ -73,7 +77,12 @@ func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room := m.getRoom(&roomId)
+	room, err := m.getRoom(&roomId)
+	if err != nil {
+		http.Error(w, "unable to get room", http.StatusInternalServerError)
+		return
+	}
+
 	body := room.game.GetState()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)

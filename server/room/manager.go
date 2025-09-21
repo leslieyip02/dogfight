@@ -1,7 +1,6 @@
 package room
 
 import (
-	"math/rand"
 	"net/http"
 	"sync"
 
@@ -27,32 +26,41 @@ type JoinRequest struct {
 	RoomId   *string `json:"roomId,omitempty"`
 }
 
-func NewManager() (*Manager, error) {
-	roomManager := Manager{
+func NewManager() *Manager {
+	return &Manager{
 		rooms:   map[string]*Room{},
 		roomIds: []string{},
 		mu:      sync.Mutex{},
 	}
+}
 
-	// TODO: handle adding more rooms
+func (m *Manager) getRoom(roomId *string) (*Room, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if roomId != nil {
+		return m.rooms[*roomId], nil
+	}
+
+	return m.getVacantRoom()
+}
+
+func (m *Manager) getVacantRoom() (*Room, error) {
+	for _, room := range m.rooms {
+		if room.hasCapacity() {
+			return room, nil
+		}
+	}
+	return m.makeNewRoom()
+}
+
+func (m *Manager) makeNewRoom() (*Room, error) {
 	room, err := NewRoom()
 	if err != nil {
 		return nil, err
 	}
 
-	roomManager.rooms[room.id] = room
-	roomManager.roomIds = append(roomManager.roomIds, room.id)
-	return &roomManager, nil
-}
-
-func (m *Manager) getRoom(roomId *string) *Room {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if roomId != nil {
-		return m.rooms[*roomId]
-	}
-
-	randomId := m.roomIds[rand.Intn(len(m.roomIds))]
-	return m.rooms[randomId]
+	m.rooms[room.id] = room
+	m.roomIds = append(m.roomIds, room.id)
+	return room, nil
 }
