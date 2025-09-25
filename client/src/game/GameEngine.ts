@@ -35,7 +35,7 @@ class GameEngine {
 
   clientId: string;
   roomId: string;
-  
+
   players: { [id: string]: Player };
   projectiles: { [id: string]: Projectile };
   powerups: { [id: string]: Powerup };
@@ -77,7 +77,7 @@ class GameEngine {
   };
 
   // p5.js
-  
+
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
@@ -108,7 +108,7 @@ class GameEngine {
     } else {
       this.zoom = Math.min(this.zoom + 0.005, 1.0);
     }
-    
+
     this.drawGrid();
     this.drawEntities();
     this.minimap.draw(this.instance, clientPlayer, this.players, this.powerups);
@@ -174,7 +174,7 @@ class GameEngine {
     case "join":
       this.handleJoin(event.data as GameJoinEventData);
       break;
-    case "quit":     
+    case "quit":
       this.handleQuit(event.data as GameQuitEventData);
       break;
     case "position":
@@ -260,7 +260,7 @@ class GameEngine {
         player.update(position);
         destroyedIds.delete(id);
       });
-      
+
     if (needFetch) {
       await this.fetchState();
     }

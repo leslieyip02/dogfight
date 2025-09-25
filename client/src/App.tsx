@@ -16,7 +16,7 @@ const App = () => {
     const body = {
       "username": username,
     };
-  
+
     const payload = {
       method: "POST",
       body: JSON.stringify(body),

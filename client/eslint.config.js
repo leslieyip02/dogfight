@@ -20,9 +20,12 @@ export default tseslint.config([
       globals: globals.browser,
     },
     rules: {
-      'indent': ['error', 2],
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'double'],
+      "indent": ['error', 2],
+      "semi": ['error', 'always'],
+      "quotes": ['error', 'double'],
+      "no-trailing-spaces": ["error"],
+      "eol-last": ["error", "always"],
+      "no-multiple-empty-lines": ["error", { max: 1, maxEOF: 0 }],
     }
   },
 ]);

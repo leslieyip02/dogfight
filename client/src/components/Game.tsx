@@ -29,7 +29,7 @@ const Game: React.FC<Props> = ({ clientId, roomId }) => {
     socket?.send(JSON.stringify(event));
   }, [socket]);
 
-  useEffect(() => { 
+  useEffect(() => {
     if (socket !== null) {
       return;
     }
