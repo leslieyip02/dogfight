@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+type JoinRequest struct {
+	Username string  `json:"username"`
+	RoomId   *string `json:"roomId,omitempty"`
+}
+
 func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 	var request JoinRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -25,25 +30,33 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 	}
 	room.Add(client)
 
-	// TODO: use JWT
+	token, err := m.session.createToken(room.id, client.id)
+	if err != nil {
+		http.Error(w, "unable to issue token", http.StatusInternalServerError)
+		return
+	}
+
 	body := map[string]string{
-		"clientId": client.id,
 		"roomId":   room.id,
+		"clientId": client.id,
+		"token":    token,
 	}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to write body", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
-	clientId := r.URL.Query().Get("clientId")
-	if clientId == "" {
-		http.Error(w, "missing client ID", http.StatusBadRequest)
+	token := r.URL.Query().Get("token")
+	claims, err := m.session.validateToken(token)
+	if err != nil {
+		http.Error(w, "unable to validate JWT", http.StatusUnauthorized)
 		return
 	}
 
-	roomId := r.URL.Query().Get("roomId")
-	if roomId == "" {
+	roomId, found := claims["roomId"].(string)
+	if !found {
 		http.Error(w, "missing room ID", http.StatusBadRequest)
 		return
 	}
@@ -54,6 +67,11 @@ func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	clientId, found := claims["clientId"].(string)
+	if !found {
+		http.Error(w, "missing client ID", http.StatusBadRequest)
+		return
+	}
 	client, found := room.clients[clientId]
 	if !found {
 		http.Error(w, "no such client", http.StatusNotFound)
@@ -71,12 +89,18 @@ func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
-	roomId := r.URL.Query().Get("roomId")
-	if roomId == "" {
-		http.Error(w, "missing room ID", http.StatusBadRequest)
+	token := r.URL.Query().Get("token")
+	claims, err := m.session.validateToken(token)
+	if err != nil {
+		http.Error(w, "unable to validate JWT", http.StatusUnauthorized)
 		return
 	}
 
+	roomId, found := claims["roomId"].(string)
+	if !found {
+		http.Error(w, "missing room ID", http.StatusBadRequest)
+		return
+	}
 	room, err := m.getRoom(&roomId)
 	if err != nil {
 		http.Error(w, "unable to get room", http.StatusInternalServerError)

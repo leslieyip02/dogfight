@@ -22,6 +22,10 @@ func main() {
 	if !found {
 		port = "3000"
 	}
+	secret, found := os.LookupEnv("JWT_SECRET")
+	if !found {
+		log.Fatal("JWT_SECRET must be set")
+	}
 
 	buildDir := http.Dir("../client/dist")
 	fs := http.FileServer(buildDir)
@@ -37,13 +41,14 @@ func main() {
 	}))
 	r.Handle("/*", fs)
 
-	roomManager := room.NewManager()
+	session := room.NewSession([]byte(secret))
+	manager := room.NewManager(session)
 
 	r.Route("/api/room", func(r chi.Router) {
-		r.Post("/join", roomManager.HandleJoin)
-		r.Get("/state", roomManager.HandleFetchState)
+		r.Post("/join", manager.HandleJoin)
+		r.Get("/state", manager.HandleFetchState)
 	})
-	r.Get("/ws", roomManager.HandleConnect)
+	r.Get("/ws", manager.HandleConnect)
 
 	log.Printf("server is running on %s:%s", host, port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {

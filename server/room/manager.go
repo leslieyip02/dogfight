@@ -16,18 +16,15 @@ var (
 )
 
 type Manager struct {
+	session *Session
 	rooms   map[string]*Room
 	roomIds []string
 	mu      sync.Mutex
 }
 
-type JoinRequest struct {
-	Username string  `json:"username"`
-	RoomId   *string `json:"roomId,omitempty"`
-}
-
-func NewManager() *Manager {
+func NewManager(session *Session) *Manager {
 	return &Manager{
+		session: session,
 		rooms:   map[string]*Room{},
 		roomIds: []string{},
 		mu:      sync.Mutex{},

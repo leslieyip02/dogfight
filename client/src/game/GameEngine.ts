@@ -33,6 +33,7 @@ class GameEngine {
 
   zoom: number;
 
+  token: string;
   clientId: string;
   roomId: string;
 
@@ -48,7 +49,7 @@ class GameEngine {
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
 
-  constructor(instance: p5, clientId: string, roomId: string, sendInput: (data: GameInputEventData) => void) {
+  constructor(instance: p5, clientId: string, roomId: string, token: string, sendInput: (data: GameInputEventData) => void) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
@@ -58,6 +59,7 @@ class GameEngine {
 
     this.clientId = clientId;
     this.roomId = roomId;
+    this.token = token;
 
     this.players = {};
     this.projectiles = {};
@@ -195,7 +197,7 @@ class GameEngine {
   };
 
   private fetchState = async () => {
-    await fetch(`${API_URL}/room/state?roomId=${this.roomId}`)
+    await fetch(`${API_URL}/room/state?token=${this.token}`)
       .then(response => response.json())
       .then((data: FetchedGameState) => {
         data.players.map(player => {

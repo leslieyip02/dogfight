@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const App = () => {
   const [username, setUsername] = useState<string>("testificate");
   const [clientId, setClientId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string | null>(null);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,10 +28,11 @@ const App = () => {
       .then(data => {
         setClientId(data.clientId);
         setRoomId(data.roomId);
+        setToken(data.token);
       });
   };
 
-  if (!clientId || !roomId) {
+  if (!clientId || !roomId || !token) {
     return (
       <>
         <form onSubmit={onSubmit}>
@@ -53,7 +55,7 @@ const App = () => {
     );
   }
 
-  return <Game clientId={clientId} roomId={roomId} />;
+  return <Game roomId={roomId} clientId={clientId} token={token} />;
 };
 
 export default App;
