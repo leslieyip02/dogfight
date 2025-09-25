@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+const ROOM_CAPACITY = 32
+
 type Room struct {
 	id      string
 	game    game.Game
@@ -56,6 +58,10 @@ func (r *Room) Remove(clientId string) {
 	delete(r.clients, clientId)
 }
 
+func (r *Room) Stop() {
+	r.cancel()
+}
+
 func (r *Room) connect(client *Client) error {
 	go client.readPump(r.game.Incoming)
 	go client.writePump()
@@ -92,6 +98,6 @@ func (r *Room) getClient(id string) (*Client, bool) {
 	return c, ok
 }
 
-func (r *Room) Stop() {
-	r.cancel()
+func (r *Room) hasCapacity() bool {
+	return len(r.clients) < ROOM_CAPACITY
 }

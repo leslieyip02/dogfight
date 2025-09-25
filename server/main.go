@@ -37,11 +37,7 @@ func main() {
 	}))
 	r.Handle("/*", fs)
 
-	roomManager, err := room.NewManager()
-	if err != nil {
-		log.Fatalf("failed to create roomManager: %v", err)
-		return
-	}
+	roomManager := room.NewManager()
 
 	r.Route("/api/room", func(r chi.Router) {
 		r.Post("/join", roomManager.HandleJoin)
