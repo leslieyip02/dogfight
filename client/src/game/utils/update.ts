@@ -40,7 +40,7 @@ export function removeEntities(delta: DeltaEventData, entities: EntityMap) {
 
 export function updateEntities(delta: DeltaEventData, entities: EntityMap) {
   Object.entries(delta.updated)
-    .filter(([id,]) => !delta.removed.includes(id))
+    .filter(([id]) => !delta.removed.includes(id))
     .forEach(([,data]) => handleEntityData(data, entities));
 }
 

@@ -1,4 +1,5 @@
 import type p5 from "p5";
+
 import type { Event, InputEventData } from "../types/event";
 
 const MINIMUM_ZOOM = 0.8;

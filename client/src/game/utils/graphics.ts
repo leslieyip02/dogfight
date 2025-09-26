@@ -1,4 +1,5 @@
 import type p5 from "p5";
+
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import { drawInputHelper } from "./input";
