@@ -26,9 +26,11 @@ func NewClient(id string, username string) *Client {
 
 func (c *Client) readPump(incoming chan<- []byte) {
 	defer func() {
-		quitEventMessage, err := game.NewQuitEventMessage(c.id)
+		message, err := game.CreateMessage(game.QuitEventType, game.QuitEventData{
+			ID: c.id,
+		})
 		if err == nil {
-			incoming <- quitEventMessage
+			incoming <- message
 		}
 		c.conn.Close()
 	}()

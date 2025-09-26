@@ -1,20 +1,20 @@
 import p5 from "p5";
 
 import Player from "./entities/Player";
-import type {
-  GameEvent,
-  GameEventType,
-  GameInputEventData,
-  GameJoinEventData,
-  GameQuitEventData,
-  GameUpdatePositionEventData,
-  GameUpdatePowerupEventData
-} from "./GameEvent";
-import Explosion from "./entities/Explosion";
 import Minimap from "./Minimap";
 import Powerup from "./entities/Powerup";
 import Projectile from "./entities/Projectile";
-import { fetchGameState } from "../api/game";
+import { fetchGameSnapshot as fetchGameSnapshotData } from "../api/game";
+import type {
+  DeltaEventData,
+  Event,
+  EventType,
+  InputEventData,
+  JoinEventData,
+  QuitEventData
+} from "./types/event";
+import type { Entity } from "./entities/Entity";
+import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/entity";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
@@ -25,27 +25,21 @@ export const BACKGROUND_COLOR = "#111111";
 
 class GameEngine {
   instance: p5;
-
   zoom: number;
 
   clientId: string;
-
-  players: { [id: string]: Player };
-  projectiles: { [id: string]: Projectile };
-  powerups: { [id: string]: Powerup };
-  explosions: { [id: string]: Explosion };
-
-  updateEventBuffer: GameEvent[];
+  entities: { [id: string]: Entity };
+  delta: DeltaEventData;
 
   minimap: Minimap;
 
   pressed: boolean;
-  sendInput: (data: GameInputEventData) => void;
+  sendInput: (data: InputEventData) => void;
 
   constructor(
     instance: p5,
     clientId: string,
-    sendInput: (data: GameInputEventData) => void
+    sendInput: (data: InputEventData) => void
   ) {
     this.instance = instance;
     this.instance.setup = this.setup;
@@ -55,13 +49,13 @@ class GameEngine {
     this.zoom = 1.0;
 
     this.clientId = clientId;
+    this.entities = {};
 
-    this.players = {};
-    this.projectiles = {};
-    this.powerups = {};
-    this.explosions = {};
-
-    this.updateEventBuffer = [];
+    this.delta = {
+      "timestamp": 0,
+      "updated": {},
+      "removed": [],
+    };
 
     this.minimap = new Minimap();
 
@@ -80,45 +74,31 @@ class GameEngine {
     this.instance.frameRate(FPS);
   };
 
-  draw = async () => {
-    const mouseX = this.normalize(this.instance.mouseX, window.innerWidth);
-    const mouseY = this.normalize(this.instance.mouseY, window.innerHeight);
-    this.sendInput({
-      clientId: this.clientId,
-      mouseX,
-      mouseY,
-      mousePressed: this.pressed,
-    });
-    this.pressed = false;
-
-    this.instance.background(BACKGROUND_COLOR);
-
-    const clientPlayer = this.players[this.clientId];
-
-    const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
-    if (throttle > 0.8) {
-      this.zoom = Math.max(this.zoom - 0.005, 0.8);
-    } else {
-      this.zoom = Math.min(this.zoom + 0.005, 1.0);
-    }
+  draw = () => {
+    this.handleInput();
+    this.updateEntities();
 
     this.drawGrid();
     this.drawEntities();
-    this.minimap.draw(this.instance, clientPlayer, this.players, this.powerups);
+    this.drawMinimap();
   };
 
   private drawGrid = () => {
-    this.instance.push();
+    const clientPlayer = this.entities[this.clientId] as Player;
+    if (!clientPlayer) {
+      return;
+    }
 
-    const clientPlayer = this.players[this.clientId];
+    this.instance.background(BACKGROUND_COLOR);
+    this.instance.push();
+    this.instance.stroke("#ffffff33");
+    this.instance.strokeWeight(2);
+
     const dx = clientPlayer.position.x % GRID_SIZE;
     const dy = clientPlayer.position.y % GRID_SIZE;
-
     const rows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
     const cols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
 
-    this.instance.stroke("#ffffff33");
-    this.instance.strokeWeight(2);
     for (let r = 0; r < rows; r++) {
       this.instance.line(0, r * GRID_SIZE - dy, window.innerWidth, r * GRID_SIZE - dy);
     }
@@ -129,12 +109,10 @@ class GameEngine {
   };
 
   private drawEntities = () => {
-    const clientPlayer = this.players[this.clientId];
+    const clientPlayer = this.entities[this.clientId];
     if (!clientPlayer) {
       return;
     }
-
-    this.updateEntities();
 
     this.instance.push();
     this.instance.scale(this.zoom);
@@ -143,179 +121,155 @@ class GameEngine {
       -clientPlayer.position.y + window.innerHeight / 2 / this.zoom,
     );
 
-    Object.values(this.players)
+    Object.values(this.entities)
+      .filter(entity => entity instanceof Player)
       .forEach(player => player.drawTrail(this.instance));
-    Object.values(this.players)
-      .forEach(player => player.draw(this.instance, DEBUG));
-    Object.values(this.projectiles)
-      .forEach(projectile => projectile.draw(this.instance, DEBUG));
-    Object.values(this.powerups)
-      .forEach(powerup => powerup.draw(this.instance, DEBUG));
-    Object.values(this.explosions)
-      .forEach(explosion => explosion.draw(this.instance));
+    Object.values(this.entities)
+      .forEach(entity => entity.draw(this.instance, DEBUG));
     this.instance.pop();
+  };
+
+  private drawMinimap = () => {
+    const clientPlayer = this.entities[this.clientId] as Player;
+    if (!clientPlayer) {
+      return;
+    }
+    this.minimap.draw(this.instance, clientPlayer, this.entities);
   };
 
   mousePressed = () => {
     this.pressed = true;
   };
 
+  handleInput = () => {
+    const mouseX = this.normalize(this.instance.mouseX, window.innerWidth);
+    const mouseY = this.normalize(this.instance.mouseY, window.innerHeight);
+    this.sendInput({
+      id: this.clientId,
+      mouseX,
+      mouseY,
+      mousePressed: this.pressed,
+    });
+    this.pressed = false;
+
+    const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
+    if (throttle > 0.8) {
+      this.zoom = Math.max(this.zoom - 0.005, 0.8);
+    } else {
+      this.zoom = Math.min(this.zoom + 0.005, 1.0);
+    }
+  };
+
   // server messaging
 
-  receive = (gameEvent: GameEvent) => {
-    switch (gameEvent["type"] as GameEventType) {
+  receive = (gameEvent: Event) => {
+    switch (gameEvent["type"] as EventType) {
     case "join":
-      this.handleJoin(gameEvent.data as GameJoinEventData);
+      this.handleJoin(gameEvent.data as JoinEventData);
       break;
+
     case "quit":
-      this.handleQuit(gameEvent.data as GameQuitEventData);
+      this.handleQuit(gameEvent.data as QuitEventData);
       break;
-    case "position":
-    case "powerup":
-      this.updateEventBuffer.push(gameEvent);
+
+    case "delta":
+      this.handleDelta(gameEvent.data as DeltaEventData);
       break;
+
     default:
       return;
     }
   };
 
-  private handleJoin = (data: GameJoinEventData) => {
-    this.players[data.id] = new Player(data.username, data.position, this.onRemovePlayer(data.id));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handleJoin = (_data: JoinEventData) => {
+    // TODO: maybe log a chat message
+    return;
   };
 
-  private handleQuit = (data: GameQuitEventData) => {
-    delete this.players[data.id];
+  private handleQuit = (data: QuitEventData) => {
+    delete this.entities[data.id];
   };
+
+  private handleDelta = (data: DeltaEventData) => {
+    const overwrite = data.timestamp > this.delta.timestamp;
+    Object.entries(data.updated)
+      .forEach(entry => {
+        const [id, data] = entry;
+        if (!overwrite && this.delta.updated[id]) {
+          return;
+        }
+        this.delta.updated[id] = data;
+      });
+    this.delta.removed = [...this.delta.removed, ...data.removed];
+    this.delta.timestamp = data.timestamp;
+  };
+
+  private handleEntityData(id: string, data: EntityData, ) {
+    if (this.entities[id]) {
+      this.entities[id].update(data.position);
+      return;
+    }
+
+    switch (data.type) {
+    case "player":
+      this.entities[id] = new Player(data.position, (data as PlayerEntityData).username);
+      break;
+
+    case "projectile":
+      this.entities[id] = new Projectile(data.position);
+      break;
+
+    case "powerup":
+      this.entities[id] = new Powerup(data.position, (data as PowerupEntityData).ability);
+      break;
+
+    default:
+      break;
+    }
+  }
 
   private syncGameState = async () => {
-    await fetchGameState()
-      .then((gameState) => {
-        if (!gameState) {
+    await fetchGameSnapshotData()
+      .then((snapshot) => {
+        if (!snapshot) {
           return;
         }
 
-        gameState.players.map(player => {
-          this.players[player.id] = new Player(
-            player.username,
-            player.position,
-            this.onRemovePlayer(player.id)
-          );
-        });
-        gameState.powerups.map(powerup => this.updatePowerups(powerup));
+        Object.entries(snapshot.entities)
+          .forEach(entry => {
+            const [id, data] = entry;
+            this.handleEntityData(id, data);
+          });
       });
   };
 
   // updates
 
   private updateEntities = () => {
-    let updatePositionEventData: GameUpdatePositionEventData | null = null;
-    this.updateEventBuffer.forEach(event => {
-      switch (event.type) {
-      case "position": {
-        const data = event.data as GameUpdatePositionEventData;
-        if (!updatePositionEventData || data.timestamp > updatePositionEventData.timestamp) {
-          updatePositionEventData = data;
+    // TODO: restore some sort of removal animation
+    this.delta.removed
+      .forEach(id => {
+        const entity = this.entities[id];
+        if (entity instanceof Player) {
+          (entity as Player).removed = true;
         }
-        break;
-      };
-      case "powerup": {
-        const data = event.data as GameUpdatePowerupEventData;
-        this.updatePowerups(data);
-        break;
-      };
-      default:
-        break;
-      }
-    });
 
-    this.updatePlayers(updatePositionEventData);
-    this.updateProjectiles(updatePositionEventData);
-    this.updateEventBuffer = [];
-
-    Object.values(this.powerups)
-      .forEach(powerup => powerup.update());
-    Object.values(this.explosions)
-      .forEach(explosion => explosion.update());
-  };
-
-  private updatePlayers = async (data: GameUpdatePositionEventData | null) => {
-    if (!data) {
-      return;
-    }
-
-    let needFetch = false;
-    const destroyedIds = new Set(Object.keys(this.players));
-    Object.entries(data.players)
-      .forEach(entry => {
-        const [id, position] = entry;
-        const player = this.players[id];
-        if (!player) {
-          needFetch = true;
+        // keep client's player
+        if (id === this.clientId) {
           return;
         }
-        player.update(position);
-        destroyedIds.delete(id);
+        delete this.entities[id];
       });
 
-    if (needFetch) {
-      await this.syncGameState();
-    }
-
-    destroyedIds.forEach(id => this.players[id].remove());
-  };
-
-  private updateProjectiles = (data: GameUpdatePositionEventData | null) => {
-    if (!data) {
-      return;
-    }
-
-    const destroyedIds = new Set(Object.keys(this.projectiles));
-    Object.entries(data.projectiles)
+    Object.entries(this.delta.updated)
       .forEach(entry => {
-        const [id, position] = entry;
-        const projectile = this.projectiles[id];
-        if (!projectile) {
-          this.projectiles[id] = new Projectile(position, () => {
-            delete this.projectiles[id];
-          });
-          return;
-        }
-        projectile.update(position);
-        destroyedIds.delete(id);
+        const [id, data] = entry;
+        this.handleEntityData(id, data);
       });
 
-    destroyedIds.forEach(id => this.projectiles[id].remove());
-  };
-
-  private updatePowerups = (data: GameUpdatePowerupEventData) => {
-    if (data.position) {
-      if (this.powerups[data.id]) {
-        return;
-      }
-
-      this.powerups[data.id] = new Powerup(data.type, data.position, () => {
-        delete this.powerups[data.id];
-      });
-    } else {
-      this.powerups[data.id]?.onRemove();
-    }
-  };
-
-  private onRemovePlayer = (id: string) => {
-    return () => {
-      if (!this.explosions[id]) {
-        this.explosions[id] = new Explosion({ ...this.players[id].position }, () => {
-          delete this.explosions[id];
-        });
-      }
-
-      // do not remove the client's player
-      // to continue showing the background
-      if (id === this.clientId) {
-        return;
-      }
-      delete this.players[id];
-    };
+    this.delta.updated = {};
+    this.delta.removed = [];
   };
 
   // helpers

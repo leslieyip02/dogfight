@@ -1,14 +1,12 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
-import type { EntityPosition } from "../GameEvent";
+import type { EntityPosition } from "../types/entity";
 
 class Projectile implements Entity {
   position: EntityPosition;
-  onRemove: () => void;
 
-  constructor(position: EntityPosition, onRemove: () => void) {
+  constructor(position: EntityPosition) {
     this.position = position;
-    this.onRemove = onRemove;
   }
 
   update = (position?: EntityPosition) => {
@@ -46,10 +44,6 @@ class Projectile implements Entity {
     }
 
     instance.pop();
-  };
-
-  remove = () => {
-    this.onRemove();
   };
 }
 

@@ -2,17 +2,6 @@ package game
 
 import (
 	"encoding/json"
-	"time"
-)
-
-type EventType string
-
-const (
-	JoinEventType           EventType = "join"
-	QuitEventType           EventType = "quit"
-	UpdatePositionEventType EventType = "position"
-	UpdatePowerupEventType  EventType = "powerup"
-	InputEventType          EventType = "input"
 )
 
 type Event struct {
@@ -20,115 +9,52 @@ type Event struct {
 	Data json.RawMessage `json:"data"`
 }
 
+type EventType string
+
+const (
+	JoinEventType     EventType = "join"
+	QuitEventType     EventType = "quit"
+	InputEventType    EventType = "input"
+	SnapshotEventType EventType = "snapshot"
+	DeltaEventType    EventType = "delta"
+)
+
 type JoinEventData struct {
-	Id       string         `json:"id"`
-	Username string         `json:"username"`
-	Position EntityPosition `json:"position"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
 }
 
 type QuitEventData struct {
-	Id string `json:"id"`
-}
-
-type UpdatePositionEventData struct {
-	Timestamp   int64                     `json:"timestamp"`
-	Players     map[string]EntityPosition `json:"players"`
-	Projectiles map[string]EntityPosition `json:"projectiles"`
-}
-
-type UpdatePowerupEventData struct {
-	Id       string          `json:"id"`
-	Type     PowerupType     `json:"type"`
-	Position *EntityPosition `json:"position,omitempty"`
+	ID string `json:"id"`
 }
 
 type InputEventData struct {
-	ClientId     string  `json:"clientId"`
+	ID           string  `json:"id"`
 	MouseX       float64 `json:"mouseX"`
 	MouseY       float64 `json:"mouseY"`
 	MousePressed bool    `json:"mousePressed"`
 }
 
-func NewJoinEventMessage(player *Player) ([]byte, error) {
-	joinEventData := JoinEventData{
-		Id:       player.ID,
-		Username: player.Username,
-		Position: player.Position,
-	}
-	data, err := json.Marshal(joinEventData)
-	if err != nil {
-		return nil, err
-	}
-
-	message := Event{
-		Type: JoinEventType,
-		Data: data,
-	}
-	return json.Marshal(message)
+type SnapshotEventData struct {
+	Timestamp int64             `json:"timestamp"`
+	Entities  map[string]Entity `json:"entities"`
 }
 
-func NewQuitEventMessage(clientId string) ([]byte, error) {
-	quitEventData := QuitEventData{
-		Id: clientId,
-	}
-	data, err := json.Marshal(quitEventData)
-	if err != nil {
-		return nil, err
-	}
-
-	message := Event{
-		Type: QuitEventType,
-		Data: data,
-	}
-	return json.Marshal(message)
+type DeltaEventData struct {
+	Timestamp int64             `json:"timestamp"`
+	Updated   map[string]Entity `json:"updated"`
+	Removed   []string          `json:"removed"`
 }
 
-func NewUpdatePositionEventMessage(players *map[string]*Player, projectiles *map[string]*Projectile) ([]byte, error) {
-	playerPositions := map[string]EntityPosition{}
-	for id, player := range *players {
-		playerPositions[id] = player.Position
-	}
-	projectilePositions := map[string]EntityPosition{}
-	for id, projectile := range *projectiles {
-		projectilePositions[id] = projectile.Position
-	}
-
-	data, err := json.Marshal(UpdatePositionEventData{
-		Timestamp:   time.Now().UnixNano(),
-		Players:     playerPositions,
-		Projectiles: projectilePositions,
-	})
+func CreateMessage(eventType EventType, data any) ([]byte, error) {
+	bytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	message := Event{
-		Type: UpdatePositionEventType,
-		Data: data,
+	event := Event{
+		Type: eventType,
+		Data: bytes,
 	}
-	return json.Marshal(message)
-}
-
-func NewUpdatePowerupEventMessage(powerup *Powerup, active bool) ([]byte, error) {
-	var position *EntityPosition
-	if active {
-		position = &powerup.Position
-	} else {
-		position = nil
-	}
-
-	data, err := json.Marshal(UpdatePowerupEventData{
-		Id:       powerup.ID,
-		Type:     powerup.Type,
-		Position: position,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	message := Event{
-		Type: UpdatePowerupEventType,
-		Data: data,
-	}
-	return json.Marshal(message)
+	return json.Marshal(event)
 }

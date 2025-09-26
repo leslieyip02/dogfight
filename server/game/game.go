@@ -4,40 +4,41 @@ import (
 	"context"
 	"encoding/json"
 	"math"
-	"server/utils"
 	"time"
 )
 
 type Game struct {
+	// messages
 	Incoming chan []byte
 	Outgoing chan []byte
-	entities map[string]Entity
-}
 
-type GameState struct {
-	timestamp int64
-	entities  map[string]Entity
+	// state
+	entities     map[string]Entity
+	frameCounter int64
+
+	// state delta
+	updated map[string]Entity
+	removed []string
 }
 
 func NewGame() Game {
 	return Game{
-		Incoming: make(chan []byte),
-		Outgoing: make(chan []byte),
-		entities: make(map[string]Entity),
+		Incoming:     make(chan []byte),
+		Outgoing:     make(chan []byte),
+		entities:     make(map[string]Entity),
+		frameCounter: 0,
+		updated:      make(map[string]Entity),
+		removed:      []string{},
 	}
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
-	player := Player{
+
+	g.entities[id] = NewPlayer(id, username)
+	message, err := CreateMessage(JoinEventType, JoinEventData{
 		ID:       id,
 		Username: username,
-		Position: randomEntityPosition(),
-		speed:    MAX_PLAYER_SPEED,
-		powerup:  nil,
-	}
-
-	g.entities[id] = &player
-	message, err := NewJoinEventMessage(&player)
+	})
 	if err != nil {
 		return err
 	}
@@ -45,10 +46,16 @@ func (g *Game) AddPlayer(id string, username string) error {
 	return nil
 }
 
-func (g *Game) GetState() GameState {
-	return GameState{
-		timestamp: time.Now().UnixNano(),
-		entities:  g.entities,
+func (g *Game) GetSnapshot() SnapshotEventData {
+	return SnapshotEventData{
+		Entities: g.entities,
+	}
+}
+
+func (g *Game) GetDelta() DeltaEventData {
+	return DeltaEventData{
+		Updated: g.updated,
+		Removed: g.removed,
 	}
 }
 
@@ -58,20 +65,12 @@ func (g *Game) Run(ctx context.Context) {
 	go func() {
 		defer ticker.Stop()
 
-		var frameCounter = 0
-
 		for {
 			select {
 			case <-ctx.Done():
 				return
 
 			case <-ticker.C:
-				frameCounter++
-				if frameCounter%POWERUP_SPAWN_INTERVAL == 0 {
-					g.addPowerup()
-					frameCounter = 0
-				}
-
 				g.update()
 
 			case message := <-g.Incoming:
@@ -82,7 +81,7 @@ func (g *Game) Run(ctx context.Context) {
 				case QuitEventType:
 					var data QuitEventData
 					json.Unmarshal(event.Data, &data)
-					delete(g.entities, data.Id)
+					delete(g.entities, data.ID)
 
 					g.Outgoing <- message
 
@@ -98,7 +97,7 @@ func (g *Game) Run(ctx context.Context) {
 }
 
 func (g *Game) input(data InputEventData) {
-	entity, found := g.entities[data.ClientId]
+	entity, found := g.entities[data.ID]
 	if !found {
 		return
 	}
@@ -109,35 +108,39 @@ func (g *Game) input(data InputEventData) {
 }
 
 func (g *Game) update() {
-	expiredIDs := []string{}
-	for id, entity := range g.entities {
-		entity.Update(g)
-		if entity.GetIsExpired() {
-			expiredIDs = append(expiredIDs, id)
-		}
+	clear(g.updated)
+	clear(g.removed)
+
+	// TODO: move this?
+	g.frameCounter++
+	if g.frameCounter%POWERUP_SPAWN_INTERVAL == 0 {
+		g.addPowerup()
+		g.frameCounter = 0
 	}
-	for _, id := range expiredIDs {
+
+	g.updateEntities()
+	g.resolveCollisions()
+	for _, id := range g.removed {
 		delete(g.entities, id)
 	}
 
-	g.resolveCollisions()
 	g.broadcast()
 }
 
-func (g *Game) broadcast() {
-	// TODO: just update all entities
-	players := make(map[string]*Player)
-	projectiles := make(map[string]*Projectile)
-	for _, entity := range g.entities {
-		if player, ok := entity.(*Player); ok {
-			players[player.ID] = player
+func (g *Game) updateEntities() {
+	for id, entity := range g.entities {
+		if entity.Update(g) {
+			g.updated[id] = entity
 		}
-		if projectile, ok := entity.(*Projectile); ok {
-			projectiles[projectile.ID] = projectile
+
+		if entity.GetIsExpired() {
+			g.removed = append(g.removed, id)
 		}
 	}
+}
 
-	message, err := NewUpdatePositionEventMessage(&players, &projectiles)
+func (g *Game) broadcast() {
+	message, err := CreateMessage(DeltaEventType, g.GetDelta())
 	if err != nil {
 		return
 	}
@@ -146,7 +149,6 @@ func (g *Game) broadcast() {
 
 func (g *Game) resolveCollisions() {
 	// TODO: use line sweep to lower time complexity to O(n log(n))
-	toRemove := make(map[string]bool)
 	for i, entityA := range g.entities {
 		for j, entityB := range g.entities {
 			if i >= j {
@@ -154,13 +156,9 @@ func (g *Game) resolveCollisions() {
 			}
 
 			if g.checkCollision(entityA, entityB) {
-				g.handleCollision(entityA, entityB, toRemove)
+				g.handleCollision(entityA, entityB)
 			}
 		}
-	}
-
-	for id := range toRemove {
-		delete(g.entities, id)
 	}
 }
 
@@ -188,54 +186,39 @@ func (g *Game) checkCollision(a Entity, b Entity) bool {
 	return distance <= threshold
 }
 
-func (g *Game) handleCollision(a Entity, b Entity, toRemove map[string]bool) {
+func (g *Game) handleCollision(a Entity, b Entity) {
 	// TODO: replace with something more robust
 	typeA := a.GetType()
 	typeB := b.GetType()
 
 	switch {
+	case typeA == PlayerEntityType && typeB == PlayerEntityType:
 	case typeA == PlayerEntityType && typeB == ProjectileEntityType:
-		toRemove[a.GetID()] = true
-		toRemove[b.GetID()] = true
-
 	case typeA == ProjectileEntityType && typeB == PlayerEntityType:
-		toRemove[a.GetID()] = true
-		toRemove[b.GetID()] = true
+		g.removed = append(g.removed, a.GetID())
+		g.removed = append(g.removed, b.GetID())
 
 	case typeA == PlayerEntityType && typeB == PowerupEntityType:
 		player := a.(*Player)
 		powerup := b.(*Powerup)
 		player.powerup = powerup
-		toRemove[b.GetID()] = true
+		g.removed = append(g.removed, b.GetID())
 
 	case typeA == PowerupEntityType && typeB == PlayerEntityType:
 		powerup := a.(*Powerup)
 		player := b.(*Player)
 		player.powerup = powerup
-		toRemove[a.GetID()] = true
-
-	case typeA == PlayerEntityType && typeB == PlayerEntityType:
-		toRemove[a.GetID()] = true
-		toRemove[b.GetID()] = true
+		g.removed = append(g.removed, a.GetID())
 	}
 }
 
 func (g *Game) addPowerup() error {
-	id, err := utils.NewShortId()
+	powerup, err := NewPowerup(MultishotPowerupType)
 	if err != nil {
 		return err
 	}
 
-	powerup := Powerup{
-		ID:       id,
-		Type:     "multishot",
-		Position: randomEntityPosition(),
-	}
-	g.entities[id] = &powerup
-	message, err := NewUpdatePowerupEventMessage(&powerup, true)
-	if err != nil {
-		return err
-	}
-	g.Outgoing <- message
+	g.entities[powerup.ID] = powerup
+	g.updated[powerup.ID] = powerup
 	return nil
 }

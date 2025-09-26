@@ -1,6 +1,6 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
-import type { EntityPosition } from "../GameEvent";
+import type { EntityPosition } from "../types/entity";
 
 const RADIUS = 40;
 const MAX_TRAIL_POINTS = 32;
@@ -11,19 +11,16 @@ class Player implements Entity {
   roll: number;
 
   previousPositions: EntityPosition[];
-
   removed: boolean;
-  onRemove: () => void;
 
-  constructor(username: string, position: EntityPosition, onRemove: () => void) {
-    this.username = username;
+  constructor(position: EntityPosition, username: string) {
     this.position = position;
+    this.username = username;
     this.roll = 0;
 
     this.previousPositions = [];
 
     this.removed = false;
-    this.onRemove = onRemove;
   }
 
   update = (position?: EntityPosition) => {
@@ -95,11 +92,6 @@ class Player implements Entity {
       );
     }
     instance.pop();
-  };
-
-  remove = () => {
-    this.removed = true;
-    this.onRemove();
   };
 };
 

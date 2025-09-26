@@ -11,9 +11,9 @@ type Entity interface {
 	GetType() EntityType
 	GetID() string
 	GetPosition() EntityPosition
-
-	Update(g *Game)
 	GetIsExpired() bool
+
+	Update(g *Game) bool
 }
 
 const (

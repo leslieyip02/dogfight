@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import "./Game.css";
 import GameEngine from "../game/GameEngine";
 import p5 from "p5";
-import type { GameEvent, GameInputEventData } from "../game/GameEvent";
+import type { Event, InputEventData } from "../game/types/event";
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
@@ -17,12 +17,12 @@ const Game: React.FC<Props> = ({ clientId }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
-  const sendInput = useCallback((data: GameInputEventData) => {
+  const sendInput = useCallback((data: InputEventData) => {
     if (socket?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const event: GameEvent = {
+    const event: Event = {
       type: "input",
       data: data,
     };
@@ -40,9 +40,11 @@ const Game: React.FC<Props> = ({ clientId }) => {
     }
 
     const ws = new WebSocket(`${WS_URL}?token=${token}`);
-    ws.onopen = gameEngineRef.current?.init ?? null;
+    ws.onopen = async () => {
+      await gameEngineRef.current?.init();
+    };
     ws.onmessage = (event: MessageEvent) => {
-      const gameEvent: GameEvent = JSON.parse(event.data);
+      const gameEvent: Event = JSON.parse(event.data);
       gameEngineRef.current?.receive(gameEvent);
     };
     setSocket(ws);

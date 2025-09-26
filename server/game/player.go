@@ -2,7 +2,6 @@ package game
 
 import (
 	"math"
-	"server/utils"
 )
 
 const (
@@ -17,6 +16,7 @@ const (
 )
 
 type Player struct {
+	Type     EntityType     `json:"type"`
 	ID       string         `json:"id"`
 	Username string         `json:"username"`
 	Position EntityPosition `json:"position"`
@@ -27,6 +27,20 @@ type Player struct {
 	mouseX       float64
 	mouseY       float64
 	mousePressed bool
+}
+
+func NewPlayer(id string, username string) *Player {
+	return &Player{
+		Type:         PlayerEntityType,
+		ID:           id,
+		Username:     username,
+		Position:     randomEntityPosition(),
+		speed:        MAX_PLAYER_SPEED,
+		powerup:      nil,
+		mouseX:       0,
+		mouseY:       0,
+		mousePressed: false,
+	}
 }
 
 func (p *Player) GetType() EntityType {
@@ -41,14 +55,15 @@ func (p *Player) GetPosition() EntityPosition {
 	return p.Position
 }
 
-func (p *Player) Update(g *Game) {
+func (p *Player) GetIsExpired() bool {
+	return false
+}
+
+func (p *Player) Update(g *Game) bool {
 	p.move()
 	p.turn()
 	p.shootProjectiles(g)
-}
-
-func (p *Player) GetIsExpired() bool {
-	return false
+	return true
 }
 
 func (p *Player) input(data InputEventData) {
@@ -102,23 +117,16 @@ func (p *Player) shootProjectiles(g *Game) {
 	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
 	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
 	for i := 0; i < shots; i++ {
-		id, err := utils.NewShortId()
-		if err != nil {
-			continue
-		}
-
 		offset := (i - shots/2) * 32
 		position := EntityPosition{
 			X:     centerX + math.Sin(p.Position.Theta)*float64(offset),
 			Y:     centerY - math.Cos(p.Position.Theta)*float64(offset),
 			Theta: p.Position.Theta,
 		}
-		projectile := Projectile{
-			ID:       id,
-			Position: position,
-			speed:    PROJECTILE_SPEED,
-			lifetime: PROJECTILE_LIFETIME,
+		projectile, err := NewProjectile(position)
+		if err != nil {
+			continue
 		}
-		g.entities[id] = &projectile
+		g.entities[projectile.ID] = projectile
 	}
 }

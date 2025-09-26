@@ -1,18 +1,16 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
-import type { EntityPosition } from "../GameEvent";
+import type { EntityPosition } from "../types/entity";
 
-export type PowerupType = "multishot";
+export type PowerupAbility = "multishot";
 
 class Powerup implements Entity {
-  type: PowerupType;
   position: EntityPosition;
-  onRemove: () => void;
+  ability: PowerupAbility;
 
-  constructor(type: PowerupType, position: EntityPosition, onRemove: () => void) {
-    this.type = type;
+  constructor(position: EntityPosition, ability: PowerupAbility) {
     this.position = position;
-    this.onRemove = onRemove;
+    this.ability = ability;
   }
 
   update = (position?: EntityPosition) => {
@@ -37,10 +35,6 @@ class Powerup implements Entity {
     instance.circle(0, 0, 10);
 
     instance.pop();
-  };
-
-  remove = () => {
-    this.onRemove();
   };
 }
 

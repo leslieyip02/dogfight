@@ -1,18 +1,16 @@
 import p5 from "p5";
 import type { Entity } from "./Entity";
-import type { EntityPosition } from "../GameEvent";
+import type { EntityPosition } from "../types/entity";
 
 class Explosion implements Entity {
   position: EntityPosition;
   diameter: number;
   opacity: number;
-  onRemove: () => void;
 
-  constructor(position: EntityPosition, onRemove: () => void) {
+  constructor(position: EntityPosition) {
     this.position = position;
     this.diameter = 10;
     this.opacity = 1;
-    this.onRemove = onRemove;
   }
 
   update = () => {
@@ -31,10 +29,6 @@ class Explosion implements Entity {
     instance.circle(0, 0, this.diameter);
 
     instance.pop();
-  };
-
-  remove = () => {
-    this.onRemove();
   };
 }
 

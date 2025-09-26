@@ -1,7 +1,8 @@
 import type p5 from "p5";
 import { BACKGROUND_COLOR } from "./GameEngine";
-import type Player from "./entities/Player";
-import type Powerup from "./entities/Powerup";
+import Player from "./entities/Player";
+import Powerup from "./entities/Powerup";
+import type { Entity } from "./entities/Entity";
 
 const MINIMAP_RADIUS = 100;
 const OFFSET = 128;
@@ -11,8 +12,7 @@ class Minimap {
   draw = (
     instance: p5,
     clientPlayer: Player,
-    players: { [id: string]: Player },
-    powerups: { [id: string]: Powerup },
+    entities: { [id: string]: Entity },
   ) => {
     instance.push();
     instance.translate(window.innerWidth - OFFSET, window.innerHeight - OFFSET);
@@ -37,29 +37,26 @@ class Minimap {
     instance.pop();
 
     instance.fill("#ff0000");
-    Object.values(players)
-      .forEach(player => {
-        if (player === clientPlayer) {
+    Object.values(entities)
+      .forEach(entity => {
+        if (entity === clientPlayer) {
           return;
         }
 
-        const dx = player.position.x - clientPlayer.position.x;
-        const dy = player.position.y - clientPlayer.position.y;
+        if (entity instanceof Player) {
+          instance.fill("#ff0000");
+        } else if (entity instanceof Powerup) {
+          instance.fill("#00ff00");
+        } else {
+          return;
+        }
+
+        const dx = entity.position.x - clientPlayer.position.x;
+        const dy = entity.position.y - clientPlayer.position.y;
         const theta = Math.atan2(dy, dx);
         const distance = Math.min(Math.sqrt(dx * dx + dy * dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
         instance.circle(Math.cos(theta) * distance, Math.sin(theta) * distance, 8);
       });
-
-    instance.fill("#00ff00");
-    Object.values(powerups)
-      .forEach(powerup => {
-        const dx = powerup.position.x - clientPlayer.position.x;
-        const dy = powerup.position.y - clientPlayer.position.y;
-        const theta = Math.atan2(dy, dx);
-        const distance = Math.min(Math.sqrt(dx * dx + dy * dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
-        instance.circle(Math.cos(theta) * distance, Math.sin(theta) * distance, 8);
-      });
-
     instance.pop();
   };
 };

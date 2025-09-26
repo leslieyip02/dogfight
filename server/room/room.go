@@ -85,7 +85,7 @@ func (r *Room) broadcast() {
 				var data game.QuitEventData
 				json.Unmarshal(event.Data, &data)
 
-				r.Remove(data.Id)
+				r.Remove(data.ID)
 			}
 		}
 	}

@@ -112,7 +112,7 @@ func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	room := m.getRoom(roomId)
-	body := room.game.GetState()
+	body := room.game.GetSnapshot()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)
 	}
