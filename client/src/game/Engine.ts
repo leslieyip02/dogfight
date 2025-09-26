@@ -1,73 +1,50 @@
 import p5 from "p5";
 
-import { fetchGameSnapshot as fetchGameSnapshotData } from "../api/game";
-import type { Entity } from "./entities/Entity";
+import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
+import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
-import Powerup from "./entities/Powerup";
-import Projectile from "./entities/Projectile";
-import Minimap from "./Minimap";
-import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/entity";
 import type {
   DeltaEventData,
   Event,
   EventType,
-  InputEventData,
   JoinEventData,
   QuitEventData,
 } from "./types/event";
-
-const DEBUG = import.meta.env.VITE_DEBUG;
+import { drawBackground, drawEntities, drawMinimap } from "./utils/graphics";
+import Input from "./utils/input";
+import { mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
 const FPS = 60;
-const GRID_SIZE = 96;
-
-export const BACKGROUND_COLOR = "#111111";
 
 class Engine {
   instance: p5;
-  zoom: number;
 
   clientId: string;
-  entities: { [id: string]: Entity };
+  entities: EntityMap;
+
+  input: Input;
   delta: DeltaEventData;
-
-  minimap: Minimap;
-
-  pressed: boolean;
-  sendInput: (data: InputEventData) => void;
 
   constructor(
     instance: p5,
     clientId: string,
-    sendInput: (data: InputEventData) => void,
+    socket: WebSocket,
   ) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
     this.instance.mousePressed = this.mousePressed;
 
-    this.zoom = 1.0;
-
     this.clientId = clientId;
     this.entities = {};
 
+    this.input = new Input(clientId, socket);
     this.delta = {
       "timestamp": 0,
       "updated": {},
       "removed": [],
     };
-
-    this.minimap = new Minimap();
-
-    this.pressed = false;
-    this.sendInput = sendInput;
   }
-
-  init = async () => {
-    await this.syncGameState();
-  };
-
-  // p5.js
 
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
@@ -76,103 +53,26 @@ class Engine {
 
   draw = () => {
     this.handleInput();
-    this.updateEntities();
+    this.handleUpdates();
 
-    this.drawGrid();
-    this.drawEntities();
-    this.drawMinimap();
-  };
-
-  private drawGrid = () => {
     const clientPlayer = this.entities[this.clientId] as Player;
     if (!clientPlayer) {
       return;
     }
 
-    this.instance.background(BACKGROUND_COLOR);
-    this.instance.push();
-    this.instance.stroke("#ffffff33");
-    this.instance.strokeWeight(2);
-
-    this.instance.scale(this.zoom);
-    this.instance.translate(
-      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
-      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
-    );
-
-    const worldLeft = clientPlayer.position.x - (window.innerWidth / 2) / this.zoom;
-    const worldRight = clientPlayer.position.x + (window.innerWidth / 2) / this.zoom;
-    const worldTop = clientPlayer.position.y - (window.innerHeight / 2) / this.zoom;
-    const worldBottom = clientPlayer.position.y + (window.innerHeight / 2) / this.zoom;
-
-    const startCol = Math.floor(worldLeft / GRID_SIZE) * GRID_SIZE;
-    const endCol = Math.ceil(worldRight / GRID_SIZE) * GRID_SIZE;
-    for (let x = startCol; x <= endCol; x += GRID_SIZE) {
-      this.instance.line(x, worldTop, x, worldBottom);
-    }
-
-    const startRow = Math.floor(worldTop / GRID_SIZE) * GRID_SIZE;
-    const endRow = Math.ceil(worldBottom / GRID_SIZE) * GRID_SIZE;
-    for (let y = startRow; y <= endRow; y += GRID_SIZE) {
-      this.instance.line(worldLeft, y, worldRight, y);
-    }
-
-    this.instance.pop();
-  };
-
-  private drawEntities = () => {
-    const clientPlayer = this.entities[this.clientId];
-    if (!clientPlayer) {
-      return;
-    }
-
-    this.instance.push();
-    this.instance.scale(this.zoom);
-    this.instance.translate(
-      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
-      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
-    );
-
-    Object.values(this.entities)
-      .filter(entity => entity instanceof Player)
-      .forEach(player => player.drawTrail(this.instance));
-    Object.values(this.entities)
-      .forEach(entity => entity.draw(this.instance, DEBUG));
-    this.instance.pop();
-  };
-
-  private drawMinimap = () => {
-    const clientPlayer = this.entities[this.clientId] as Player;
-    if (!clientPlayer) {
-      return;
-    }
-    this.minimap.draw(this.instance, clientPlayer, this.entities);
+    const zoom = this.input.calculateZoom();
+    drawBackground(clientPlayer, zoom, this.instance);
+    drawEntities(clientPlayer, this.entities, zoom, this.instance);
+    drawMinimap(clientPlayer, this.entities, this.instance);
   };
 
   mousePressed = () => {
-    this.pressed = true;
+    this.input.handleMousePress();
   };
 
-  handleInput = () => {
-    const mouseX = this.normalize(this.instance.mouseX, window.innerWidth);
-    const mouseY = this.normalize(this.instance.mouseY, window.innerHeight);
-    this.sendInput({
-      id: this.clientId,
-      mouseX,
-      mouseY,
-      mousePressed: this.pressed,
-    });
-    this.pressed = false;
-
-    const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
-    if (throttle > 0.8) {
-      this.zoom = Math.max(this.zoom - 0.005, 0.8);
-    } else {
-      this.zoom = Math.min(this.zoom + 0.005, 1.0);
-    }
+  init = async () => {
+    await this.syncGameState();
   };
-
-  // server messaging
 
   receive = (gameEvent: Event) => {
     switch (gameEvent["type"] as EventType) {
@@ -204,91 +104,26 @@ class Engine {
   };
 
   private handleDelta = (data: DeltaEventData) => {
-    const overwrite = data.timestamp > this.delta.timestamp;
-    Object.entries(data.updated)
-      .forEach(entry => {
-        const [id, data] = entry;
-        if (!overwrite && this.delta.updated[id]) {
-          return;
-        }
-        this.delta.updated[id] = data;
-      });
-    this.delta.removed = [...this.delta.removed, ...data.removed];
-    this.delta.timestamp = data.timestamp;
+    this.delta = mergeDeltas(this.delta, data);
   };
 
-  private handleEntityData(id: string, data: EntityData ) {
-    if (this.entities[id]) {
-      this.entities[id].update(data.position);
-      return;
-    }
-
-    switch (data.type) {
-    case "player":
-      this.entities[id] = new Player(data.position, (data as PlayerEntityData).username);
-      break;
-
-    case "projectile":
-      this.entities[id] = new Projectile(data.position);
-      break;
-
-    case "powerup":
-      this.entities[id] = new Powerup(data.position, (data as PowerupEntityData).ability);
-      break;
-
-    default:
-      break;
-    }
-  }
-
-  private syncGameState = async () => {
-    await fetchGameSnapshotData()
-      .then((snapshot) => {
-        if (!snapshot) {
-          return;
-        }
-
-        Object.entries(snapshot.entities)
-          .forEach(entry => {
-            const [id, data] = entry;
-            this.handleEntityData(id, data);
-          });
-      });
+  private handleInput = () => {
+    this.input.handleInput(this.instance);
+    this.input.calculateZoom();
   };
 
-  // updates
-
-  private updateEntities = () => {
+  private handleUpdates = () => {
     // TODO: restore some sort of removal animation
-    this.delta.removed
-      .forEach(id => {
-        const entity = this.entities[id];
-        if (entity instanceof Player) {
-          (entity as Player).removed = true;
-        }
-
-        // keep client's player
-        if (id === this.clientId) {
-          return;
-        }
-        delete this.entities[id];
-      });
-
-    Object.entries(this.delta.updated)
-      .forEach(entry => {
-        const [id, data] = entry;
-        this.handleEntityData(id, data);
-      });
+    removeEntities(this.delta, this.entities);
+    updateEntities(this.delta, this.entities);
 
     this.delta.updated = {};
     this.delta.removed = [];
   };
 
-  // helpers
-
-  private normalize = (value: number, full: number): number => {
-    const delta = value - full / 2;
-    return Math.sign(delta) * Math.min(Math.abs(delta / (full / 2 * 0.8)), 1.0);
+  private syncGameState = async () => {
+    await fetchGameSnapshotData()
+      .then((snapshot) => syncEntities(snapshot, this.entities));
   };
 };
 

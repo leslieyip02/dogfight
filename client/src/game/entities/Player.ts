@@ -38,13 +38,16 @@ class Player implements Entity {
     this.position = position;
   };
 
+  remove = () => {
+    this.removed = true;
+  };
+
   draw = (instance: p5, debug?: boolean) => {
     if (this.removed) {
       return;
     }
 
     instance.push();
-
     instance.translate(this.position.x, this.position.y);
 
     instance.push();
@@ -75,6 +78,11 @@ class Player implements Entity {
     }
 
     instance.pop();
+  };
+
+  drawIcon = (instance: p5) => {
+    instance.fill("#ff0000");
+    instance.circle(0, 0, 8);
   };
 
   drawTrail = (instance: p5) => {

@@ -17,20 +17,18 @@ class Projectile implements Entity {
     this.position = position;
   };
 
+  remove = () => {};
+
   draw = (instance: p5, debug?: boolean) => {
     instance.push();
-
     instance.translate(this.position.x, this.position.y);
 
     instance.push();
-
     instance.rotate(this.position.theta);
-
     instance.noStroke();
     instance.fill("#ffffff");
     instance.circle(-20, 0, 10);
     instance.rect(-20, -5, 20, 10);
-
     if (debug) {
       instance.stroke("#ff0000");
     }
