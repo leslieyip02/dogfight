@@ -23,7 +23,7 @@ const GRID_SIZE = 64;
 
 export const BACKGROUND_COLOR = "#111111";
 
-class GameEngine {
+class Engine {
   instance: p5;
   zoom: number;
 
@@ -280,4 +280,4 @@ class GameEngine {
   };
 };
 
-export default GameEngine;
+export default Engine;

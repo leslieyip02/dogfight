@@ -1,5 +1,5 @@
 import type p5 from "p5";
-import { BACKGROUND_COLOR } from "./GameEngine";
+import { BACKGROUND_COLOR } from "./Engine";
 import Player from "./entities/Player";
 import Powerup from "./entities/Powerup";
 import type { Entity } from "./entities/Entity";

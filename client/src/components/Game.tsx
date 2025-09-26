@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import "./Game.css";
-import GameEngine from "../game/GameEngine";
+import Engine from "../game/Engine";
 import p5 from "p5";
 import type { Event, InputEventData } from "../game/types/event";
 
@@ -13,7 +13,7 @@ type Props = {
 }
 
 const Game: React.FC<Props> = ({ clientId }) => {
-  const gameEngineRef = useRef<GameEngine | null>(null);
+  const gameEngineRef = useRef<Engine | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
@@ -52,7 +52,7 @@ const Game: React.FC<Props> = ({ clientId }) => {
 
   useLayoutEffect(() => {
     const sketch = (instance: p5) => {
-      gameEngineRef.current = new GameEngine(instance, clientId, sendInput);
+      gameEngineRef.current = new Engine(instance, clientId, sendInput);
     };
 
     const instance = new p5(sketch, containerRef.current!);
