@@ -114,8 +114,8 @@ class Engine {
 
   private handleUpdates = () => {
     // TODO: restore some sort of removal animation
-    updateEntities(this.delta, this.entities);
     removeEntities(this.delta, this.entities);
+    updateEntities(this.delta, this.entities);
 
     this.delta.updated = {};
     this.delta.removed = [];

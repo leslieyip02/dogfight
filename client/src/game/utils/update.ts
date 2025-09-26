@@ -25,6 +25,7 @@ export function mergeDeltas(current: DeltaEventData, next: DeltaEventData): Delt
       current.updated[id] = data;
     });
 
+  current.removed = [...current.removed, ...next.removed];
   current.timestamp = Math.max(current.timestamp, next.timestamp);
   return current;
 }
@@ -38,8 +39,9 @@ export function removeEntities(delta: DeltaEventData, entities: EntityMap) {
 }
 
 export function updateEntities(delta: DeltaEventData, entities: EntityMap) {
-  Object.values(delta.updated)
-    .forEach(data => handleEntityData(data, entities));
+  Object.entries(delta.updated)
+    .filter(([id,]) => !delta.removed.includes(id))
+    .forEach(([,data]) => handleEntityData(data, entities));
 }
 
 export function handleEntityData(data: EntityData, entities: EntityMap) {
