@@ -1,7 +1,6 @@
 import p5 from "p5";
 
 import Player from "./entities/Player";
-import Minimap from "./Minimap";
 import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
 import type {
   DeltaEventData,
@@ -13,13 +12,9 @@ import type {
 } from "./types/event";
 import type { Entity } from "./entities/Entity";
 import { mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
-
-const DEBUG = import.meta.env.VITE_DEBUG;
+import { drawBackground, drawEntities, drawMinimap } from "./utils/graphics";
 
 const FPS = 60;
-const GRID_SIZE = 96;
-
-export const BACKGROUND_COLOR = "#111111";
 
 class Engine {
   instance: p5;
@@ -28,8 +23,6 @@ class Engine {
   clientId: string;
   entities: { [id: string]: Entity };
   delta: DeltaEventData;
-
-  minimap: Minimap;
 
   pressed: boolean;
   sendInput: (data: InputEventData) => void;
@@ -55,8 +48,6 @@ class Engine {
       "removed": [],
     };
 
-    this.minimap = new Minimap();
-
     this.pressed = false;
     this.sendInput = sendInput;
   }
@@ -64,8 +55,6 @@ class Engine {
   init = async () => {
     await this.syncGameState();
   };
-
-  // p5.js
 
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
@@ -76,75 +65,14 @@ class Engine {
     this.handleInput();
     this.handleUpdates();
 
-    this.drawGrid();
-    this.drawEntities();
-    this.drawMinimap();
-  };
-
-  private drawGrid = () => {
     const clientPlayer = this.entities[this.clientId] as Player;
     if (!clientPlayer) {
       return;
     }
 
-    this.instance.background(BACKGROUND_COLOR);
-    this.instance.push();
-    this.instance.stroke("#ffffff33");
-    this.instance.strokeWeight(2);
-
-    this.instance.scale(this.zoom);
-    this.instance.translate(
-      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
-      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
-    );
-
-    const worldLeft = clientPlayer.position.x - (window.innerWidth / 2) / this.zoom;
-    const worldRight = clientPlayer.position.x + (window.innerWidth / 2) / this.zoom;
-    const worldTop = clientPlayer.position.y - (window.innerHeight / 2) / this.zoom;
-    const worldBottom = clientPlayer.position.y + (window.innerHeight / 2) / this.zoom;
-
-    const startCol = Math.floor(worldLeft / GRID_SIZE) * GRID_SIZE;
-    const endCol = Math.ceil(worldRight / GRID_SIZE) * GRID_SIZE;
-    for (let x = startCol; x <= endCol; x += GRID_SIZE) {
-      this.instance.line(x, worldTop, x, worldBottom);
-    }
-
-    const startRow = Math.floor(worldTop / GRID_SIZE) * GRID_SIZE;
-    const endRow = Math.ceil(worldBottom / GRID_SIZE) * GRID_SIZE;
-    for (let y = startRow; y <= endRow; y += GRID_SIZE) {
-      this.instance.line(worldLeft, y, worldRight, y);
-    }
-
-    this.instance.pop();
-  };
-
-  private drawEntities = () => {
-    const clientPlayer = this.entities[this.clientId];
-    if (!clientPlayer) {
-      return;
-    }
-
-    this.instance.push();
-    this.instance.scale(this.zoom);
-    this.instance.translate(
-      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
-      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
-    );
-
-    Object.values(this.entities)
-      .filter(entity => entity instanceof Player)
-      .forEach(player => player.drawTrail(this.instance));
-    Object.values(this.entities)
-      .forEach(entity => entity.draw(this.instance, DEBUG));
-    this.instance.pop();
-  };
-
-  private drawMinimap = () => {
-    const clientPlayer = this.entities[this.clientId] as Player;
-    if (!clientPlayer) {
-      return;
-    }
-    this.minimap.draw(this.instance, clientPlayer, this.entities);
+    drawBackground(clientPlayer, this.zoom, this.instance);
+    drawEntities(clientPlayer, this.entities, this.zoom, this.instance);
+    drawMinimap(clientPlayer, this.entities, this.instance);
   };
 
   mousePressed = () => {
@@ -169,8 +97,6 @@ class Engine {
       this.zoom = Math.min(this.zoom + 0.005, 1.0);
     }
   };
-
-  // server messaging
 
   receive = (gameEvent: Event) => {
     switch (gameEvent["type"] as EventType) {

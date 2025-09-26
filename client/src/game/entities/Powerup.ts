@@ -20,24 +20,25 @@ class Powerup implements Entity {
     this.position = position;
   };
 
+  remove = () => {};
+
   draw = (instance: p5, debug?: boolean) => {
     instance.push();
-
     instance.translate(this.position.x, this.position.y);
     instance.rotate(this.position.theta);
-
     instance.noStroke();
     instance.fill("#00ff00");
     if (debug) {
       instance.stroke("#ff0000");
     }
-
     instance.circle(0, 0, 10);
-
     instance.pop();
   };
 
-  remove = () => {};
+  drawIcon = (instance: p5) => {
+    instance.fill("#00ff00");
+    instance.circle(0, 0, 8);
+  };
 }
 
 export default Powerup;

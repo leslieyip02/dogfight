@@ -5,8 +5,10 @@ export interface Entity {
     position: EntityPosition;
 
     update: (position?: EntityPosition) => void;
-    draw: (instance: p5, debug?: boolean) => void;
     remove: () => void;
+
+    draw: (instance: p5, debug?: boolean) => void;
+    drawIcon?: (instance: p5) => void;
 };
 
 export type EntityMap = {
