@@ -19,7 +19,7 @@ import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/en
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const FPS = 60;
-const GRID_SIZE = 64;
+const GRID_SIZE = 96;
 
 export const BACKGROUND_COLOR = "#111111";
 
@@ -94,17 +94,29 @@ class Engine {
     this.instance.stroke("#ffffff33");
     this.instance.strokeWeight(2);
 
-    const dx = clientPlayer.position.x % GRID_SIZE;
-    const dy = clientPlayer.position.y % GRID_SIZE;
-    const rows = Math.ceil(window.innerHeight / GRID_SIZE) + 1;
-    const cols = Math.ceil(window.innerWidth / GRID_SIZE) + 1;
+    this.instance.scale(this.zoom);
+    this.instance.translate(
+      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
+      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
+    );
 
-    for (let r = 0; r < rows; r++) {
-      this.instance.line(0, r * GRID_SIZE - dy, window.innerWidth, r * GRID_SIZE - dy);
+    const worldLeft = clientPlayer.position.x - (window.innerWidth / 2) / this.zoom;
+    const worldRight = clientPlayer.position.x + (window.innerWidth / 2) / this.zoom;
+    const worldTop = clientPlayer.position.y - (window.innerHeight / 2) / this.zoom;
+    const worldBottom = clientPlayer.position.y + (window.innerHeight / 2) / this.zoom;
+
+    const startCol = Math.floor(worldLeft / GRID_SIZE) * GRID_SIZE;
+    const endCol = Math.ceil(worldRight / GRID_SIZE) * GRID_SIZE;
+    for (let x = startCol; x <= endCol; x += GRID_SIZE) {
+      this.instance.line(x, worldTop, x, worldBottom);
     }
-    for (let c = 0; c < cols; c++) {
-      this.instance.line(c * GRID_SIZE - dx, 0, c * GRID_SIZE - dx,  window.innerHeight);
+
+    const startRow = Math.floor(worldTop / GRID_SIZE) * GRID_SIZE;
+    const endRow = Math.ceil(worldBottom / GRID_SIZE) * GRID_SIZE;
+    for (let y = startRow; y <= endRow; y += GRID_SIZE) {
+      this.instance.line(worldLeft, y, worldRight, y);
     }
+
     this.instance.pop();
   };
 
@@ -117,8 +129,8 @@ class Engine {
     this.instance.push();
     this.instance.scale(this.zoom);
     this.instance.translate(
-      -clientPlayer.position.x + window.innerWidth / 2 / this.zoom,
-      -clientPlayer.position.y + window.innerHeight / 2 / this.zoom,
+      -clientPlayer.position.x + (window.innerWidth / 2) / this.zoom,
+      -clientPlayer.position.y + (window.innerHeight / 2) / this.zoom,
     );
 
     Object.values(this.entities)
