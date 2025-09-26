@@ -6,55 +6,45 @@ import type {
   DeltaEventData,
   Event,
   EventType,
-  InputEventData,
   JoinEventData,
   QuitEventData
 } from "./types/event";
-import type { Entity } from "./entities/Entity";
+import type { EntityMap } from "./entities/Entity";
 import { mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 import { drawBackground, drawEntities, drawMinimap } from "./utils/graphics";
+import Input from "./utils/input";
 
 const FPS = 60;
 
 class Engine {
   instance: p5;
-  zoom: number;
 
   clientId: string;
-  entities: { [id: string]: Entity };
-  delta: DeltaEventData;
+  entities: EntityMap;
 
-  pressed: boolean;
-  sendInput: (data: InputEventData) => void;
+  input: Input;
+  delta: DeltaEventData;
 
   constructor(
     instance: p5,
     clientId: string,
-    sendInput: (data: InputEventData) => void
+    socket: WebSocket,
   ) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
     this.instance.mousePressed = this.mousePressed;
 
-    this.zoom = 1.0;
-
     this.clientId = clientId;
     this.entities = {};
 
+    this.input = new Input(clientId, socket);
     this.delta = {
       "timestamp": 0,
       "updated": {},
       "removed": [],
     };
-
-    this.pressed = false;
-    this.sendInput = sendInput;
   }
-
-  init = async () => {
-    await this.syncGameState();
-  };
 
   setup = () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
@@ -70,32 +60,18 @@ class Engine {
       return;
     }
 
-    drawBackground(clientPlayer, this.zoom, this.instance);
-    drawEntities(clientPlayer, this.entities, this.zoom, this.instance);
+    const zoom = this.input.calculateZoom();
+    drawBackground(clientPlayer, zoom, this.instance);
+    drawEntities(clientPlayer, this.entities, zoom, this.instance);
     drawMinimap(clientPlayer, this.entities, this.instance);
   };
 
   mousePressed = () => {
-    this.pressed = true;
+    this.input.handleMousePress();
   };
 
-  handleInput = () => {
-    const mouseX = this.normalize(this.instance.mouseX, window.innerWidth);
-    const mouseY = this.normalize(this.instance.mouseY, window.innerHeight);
-    this.sendInput({
-      id: this.clientId,
-      mouseX,
-      mouseY,
-      mousePressed: this.pressed,
-    });
-    this.pressed = false;
-
-    const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
-    if (throttle > 0.8) {
-      this.zoom = Math.max(this.zoom - 0.005, 0.8);
-    } else {
-      this.zoom = Math.min(this.zoom + 0.005, 1.0);
-    }
+  init = async () => {
+    await this.syncGameState();
   };
 
   receive = (gameEvent: Event) => {
@@ -131,11 +107,9 @@ class Engine {
     this.delta = mergeDeltas(this.delta, data);
   };
 
-  // updates
-
-  private syncGameState = async () => {
-    await fetchGameSnapshotData()
-      .then((snapshot) => syncEntities(snapshot, this.entities));
+  private handleInput = () => {
+    this.input.handleInput(this.instance);
+    this.input.calculateZoom();
   };
 
   private handleUpdates = () => {
@@ -147,11 +121,9 @@ class Engine {
     this.delta.removed = [];
   };
 
-  // helpers
-
-  private normalize = (value: number, full: number): number => {
-    const delta = value - full / 2;
-    return Math.sign(delta) * Math.min(Math.abs(delta / (full / 2 * 0.8)), 1.0);
+  private syncGameState = async () => {
+    await fetchGameSnapshotData()
+      .then((snapshot) => syncEntities(snapshot, this.entities));
   };
 };
 
