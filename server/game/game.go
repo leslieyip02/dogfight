@@ -109,7 +109,7 @@ func (g *Game) input(data InputEventData) {
 
 func (g *Game) update() {
 	clear(g.updated)
-	clear(g.removed)
+	g.removed = g.removed[:0]
 
 	// TODO: move this?
 	g.frameCounter++
@@ -122,6 +122,7 @@ func (g *Game) update() {
 	g.resolveCollisions()
 	for _, id := range g.removed {
 		delete(g.entities, id)
+		delete(g.updated, id)
 	}
 
 	g.broadcast()

@@ -114,8 +114,8 @@ func (p *Player) shootProjectiles(g *Game) {
 		shots = 3
 	}
 
-	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
-	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS)
+	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
+	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
 	for i := 0; i < shots; i++ {
 		offset := (i - shots/2) * 32
 		position := EntityPosition{
