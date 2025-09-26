@@ -2,7 +2,9 @@ package room
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"server/utils"
 )
 
 type JoinRequest struct {
@@ -17,28 +19,33 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, err := NewClient(request.Username)
+	var room *Room
+	if request.RoomId != nil {
+		room = m.getRoom(*request.RoomId)
+	} else {
+		// TODO: this is kinda dumb
+		room2, err := m.getVacantRoom()
+		if err != nil {
+			http.Error(w, "unable to assign room", http.StatusInternalServerError)
+			return
+		}
+		room = room2
+	}
+
+	clientId, err := utils.NewShortId()
 	if err != nil {
-		http.Error(w, "unable to create client", http.StatusInternalServerError)
+		http.Error(w, "unable to assign client", http.StatusInternalServerError)
 		return
 	}
 
-	room, err := m.getRoom(request.RoomId)
-	if err != nil {
-		http.Error(w, "unable to get room", http.StatusInternalServerError)
-		return
-	}
-	room.Add(client)
-
-	token, err := m.session.createToken(room.id, client.id)
+	token, err := m.session.createToken(room.id, clientId, request.Username)
 	if err != nil {
 		http.Error(w, "unable to issue token", http.StatusInternalServerError)
 		return
 	}
 
 	body := map[string]string{
-		"roomId":   room.id,
-		"clientId": client.id,
+		"clientId": clientId,
 		"token":    token,
 	}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
@@ -72,15 +79,18 @@ func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing client ID", http.StatusBadRequest)
 		return
 	}
-	client, found := room.clients[clientId]
+
+	username, found := claims["username"].(string)
 	if !found {
-		http.Error(w, "no such client", http.StatusNotFound)
-		return
+		username = "testificate"
 	}
+
+	client := NewClient(clientId, username)
+	room.Add(client)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		http.Error(w, "unable to create connection", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("unable to create connection %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -101,12 +111,7 @@ func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing room ID", http.StatusBadRequest)
 		return
 	}
-	room, err := m.getRoom(&roomId)
-	if err != nil {
-		http.Error(w, "unable to get room", http.StatusInternalServerError)
-		return
-	}
-
+	room := m.getRoom(roomId)
 	body := room.game.GetState()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)

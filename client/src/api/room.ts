@@ -1,0 +1,28 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
+export type JoinRequest = {
+    username: string;
+    roomId?: string;
+}
+
+export type JoinResponse = {
+    clientId: string;
+    token: string;
+}
+
+export async function joinRoom(username: string): Promise<JoinResponse> {
+  const body: JoinRequest = {
+    "username": username,
+  };
+  const payload = {
+    method: "POST",
+    body: JSON.stringify(body),
+  };
+
+  return await fetch(`${API_URL}/room/join`, payload)
+    .then(response => response.json())
+    .then(response => {
+      localStorage.setItem("jwt", response.token);
+      return response;
+    });
+}

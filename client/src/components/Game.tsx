@@ -8,12 +8,11 @@ import type { GameEvent, GameInputEventData } from "../game/GameEvent";
 const WS_URL = import.meta.env.VITE_WS_URL;
 
 type Props = {
-  roomId: string,
   clientId: string,
   token: string,
 }
 
-const Game: React.FC<Props> = ({ roomId, clientId, token }) => {
+const Game: React.FC<Props> = ({ clientId }) => {
   const gameEngineRef = useRef<GameEngine | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -35,24 +34,28 @@ const Game: React.FC<Props> = ({ roomId, clientId, token }) => {
       return;
     }
 
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      return;
+    }
+
     const ws = new WebSocket(`${WS_URL}?token=${token}`);
-    ws.onopen = async () => {
-      await gameEngineRef.current?.init();
-    };
+    ws.onopen = gameEngineRef.current?.init ?? null;
     ws.onmessage = (event: MessageEvent) => {
-      gameEngineRef.current?.receive(JSON.parse(event.data));
+      const gameEvent: GameEvent = JSON.parse(event.data);
+      gameEngineRef.current?.receive(gameEvent);
     };
     setSocket(ws);
-  }, [token, socket]);
+  }, [socket]);
 
   useLayoutEffect(() => {
     const sketch = (instance: p5) => {
-      gameEngineRef.current = new GameEngine(instance, clientId, roomId, token, sendInput);
+      gameEngineRef.current = new GameEngine(instance, clientId, sendInput);
     };
 
     const instance = new p5(sketch, containerRef.current!);
     return () => instance.remove();
-  }, [clientId, roomId, token, sendInput]);
+  }, [clientId, sendInput]);
 
   return <div className="game__container" ref={containerRef} />;
 };

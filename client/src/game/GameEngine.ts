@@ -14,13 +14,8 @@ import Explosion from "./entities/Explosion";
 import Minimap from "./Minimap";
 import Powerup from "./entities/Powerup";
 import Projectile from "./entities/Projectile";
+import { fetchGameState } from "../api/game";
 
-type FetchedGameState = {
-  players: GameJoinEventData[],
-  powerups: GameUpdatePowerupEventData[],
-};
-
-const API_URL = import.meta.env.VITE_API_URL;
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const FPS = 60;
@@ -33,9 +28,7 @@ class GameEngine {
 
   zoom: number;
 
-  token: string;
   clientId: string;
-  roomId: string;
 
   players: { [id: string]: Player };
   projectiles: { [id: string]: Projectile };
@@ -49,7 +42,11 @@ class GameEngine {
   pressed: boolean;
   sendInput: (data: GameInputEventData) => void;
 
-  constructor(instance: p5, clientId: string, roomId: string, token: string, sendInput: (data: GameInputEventData) => void) {
+  constructor(
+    instance: p5,
+    clientId: string,
+    sendInput: (data: GameInputEventData) => void
+  ) {
     this.instance = instance;
     this.instance.setup = this.setup;
     this.instance.draw = this.draw;
@@ -58,8 +55,6 @@ class GameEngine {
     this.zoom = 1.0;
 
     this.clientId = clientId;
-    this.roomId = roomId;
-    this.token = token;
 
     this.players = {};
     this.projectiles = {};
@@ -75,7 +70,7 @@ class GameEngine {
   }
 
   init = async () => {
-    await this.fetchState();
+    await this.syncGameState();
   };
 
   // p5.js
@@ -99,10 +94,6 @@ class GameEngine {
     this.instance.background(BACKGROUND_COLOR);
 
     const clientPlayer = this.players[this.clientId];
-    if (!clientPlayer) {
-      await this.fetchState();
-      return;
-    }
 
     const throttle = Math.min(Math.sqrt(mouseX * mouseX + mouseY * mouseY), 1.0);
     if (throttle > 0.8) {
@@ -171,17 +162,17 @@ class GameEngine {
 
   // server messaging
 
-  receive = (event: GameEvent) => {
-    switch (event["type"] as GameEventType) {
+  receive = (gameEvent: GameEvent) => {
+    switch (gameEvent["type"] as GameEventType) {
     case "join":
-      this.handleJoin(event.data as GameJoinEventData);
+      this.handleJoin(gameEvent.data as GameJoinEventData);
       break;
     case "quit":
-      this.handleQuit(event.data as GameQuitEventData);
+      this.handleQuit(gameEvent.data as GameQuitEventData);
       break;
     case "position":
     case "powerup":
-      this.updateEventBuffer.push(event);
+      this.updateEventBuffer.push(gameEvent);
       break;
     default:
       return;
@@ -196,18 +187,21 @@ class GameEngine {
     delete this.players[data.id];
   };
 
-  private fetchState = async () => {
-    await fetch(`${API_URL}/room/state?token=${this.token}`)
-      .then(response => response.json())
-      .then((data: FetchedGameState) => {
-        data.players.map(player => {
+  private syncGameState = async () => {
+    await fetchGameState()
+      .then((gameState) => {
+        if (!gameState) {
+          return;
+        }
+
+        gameState.players.map(player => {
           this.players[player.id] = new Player(
             player.username,
             player.position,
             this.onRemovePlayer(player.id)
           );
         });
-        data.powerups.map(powerup => this.updatePowerups(powerup));
+        gameState.powerups.map(powerup => this.updatePowerups(powerup));
       });
   };
 
@@ -264,7 +258,7 @@ class GameEngine {
       });
 
     if (needFetch) {
-      await this.fetchState();
+      await this.syncGameState();
     }
 
     destroyedIds.forEach(id => this.players[id].remove());

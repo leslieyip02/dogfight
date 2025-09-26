@@ -31,18 +31,16 @@ func NewManager(session *Session) *Manager {
 	}
 }
 
-func (m *Manager) getRoom(roomId *string) (*Room, error) {
+func (m *Manager) getRoom(roomId string) *Room {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
-	if roomId != nil {
-		return m.rooms[*roomId], nil
-	}
-
-	return m.getVacantRoom()
+	return m.rooms[roomId]
 }
 
 func (m *Manager) getVacantRoom() (*Room, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	for _, room := range m.rooms {
 		if room.hasCapacity() {
 			return room, nil

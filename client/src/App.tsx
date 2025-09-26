@@ -2,37 +2,23 @@ import { useState } from "react";
 import Game from "./components/Game";
 
 import "./App.css";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { joinRoom } from "./api/room";
 
 const App = () => {
   const [username, setUsername] = useState<string>("testificate");
   const [clientId, setClientId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [roomId, setRoomId] = useState<string | null>(null);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const body = {
-      "username": username,
-    };
-
-    const payload = {
-      method: "POST",
-      body: JSON.stringify(body),
-    };
-
-    await fetch(`${API_URL}/room/join`, payload)
-      .then(response => response.json())
-      .then(data => {
-        setClientId(data.clientId);
-        setRoomId(data.roomId);
-        setToken(data.token);
+    await joinRoom(username)
+      .then(response => {
+        setClientId(response.clientId);
+        setToken(response.token);
       });
   };
 
-  if (!clientId || !roomId || !token) {
+  if (!clientId || !token) {
     return (
       <>
         <form onSubmit={onSubmit}>
@@ -55,7 +41,7 @@ const App = () => {
     );
   }
 
-  return <Game roomId={roomId} clientId={clientId} token={token} />;
+  return <Game clientId={clientId} token={token} />;
 };
 
 export default App;

@@ -2,7 +2,6 @@ package room
 
 import (
 	"server/game"
-	"server/utils"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -16,19 +15,13 @@ type Client struct {
 	mu       sync.Mutex
 }
 
-func NewClient(username string) (*Client, error) {
-	id, err := utils.NewShortId()
-	if err != nil {
-		return nil, err
-	}
-
-	client := Client{
+func NewClient(id string, username string) *Client {
+	return &Client{
 		id:       id,
 		username: username,
 		send:     make(chan []byte),
 		mu:       sync.Mutex{},
 	}
-	return &client, nil
 }
 
 func (c *Client) readPump(incoming chan<- []byte) {

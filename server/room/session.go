@@ -16,21 +16,22 @@ func NewSession(secret []byte) *Session {
 	}
 }
 
-func (m *Session) createToken(roomId string, clientId string) (string, error) {
+func (s *Session) createToken(roomId string, clientId string, username string) (string, error) {
 	claims := jwt.MapClaims{
 		"roomId":   roomId,
 		"clientId": clientId,
+		"username": username,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(m.secret)
+	return token.SignedString(s.secret)
 }
 
-func (m *Session) validateToken(tokenString string) (map[string]any, error) {
+func (s *Session) validateToken(tokenString string) (map[string]any, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return m.secret, nil
+		return s.secret, nil
 	})
 
 	if err != nil {
