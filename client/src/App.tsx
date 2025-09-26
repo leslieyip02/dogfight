@@ -1,8 +1,9 @@
-import { useState } from "react";
-import Game from "./components/Game";
-
 import "./App.css";
+
+import { useState } from "react";
+
 import { joinRoom } from "./api/room";
+import Game from "./components/Game";
 
 const App = () => {
   const [username, setUsername] = useState<string>("testificate");

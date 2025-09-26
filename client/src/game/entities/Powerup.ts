@@ -1,6 +1,7 @@
 import p5 from "p5";
-import type { Entity } from "./Entity";
+
 import type { EntityPosition } from "../types/entity";
+import type { Entity } from "./Entity";
 
 export type PowerupAbility = "multishot";
 

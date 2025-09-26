@@ -1,6 +1,7 @@
-import p5 from "p5";
-import type { Entity } from "./Entity";
+import type p5 from "p5";
+
 import type { EntityPosition } from "../types/entity";
+import type { Entity } from "./Entity";
 
 const RADIUS = 40;
 const MAX_TRAIL_POINTS = 32;

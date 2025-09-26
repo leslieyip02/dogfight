@@ -1,8 +1,9 @@
+import "./Game.css";
+
+import p5 from "p5";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import "./Game.css";
 import Engine from "../game/Engine";
-import p5 from "p5";
 import type { Event, InputEventData } from "../game/types/event";
 
 const WS_URL = import.meta.env.VITE_WS_URL;

@@ -1,20 +1,20 @@
 import p5 from "p5";
 
+import { fetchGameSnapshot as fetchGameSnapshotData } from "../api/game";
+import type { Entity } from "./entities/Entity";
 import Player from "./entities/Player";
-import Minimap from "./Minimap";
 import Powerup from "./entities/Powerup";
 import Projectile from "./entities/Projectile";
-import { fetchGameSnapshot as fetchGameSnapshotData } from "../api/game";
+import Minimap from "./Minimap";
+import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/entity";
 import type {
   DeltaEventData,
   Event,
   EventType,
   InputEventData,
   JoinEventData,
-  QuitEventData
+  QuitEventData,
 } from "./types/event";
-import type { Entity } from "./entities/Entity";
-import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/entity";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
@@ -39,7 +39,7 @@ class Engine {
   constructor(
     instance: p5,
     clientId: string,
-    sendInput: (data: InputEventData) => void
+    sendInput: (data: InputEventData) => void,
   ) {
     this.instance = instance;
     this.instance.setup = this.setup;
@@ -193,7 +193,7 @@ class Engine {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   private handleJoin = (_data: JoinEventData) => {
     // TODO: maybe log a chat message
     return;
@@ -217,7 +217,7 @@ class Engine {
     this.delta.timestamp = data.timestamp;
   };
 
-  private handleEntityData(id: string, data: EntityData, ) {
+  private handleEntityData(id: string, data: EntityData ) {
     if (this.entities[id]) {
       this.entities[id].update(data.position);
       return;

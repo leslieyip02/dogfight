@@ -1,4 +1,5 @@
 import p5 from "p5";
+
 import type { EntityPosition } from "../types/entity";
 
 export interface Entity {
