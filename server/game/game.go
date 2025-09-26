@@ -9,38 +9,34 @@ import (
 )
 
 type Game struct {
-	Incoming    chan []byte
-	Outgoing    chan []byte
-	players     map[string]*Player
-	projectiles map[string]*Projectile
-	powerups    map[string]*Powerup
+	Incoming chan []byte
+	Outgoing chan []byte
+	entities map[string]Entity
 }
 
 type GameState struct {
-	Players  []*Player  `json:"players"`
-	Powerups []*Powerup `json:"powerups"`
+	timestamp int64
+	entities  map[string]Entity
 }
 
 func NewGame() Game {
 	return Game{
-		Incoming:    make(chan []byte),
-		Outgoing:    make(chan []byte),
-		players:     map[string]*Player{},
-		projectiles: map[string]*Projectile{},
-		powerups:    map[string]*Powerup{},
+		Incoming: make(chan []byte),
+		Outgoing: make(chan []byte),
+		entities: make(map[string]Entity),
 	}
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
 	player := Player{
-		Id:       id,
+		ID:       id,
 		Username: username,
 		Position: randomEntityPosition(),
 		speed:    MAX_PLAYER_SPEED,
 		powerup:  nil,
 	}
 
-	g.players[id] = &player
+	g.entities[id] = &player
 	message, err := NewJoinEventMessage(&player)
 	if err != nil {
 		return err
@@ -50,17 +46,9 @@ func (g *Game) AddPlayer(id string, username string) error {
 }
 
 func (g *Game) GetState() GameState {
-	players := []*Player{}
-	for _, player := range g.players {
-		players = append(players, player)
-	}
-	powerups := []*Powerup{}
-	for _, powerup := range g.powerups {
-		powerups = append(powerups, powerup)
-	}
 	return GameState{
-		Players:  players,
-		Powerups: powerups,
+		timestamp: time.Now().UnixNano(),
+		entities:  g.entities,
 	}
 }
 
@@ -94,7 +82,7 @@ func (g *Game) Run(ctx context.Context) {
 				case QuitEventType:
 					var data QuitEventData
 					json.Unmarshal(event.Data, &data)
-					delete(g.players, data.Id)
+					delete(g.entities, data.Id)
 
 					g.Outgoing <- message
 
@@ -110,94 +98,125 @@ func (g *Game) Run(ctx context.Context) {
 }
 
 func (g *Game) input(data InputEventData) {
-	player, found := g.players[data.ClientId]
+	entity, found := g.entities[data.ClientId]
 	if !found {
 		return
 	}
-	player.input(data, g)
+
+	if player, ok := entity.(*Player); ok {
+		player.input(data)
+	}
 }
 
 func (g *Game) update() {
-	g.updateProjectiles()
-	g.resolveCollisions()
+	expiredIDs := []string{}
+	for id, entity := range g.entities {
+		entity.Update(g)
+		if entity.GetIsExpired() {
+			expiredIDs = append(expiredIDs, id)
+		}
+	}
+	for _, id := range expiredIDs {
+		delete(g.entities, id)
+	}
 
-	message, err := NewUpdatePositionEventMessage(&g.players, &g.projectiles)
+	g.resolveCollisions()
+	g.broadcast()
+}
+
+func (g *Game) broadcast() {
+	// TODO: just update all entities
+	players := make(map[string]*Player)
+	projectiles := make(map[string]*Projectile)
+	for _, entity := range g.entities {
+		if player, ok := entity.(*Player); ok {
+			players[player.ID] = player
+		}
+		if projectile, ok := entity.(*Projectile); ok {
+			projectiles[projectile.ID] = projectile
+		}
+	}
+
+	message, err := NewUpdatePositionEventMessage(&players, &projectiles)
 	if err != nil {
 		return
 	}
 	g.Outgoing <- message
 }
 
-func (g *Game) updateProjectiles() {
-	expiredIds := []string{}
-	for _, projectile := range g.projectiles {
-		projectile.update()
-		if projectile.lifetime < 0 {
-			expiredIds = append(expiredIds, projectile.Id)
-		}
-	}
-
-	for _, id := range expiredIds {
-		delete(g.projectiles, id)
-	}
-}
-
 func (g *Game) resolveCollisions() {
 	// TODO: use line sweep to lower time complexity to O(n log(n))
-	collidedPlayerIds := []string{}
-	for i, player := range g.players {
-		for j, other := range g.players {
-			if i == j {
+	toRemove := make(map[string]bool)
+	for i, entityA := range g.entities {
+		for j, entityB := range g.entities {
+			if i >= j {
 				continue
 			}
 
-			// players are modelled as circles
-			dx := player.Position.X - other.Position.X
-			dy := player.Position.Y - other.Position.Y
-			distance := math.Sqrt(dx*dx + dy*dy)
-			if distance <= 2*PLAYER_RADIUS {
-				collidedPlayerIds = append(collidedPlayerIds, i, j)
+			if g.checkCollision(entityA, entityB) {
+				g.handleCollision(entityA, entityB, toRemove)
 			}
 		}
 	}
 
-	collidedProjectileIds := []string{}
-	consumedPowerupIds := []string{}
-	for i, player := range g.players {
-		for j, projectile := range g.projectiles {
-			// projectiles are modelled as circles
-			dx := player.Position.X - projectile.Position.X
-			dy := player.Position.Y - projectile.Position.Y
-			distance := math.Sqrt(dx*dx + dy*dy)
-			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
-				collidedPlayerIds = append(collidedPlayerIds, i)
-				collidedProjectileIds = append(collidedProjectileIds, j)
-			}
-		}
+	for id := range toRemove {
+		delete(g.entities, id)
+	}
+}
 
-		for j, powerup := range g.powerups {
-			dx := player.Position.X - powerup.Position.X
-			dy := player.Position.Y - powerup.Position.Y
-			distance := math.Sqrt(dx*dx + dy*dy)
-			if distance <= PLAYER_RADIUS+PROJECTILE_RADIUS {
-				player.powerup = powerup
-				consumedPowerupIds = append(consumedPowerupIds, j)
-			}
-		}
-	}
+func (g *Game) checkCollision(a Entity, b Entity) bool {
+	// TODO: replace with something more robust
+	dx := a.GetPosition().X - b.GetPosition().X
+	dy := a.GetPosition().Y - b.GetPosition().Y
+	distance := math.Sqrt(dx*dx + dy*dy)
 
-	for _, id := range collidedPlayerIds {
-		delete(g.players, id)
+	threshold := 0.0
+	if a.GetType() == PlayerEntityType {
+		threshold += PLAYER_RADIUS
+	} else if a.GetType() == ProjectileEntityType {
+		threshold += PROJECTILE_RADIUS
+	} else if a.GetID() == string(PowerupEntityType) {
+		threshold += PROJECTILE_RADIUS
 	}
-	for _, id := range collidedProjectileIds {
-		delete(g.projectiles, id)
+	if b.GetType() == PlayerEntityType {
+		threshold += PLAYER_RADIUS
+	} else if b.GetType() == ProjectileEntityType {
+		threshold += PROJECTILE_RADIUS
+	} else if b.GetID() == string(PowerupEntityType) {
+		threshold += PROJECTILE_RADIUS
 	}
-	for _, id := range consumedPowerupIds {
-		message, err := NewUpdatePowerupEventMessage(g.powerups[id], false)
-		if err == nil {
-			g.Outgoing <- message
-		}
-		delete(g.powerups, id)
+	return distance <= threshold
+}
+
+func (g *Game) handleCollision(a Entity, b Entity, toRemove map[string]bool) {
+	// TODO: replace with something more robust
+	typeA := a.GetType()
+	typeB := b.GetType()
+
+	switch {
+	case typeA == PlayerEntityType && typeB == ProjectileEntityType:
+		toRemove[a.GetID()] = true
+		toRemove[b.GetID()] = true
+
+	case typeA == ProjectileEntityType && typeB == PlayerEntityType:
+		toRemove[a.GetID()] = true
+		toRemove[b.GetID()] = true
+
+	case typeA == PlayerEntityType && typeB == PowerupEntityType:
+		player := a.(*Player)
+		powerup := b.(*Powerup)
+		player.powerup = powerup
+		toRemove[b.GetID()] = true
+
+	case typeA == PowerupEntityType && typeB == PlayerEntityType:
+		powerup := a.(*Powerup)
+		player := b.(*Player)
+		player.powerup = powerup
+		toRemove[a.GetID()] = true
+
+	case typeA == PlayerEntityType && typeB == PlayerEntityType:
+		toRemove[a.GetID()] = true
+		toRemove[b.GetID()] = true
 	}
 }
 
@@ -208,11 +227,11 @@ func (g *Game) addPowerup() error {
 	}
 
 	powerup := Powerup{
-		Id:       id,
+		ID:       id,
 		Type:     "multishot",
 		Position: randomEntityPosition(),
 	}
-	g.powerups[id] = &powerup
+	g.entities[id] = &powerup
 	message, err := NewUpdatePowerupEventMessage(&powerup, true)
 	if err != nil {
 		return err

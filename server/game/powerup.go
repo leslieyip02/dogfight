@@ -13,7 +13,27 @@ const (
 )
 
 type Powerup struct {
-	Id       string         `json:"id"`
+	ID       string         `json:"id"`
 	Type     PowerupType    `json:"type"`
 	Position EntityPosition `json:"position"`
+}
+
+func (p *Powerup) GetType() EntityType {
+	return PowerupEntityType
+}
+
+func (p *Powerup) GetID() string {
+	return p.ID
+}
+
+func (p *Powerup) GetPosition() EntityPosition {
+	return p.Position
+}
+
+func (p *Powerup) GetIsExpired() bool {
+	return false
+}
+
+func (p *Powerup) Update(g *Game) {
+	// No update needed
 }

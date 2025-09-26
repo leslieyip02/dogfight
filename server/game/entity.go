@@ -5,6 +5,23 @@ import (
 	"math/rand"
 )
 
+type EntityType string
+
+type Entity interface {
+	GetType() EntityType
+	GetID() string
+	GetPosition() EntityPosition
+
+	Update(g *Game)
+	GetIsExpired() bool
+}
+
+const (
+	PlayerEntityType     EntityType = "player"
+	ProjectileEntityType EntityType = "projectile"
+	PowerupEntityType    EntityType = "powerup"
+)
+
 type EntityPosition struct {
 	X     float64 `json:"x"`
 	Y     float64 `json:"y"`

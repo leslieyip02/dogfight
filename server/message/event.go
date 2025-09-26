@@ -54,7 +54,7 @@ type InputEventData struct {
 func CreateJoinEvent(player *game.Player) ([]byte, error) {
 	return NewEvent(JoinEventType).
 		WithData(JoinEventData{
-			ID:       player.Id,
+			ID:       player.ID,
 			Username: player.Username,
 			Position: player.Position,
 		}).
@@ -91,7 +91,7 @@ func CreateUpdatePositionEvent(players map[string]*game.Player, projectiles map[
 
 func CreateUpdatePowerupEvent(powerup *game.Powerup, active bool) ([]byte, error) {
 	data := UpdatePowerupEventData{
-		ID:   powerup.Id,
+		ID:   powerup.ID,
 		Type: powerup.Type,
 	}
 

@@ -51,7 +51,7 @@ type InputEventData struct {
 
 func NewJoinEventMessage(player *Player) ([]byte, error) {
 	joinEventData := JoinEventData{
-		Id:       player.Id,
+		Id:       player.ID,
 		Username: player.Username,
 		Position: player.Position,
 	}
@@ -118,7 +118,7 @@ func NewUpdatePowerupEventMessage(powerup *Powerup, active bool) ([]byte, error)
 	}
 
 	data, err := json.Marshal(UpdatePowerupEventData{
-		Id:       powerup.Id,
+		Id:       powerup.ID,
 		Type:     powerup.Type,
 		Position: position,
 	})
