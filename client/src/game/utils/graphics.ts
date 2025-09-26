@@ -1,6 +1,7 @@
 import type p5 from "p5";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
+import { drawInputHelper } from "./input";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
@@ -21,6 +22,10 @@ function centerCanvas(originX: number, originY: number, zoom: number, instance: 
 
 export function drawBackground(clientPlayer: Player, zoom: number, instance: p5) {
   instance.background(BACKGROUND_COLOR);
+
+  if (DEBUG) {
+    drawInputHelper(instance);
+  }
 
   instance.push();
   const originX = clientPlayer.position.x;
@@ -96,10 +101,10 @@ export function drawMinimap(clientPlayer: Player, entities: EntityMap, instance:
       const dx = entity.position.x - clientPlayer.position.x;
       const dy = entity.position.y - clientPlayer.position.y;
       const theta = Math.atan2(dy, dx);
-      const distance = Math.min(Math.sqrt(dx * dx + dy * dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
+      const clamped = Math.min(Math.hypot(dx, dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
 
       instance.push();
-      instance.translate(Math.cos(theta) * distance, Math.sin(theta) * distance);
+      instance.translate(Math.cos(theta) * clamped, Math.sin(theta) * clamped);
       drawIcon(instance);
       instance.pop();
     });

@@ -1,17 +1,29 @@
 import type p5 from "p5";
 import type { Event, InputEventData } from "../types/event";
 
-const MOUSE_MAXIMUM_EXTENT = 0.8;
-const ZOOM_THRESHOLD = 0.8;
 const MINIMUM_ZOOM = 0.8;
 const MAXIMUM_ZOOM = 1.0;
+const ZOOM_THRESHOLD = 1.0;
 const ZOOM_DELTA = 0.005;
 
-function normalizeMouseValue(value: number, full: number): number {
-  const delta = value - full / 2;
-  const radius = full / 2 * MOUSE_MAXIMUM_EXTENT;
-  return Math.sign(delta) * Math.min(Math.abs(delta / radius), 1.0);
-};
+const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
+
+function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] {
+  const dx = mouseX - window.innerWidth / 2;
+  const dy = mouseY - window.innerHeight / 2;
+  const theta = Math.atan2(dy, dx);
+  const clamped = Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS;
+  return [Math.cos(theta) * clamped, Math.sin(theta) * clamped];
+}
+
+export function drawInputHelper(instance: p5) {
+  instance.push();
+  instance.noFill();
+  instance.stroke("#0000ff");
+  instance.strokeWeight(2);
+  instance.circle(window.innerWidth / 2, window.innerHeight / 2, MOUSE_INPUT_RADIUS * 2);
+  instance.pop();
+}
 
 class Input {
   clientId: string;
@@ -41,9 +53,7 @@ class Input {
       return;
     }
 
-    const full = Math.max(window.innerWidth, window.innerHeight);
-    this.mouseX = normalizeMouseValue(instance.mouseX, full);
-    this.mouseY = normalizeMouseValue(instance.mouseX, full);
+    [this.mouseX, this.mouseY] = normalizeMouseValues(instance.mouseX, instance.mouseY);
 
     const data: InputEventData = {
       id: this.clientId,
@@ -61,8 +71,8 @@ class Input {
   };
 
   calculateZoom = () => {
-    const throttle = Math.min(Math.hypot(this.mouseX, this.mouseY), 1.0);
-    if (throttle > ZOOM_THRESHOLD) {
+    const throttle = Math.hypot(this.mouseX, this.mouseY);
+    if (throttle >= ZOOM_THRESHOLD) {
       this.zoom = Math.max(this.zoom - ZOOM_DELTA, MINIMUM_ZOOM);
     } else {
       this.zoom = Math.min(this.zoom + ZOOM_DELTA, MAXIMUM_ZOOM);
