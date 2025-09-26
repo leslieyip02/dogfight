@@ -2,9 +2,7 @@ import p5 from "p5";
 
 import Player from "./entities/Player";
 import Minimap from "./Minimap";
-import Powerup from "./entities/Powerup";
-import Projectile from "./entities/Projectile";
-import { fetchGameSnapshot as fetchGameSnapshotData } from "../api/game";
+import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
 import type {
   DeltaEventData,
   Event,
@@ -14,7 +12,7 @@ import type {
   QuitEventData
 } from "./types/event";
 import type { Entity } from "./entities/Entity";
-import type { EntityData, PlayerEntityData, PowerupEntityData } from "./types/entity";
+import { mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
@@ -76,7 +74,7 @@ class Engine {
 
   draw = () => {
     this.handleInput();
-    this.updateEntities();
+    this.handleUpdates();
 
     this.drawGrid();
     this.drawEntities();
@@ -204,81 +202,20 @@ class Engine {
   };
 
   private handleDelta = (data: DeltaEventData) => {
-    const overwrite = data.timestamp > this.delta.timestamp;
-    Object.entries(data.updated)
-      .forEach(entry => {
-        const [id, data] = entry;
-        if (!overwrite && this.delta.updated[id]) {
-          return;
-        }
-        this.delta.updated[id] = data;
-      });
-    this.delta.removed = [...this.delta.removed, ...data.removed];
-    this.delta.timestamp = data.timestamp;
-  };
-
-  private handleEntityData(id: string, data: EntityData, ) {
-    if (this.entities[id]) {
-      this.entities[id].update(data.position);
-      return;
-    }
-
-    switch (data.type) {
-    case "player":
-      this.entities[id] = new Player(data.position, (data as PlayerEntityData).username);
-      break;
-
-    case "projectile":
-      this.entities[id] = new Projectile(data.position);
-      break;
-
-    case "powerup":
-      this.entities[id] = new Powerup(data.position, (data as PowerupEntityData).ability);
-      break;
-
-    default:
-      break;
-    }
-  }
-
-  private syncGameState = async () => {
-    await fetchGameSnapshotData()
-      .then((snapshot) => {
-        if (!snapshot) {
-          return;
-        }
-
-        Object.entries(snapshot.entities)
-          .forEach(entry => {
-            const [id, data] = entry;
-            this.handleEntityData(id, data);
-          });
-      });
+    this.delta = mergeDeltas(this.delta, data);
   };
 
   // updates
 
-  private updateEntities = () => {
+  private syncGameState = async () => {
+    await fetchGameSnapshotData()
+      .then((snapshot) => syncEntities(snapshot, this.entities));
+  };
+
+  private handleUpdates = () => {
     // TODO: restore some sort of removal animation
-    this.delta.removed
-      .forEach(id => {
-        const entity = this.entities[id];
-        if (entity instanceof Player) {
-          (entity as Player).removed = true;
-        }
-
-        // keep client's player
-        if (id === this.clientId) {
-          return;
-        }
-        delete this.entities[id];
-      });
-
-    Object.entries(this.delta.updated)
-      .forEach(entry => {
-        const [id, data] = entry;
-        this.handleEntityData(id, data);
-      });
+    updateEntities(this.delta, this.entities);
+    removeEntities(this.delta, this.entities);
 
     this.delta.updated = {};
     this.delta.removed = [];

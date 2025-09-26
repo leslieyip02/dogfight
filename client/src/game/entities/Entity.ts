@@ -6,4 +6,9 @@ export interface Entity {
 
     update: (position?: EntityPosition) => void;
     draw: (instance: p5, debug?: boolean) => void;
+    remove: () => void;
 };
+
+export type EntityMap = {
+    [id: string]: Entity,
+}

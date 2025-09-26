@@ -45,6 +45,8 @@ class Projectile implements Entity {
 
     instance.pop();
   };
+
+  remove = () => {};
 }
 
 export default Projectile;

@@ -93,6 +93,10 @@ class Player implements Entity {
     }
     instance.pop();
   };
+
+  remove = () => {
+    this.removed = true;
+  };
 };
 
 export default Player;

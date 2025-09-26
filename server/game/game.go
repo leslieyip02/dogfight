@@ -48,14 +48,16 @@ func (g *Game) AddPlayer(id string, username string) error {
 
 func (g *Game) GetSnapshot() SnapshotEventData {
 	return SnapshotEventData{
-		Entities: g.entities,
+		Timestamp: time.Now().UnixNano(),
+		Entities:  g.entities,
 	}
 }
 
 func (g *Game) GetDelta() DeltaEventData {
 	return DeltaEventData{
-		Updated: g.updated,
-		Removed: g.removed,
+		Timestamp: time.Now().UnixNano(),
+		Updated:   g.updated,
+		Removed:   g.removed,
 	}
 }
 

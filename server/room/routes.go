@@ -98,7 +98,7 @@ func (m *Manager) HandleConnect(w http.ResponseWriter, r *http.Request) {
 	room.connect(client)
 }
 
-func (m *Manager) HandleFetchState(w http.ResponseWriter, r *http.Request) {
+func (m *Manager) HandleFetchSnapshot(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	claims, err := m.session.validateToken(token)
 	if err != nil {

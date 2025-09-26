@@ -36,6 +36,8 @@ class Powerup implements Entity {
 
     instance.pop();
   };
+
+  remove = () => {};
 }
 
 export default Powerup;
