@@ -25,7 +25,8 @@ class Player implements Entity {
     this.username = username;
 
     // TODO: replace with something more robust
-    this.image = Player.spritesheet["alpha"][0];
+    const spriteNames = ["alpha", "beta"];
+    this.image = Player.spritesheet[spriteNames[Math.floor(Math.random() * spriteNames.length)]][0];
 
     this.roll = 0;
     this.removed = false;
