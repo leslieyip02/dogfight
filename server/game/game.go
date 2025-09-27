@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"math"
+	"sync"
 	"time"
 )
 
 type Game struct {
-	// messages
 	Incoming chan []byte
 	Outgoing chan []byte
+	mu       sync.Mutex
 
 	// state
 	entities     map[string]Entity
@@ -25,6 +26,7 @@ func NewGame() Game {
 	return Game{
 		Incoming:     make(chan []byte),
 		Outgoing:     make(chan []byte),
+		mu:           sync.Mutex{},
 		entities:     make(map[string]Entity),
 		frameCounter: 0,
 		updated:      make(map[string]Entity),
@@ -33,6 +35,8 @@ func NewGame() Game {
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	g.entities[id] = NewPlayer(id, username)
 	message, err := CreateMessage(JoinEventType, JoinEventData{
@@ -44,6 +48,13 @@ func (g *Game) AddPlayer(id string, username string) error {
 	}
 	g.Outgoing <- message
 	return nil
+}
+
+func (g *Game) RemovePlayer(id string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	g.removed = append(g.removed, id)
 }
 
 func (g *Game) GetSnapshot() SnapshotEventData {
@@ -76,6 +87,8 @@ func (g *Game) Run(ctx context.Context) {
 				g.update()
 
 			case message := <-g.Incoming:
+				g.Outgoing <- message
+
 				var event Event
 				json.Unmarshal(message, &event)
 
@@ -83,14 +96,11 @@ func (g *Game) Run(ctx context.Context) {
 				case QuitEventType:
 					var data QuitEventData
 					json.Unmarshal(event.Data, &data)
-					delete(g.entities, data.ID)
-
-					g.Outgoing <- message
+					g.RemovePlayer(data.ID)
 
 				case InputEventType:
 					var data InputEventData
 					json.Unmarshal(event.Data, &data)
-
 					g.input(data)
 				}
 			}
@@ -110,8 +120,8 @@ func (g *Game) input(data InputEventData) {
 }
 
 func (g *Game) update() {
-	clear(g.updated)
-	g.removed = g.removed[:0]
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	// TODO: move this?
 	g.frameCounter++
@@ -126,8 +136,10 @@ func (g *Game) update() {
 		delete(g.entities, id)
 		delete(g.updated, id)
 	}
-
 	g.broadcast()
+
+	clear(g.updated)
+	g.removed = g.removed[:0]
 }
 
 func (g *Game) updateEntities() {

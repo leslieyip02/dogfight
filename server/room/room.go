@@ -13,7 +13,7 @@ const ROOM_CAPACITY = 32
 
 type Room struct {
 	id      string
-	game    game.Game
+	game    *game.Game
 	clients map[string]*Client
 	mu      sync.Mutex
 	ctx     context.Context
@@ -30,7 +30,7 @@ func NewRoom() (*Room, error) {
 	game := game.NewGame()
 	room := Room{
 		id:      id,
-		game:    game,
+		game:    &game,
 		clients: map[string]*Client{},
 		mu:      sync.Mutex{},
 		ctx:     ctx,
@@ -80,22 +80,15 @@ func (r *Room) broadcast() {
 
 			var event game.Event
 			json.Unmarshal(message, &event)
+
 			switch event.Type {
 			case game.QuitEventType:
 				var data game.QuitEventData
 				json.Unmarshal(event.Data, &data)
-
 				r.Remove(data.ID)
 			}
 		}
 	}
-}
-
-func (r *Room) getClient(id string) (*Client, bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	c, ok := r.clients[id]
-	return c, ok
 }
 
 func (r *Room) hasCapacity() bool {

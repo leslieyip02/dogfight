@@ -1,6 +1,7 @@
 import type p5 from "p5";
 
-import type { Event, InputEventData } from "../types/event";
+import { sendMessage } from "../../api/game";
+import type { InputEventData } from "../types/event";
 
 const MINIMUM_ZOOM = 0.8;
 const MAXIMUM_ZOOM = 1.0;
@@ -50,10 +51,6 @@ class Input {
   };
 
   handleInput = (instance: p5) => {
-    if (this.socket.readyState !== WebSocket.OPEN) {
-      return;
-    }
-
     [this.mouseX, this.mouseY] = normalizeMouseValues(instance.mouseX, instance.mouseY);
 
     const data: InputEventData = {
@@ -62,11 +59,7 @@ class Input {
       mouseY: this.mouseY,
       mousePressed: this.mousePressed,
     };
-    const event: Event = {
-      type: "input",
-      data,
-    };
-    this.socket.send(JSON.stringify(event));
+    sendMessage(this.socket, "input", data);
 
     this.mousePressed = false;
   };

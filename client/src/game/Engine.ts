@@ -98,8 +98,9 @@ class Engine {
     return;
   };
 
-  private handleQuit = (data: QuitEventData) => {
-    delete this.entities[data.id];
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+  private handleQuit = (_data: QuitEventData) => {
+    // TODO: maybe log a chat message
   };
 
   private handleDelta = (data: DeltaEventData) => {
