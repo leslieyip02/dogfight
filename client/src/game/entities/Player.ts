@@ -10,18 +10,17 @@ class Player implements Entity {
   position: EntityPosition;
   username: string;
   roll: number;
+  removed: boolean;
 
   previousPositions: EntityPosition[];
-  removed: boolean;
 
   constructor(position: EntityPosition, username: string) {
     this.position = position;
     this.username = username;
     this.roll = 0;
+    this.removed = false;
 
     this.previousPositions = [];
-
-    this.removed = false;
   }
 
   update = (position?: EntityPosition) => {

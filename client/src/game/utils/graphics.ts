@@ -1,4 +1,5 @@
 import type p5 from "p5";
+import type { Image } from "p5";
 
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
@@ -13,12 +14,35 @@ const MINIMAP_RADIUS = 100;
 const MINIMAP_OFFSET = 128;
 const MINIMAP_SCALE = 1 / 800;
 
-function centerCanvas(originX: number, originY: number, zoom: number, instance: p5) {
-  instance.scale(zoom);
-  instance.translate(
-    -originX + (window.innerWidth / 2) / zoom,
-    -originY + (window.innerHeight / 2) / zoom,
-  );
+const SPRITESHEET_CONFIGS = {
+  explosion: {
+    path: "explosion.png",
+    width: 96,
+    height: 96,
+  },
+};
+
+export type Spritesheet = Record<string, Image[]>;
+
+export async function loadSpritesheet(instance: p5): Promise<Spritesheet> {
+  const loadingPromises = Object.entries(SPRITESHEET_CONFIGS)
+    .map(async ([name, config]) => {
+      return new Promise<[string, Image[]]>((resolve) => {
+        const { path, width, height } = config;
+        instance.loadImage(path, (image) => {
+          const frames = [];
+          for (let y = 0; y < image.height; y += height) {
+            for (let x = 0; x < image.width; x += width) {
+              const frame = image.get(x, y, width, height);
+              frames.push(frame);
+            }
+          }
+          resolve([name, frames]);
+        });
+      });
+    });
+  return Promise.all(loadingPromises)
+    .then(entries => Object.fromEntries(entries));
 }
 
 export function drawBackground(clientPlayer: Player, zoom: number, instance: p5) {
@@ -111,4 +135,12 @@ export function drawMinimap(clientPlayer: Player, entities: EntityMap, instance:
     });
 
   instance.pop();
+}
+
+function centerCanvas(originX: number, originY: number, zoom: number, instance: p5) {
+  instance.scale(zoom);
+  instance.translate(
+    -originX + (window.innerWidth / 2) / zoom,
+    -originY + (window.innerHeight / 2) / zoom,
+  );
 }

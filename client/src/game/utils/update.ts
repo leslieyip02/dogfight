@@ -1,9 +1,11 @@
+import Animation from "../entities/Animation";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
 import type { EntityData, PlayerEntityData, PowerupEntityData } from "../types/entity";
 import type { DeltaEventData, SnapshotEventData } from "../types/event";
+import type { Spritesheet } from "./graphics";
 
 export function syncEntities(snapshot: SnapshotEventData | null, entities: EntityMap) {
   if (!snapshot) {
@@ -67,4 +69,25 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
   default:
     break;
   }
+}
+
+export function addAnimations(
+  delta: DeltaEventData,
+  entities: EntityMap,
+  spritesheet: Spritesheet,
+) {
+  delta.removed
+    .forEach(id => {
+      if (entities[id] instanceof Player) {
+        const explosionId = `${id}-explosion`;
+        const explosion = new Animation(
+          entities[id].position,
+          spritesheet["explosion"],
+          () => {
+            delete entities[explosionId];
+          },
+        );
+        entities[explosionId] = explosion;
+      }
+    });
 }

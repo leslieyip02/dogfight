@@ -10,9 +10,9 @@ import type {
   JoinEventData,
   QuitEventData,
 } from "./types/event";
-import { drawBackground, drawEntities, drawMinimap } from "./utils/graphics";
+import { drawBackground, drawEntities, drawMinimap, loadSpritesheet, type Spritesheet } from "./utils/graphics";
 import Input from "./utils/input";
-import { mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
+import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
 const FPS = 60;
 
@@ -24,6 +24,8 @@ class Engine {
 
   input: Input;
   delta: DeltaEventData;
+
+  spritesheet: Spritesheet;
 
   constructor(
     instance: p5,
@@ -44,11 +46,14 @@ class Engine {
       "updated": {},
       "removed": [],
     };
+
+    this.spritesheet = {};
   }
 
-  setup = () => {
+  setup = async () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
+    this.spritesheet = await loadSpritesheet(this.instance);
   };
 
   draw = () => {
@@ -113,7 +118,13 @@ class Engine {
   };
 
   private handleUpdates = () => {
-    // TODO: restore some sort of removal animation
+    addAnimations(this.delta, this.entities, this.spritesheet);
+
+    // TODO: replace with something more robust
+    if (this.delta.removed.includes(this.clientId)) {
+      this.delta.removed = this.delta.removed.filter(id => id !== this.clientId);
+    }
+
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);
 
