@@ -25,6 +25,11 @@ const SPRITESHEET_CONFIGS = {
     width: 96,
     height: 96,
   },
+  charlie: {
+    path: "charlie.png",
+    width: 96,
+    height: 96,
+  },
   explosion: {
     path: "explosion.png",
     width: 96,

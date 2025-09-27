@@ -8,11 +8,12 @@ import type { Entity } from "./Entity";
 const PLAYER_RADIUS = 40;
 const MAX_PLYAER_TRAIL_POINTS = 32;
 
+const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie"];
+
 function chooseSprite(username: string): Image {
   // TODO: consider replacing this with a normal field?
   const asciiSum = [...username].reduce((a, b) => a + b.charCodeAt(0), 0);
-  const spriteNames = ["alpha", "bravo"];
-  return Player.spritesheet[spriteNames[asciiSum % spriteNames.length]][0];
+  return Player.spritesheet[PLAYER_SPRITE_NAMES[asciiSum % PLAYER_SPRITE_NAMES.length]][0];
 }
 
 class Player implements Entity {
@@ -20,7 +21,7 @@ class Player implements Entity {
 
   position: EntityPosition;
   username: string;
-  image: Image;
+  sprite: Image;
 
   roll: number;
   removed: boolean;
@@ -30,7 +31,7 @@ class Player implements Entity {
   constructor(position: EntityPosition, username: string) {
     this.position = position;
     this.username = username;
-    this.image = chooseSprite(username);
+    this.sprite = chooseSprite(username);
 
     this.roll = 0;
     this.removed = false;
@@ -73,14 +74,8 @@ class Player implements Entity {
     instance.push();
     instance.rotate(this.position.theta);
     instance.fill("#ffffff");
-    // TODO: consider changing to a sprite
-    // instance.triangle(
-    //   RADIUS, 0,
-    //   -RADIUS, RADIUS,
-    //   -RADIUS, -RADIUS,
-    // );
-    instance.translate(-this.image.width / 2, -this.image.height / 2);
-    instance.image(this.image, 0, 0);
+    instance.translate(-this.sprite.width / 2, -this.sprite.height / 2);
+    instance.image(this.sprite, 0, 0);
     instance.pop();
 
     instance.noFill();
