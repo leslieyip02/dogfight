@@ -35,7 +35,7 @@ export function mergeDeltas(current: DeltaEventData, next: DeltaEventData): Delt
 export function removeEntities(delta: DeltaEventData, entities: EntityMap) {
   delta.removed
     .forEach(id => {
-      entities[id].remove();
+      entities[id]?.remove();
       delete entities[id];
     });
 }

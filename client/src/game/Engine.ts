@@ -10,7 +10,7 @@ import type {
   JoinEventData,
   QuitEventData,
 } from "./types/event";
-import { type CanvasConfig, drawBackground, drawEntities, drawMinimap, loadSpritesheet, type Spritesheet } from "./utils/graphics";
+import { type CanvasConfig, drawBackground, drawEntities, drawMinimap, drawRespawnPrompt, loadSpritesheet, type Spritesheet } from "./utils/graphics";
 import Input from "./utils/input";
 import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
@@ -63,6 +63,10 @@ class Engine {
     drawBackground(this.canvasConfig, this.instance);
     drawEntities(this.canvasConfig, this.entities, this.instance);
     drawMinimap(this.canvasConfig, this.entities[this.clientId] as Player, this.entities, this.instance);
+
+    if (!this.entities[this.clientId]) {
+      drawRespawnPrompt(this.instance);
+    }
   };
 
   mousePressed = () => {

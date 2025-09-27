@@ -98,12 +98,10 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
 export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, entities: EntityMap, instance: p5) {
   instance.push();
   instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
-
   instance.stroke("#ffffff");
   instance.fill(BACKGROUND_COLOR);
   instance.circle(0, 0, MINIMAP_RADIUS * 2);
 
-  instance.fill("#ff0000");
   Object.values(entities)
     .forEach(entity => {
       const drawIcon = entity.drawIcon;
@@ -122,18 +120,38 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
       instance.pop();
     });
 
-  if (!clientPlayer) {
-    return;
+  if (clientPlayer) {
+    instance.push();
+    instance.rotate(clientPlayer.position.theta);
+    instance.noStroke();
+    instance.fill("#ffffff");
+    instance.triangle(
+      8, 0,
+      -8, 8,
+      -8, -8,
+    );
+    instance.pop();
   }
+
+  instance.pop();
+}
+
+export function drawRespawnPrompt(instance: p5) {
   instance.push();
-  instance.rotate(clientPlayer.position.theta);
-  instance.noStroke();
+  instance.textFont("Courier New");
+  instance.textAlign(instance.CENTER);
+  instance.stroke("#ffffff");
   instance.fill("#ffffff");
-  instance.triangle(
-    8, 0,
-    -8, 8,
-    -8, -8,
-  );
+  instance.translate(window.innerWidth / 2, window.innerHeight / 2);
+
+  instance.push();
+  instance.textSize(32);
+  instance.text("splashed!", 0, -32);
+  instance.pop();
+
+  instance.push();
+  instance.textSize(16);
+  instance.text("click to respawn", 0, 8);
   instance.pop();
 
   instance.pop();
