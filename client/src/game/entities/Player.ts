@@ -5,8 +5,8 @@ import type { EntityPosition } from "../types/entity";
 import type { Spritesheet } from "../utils/graphics";
 import type { Entity } from "./Entity";
 
-const RADIUS = 40;
-const MAX_TRAIL_POINTS = 32;
+const PLAYER_RADIUS = 40;
+const MAX_PLYAER_TRAIL_POINTS = 32;
 
 class Player implements Entity {
   static spritesheet: Spritesheet;
@@ -38,8 +38,13 @@ class Player implements Entity {
       return;
     }
 
-    this.previousPositions.push({ ...this.position });
-    if (this.previousPositions.length > MAX_TRAIL_POINTS) {
+    const previousPosition: EntityPosition = {
+      x: this.position.x - Math.cos(this.position.theta) * PLAYER_RADIUS,
+      y: this.position.y - Math.sin(this.position.theta) * PLAYER_RADIUS,
+      theta: this.position.theta,
+    };
+    this.previousPositions.push(previousPosition);
+    if (this.previousPositions.length > MAX_PLYAER_TRAIL_POINTS) {
       this.previousPositions.shift();
     }
 
@@ -83,7 +88,7 @@ class Player implements Entity {
     if (debug) {
       instance.push();
       instance.stroke("#ff0000");
-      instance.circle(0, 0, 2 * RADIUS);
+      instance.circle(0, 0, 2 * PLAYER_RADIUS);
       instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
       instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
       instance.pop();
