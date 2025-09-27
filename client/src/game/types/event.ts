@@ -1,11 +1,17 @@
 import type { EntityData } from "./entity";
 
-export type EventType = "join" | "quit" | "input" | "snapshot" | "delta";
+export type EventType = "join"
+  | "quit"
+  | "respawn"
+  | "input"
+  | "snapshot"
+  | "delta";
 
 export type Event = {
   type: EventType
   data: JoinEventData
     | QuitEventData
+    | RespawnEventData
     | InputEventData
     | SnapshotEventData
     | DeltaEventData;
@@ -17,6 +23,10 @@ export type JoinEventData = {
 };
 
 export type QuitEventData = {
+  id: string,
+};
+
+export type RespawnEventData = {
   id: string,
 };
 

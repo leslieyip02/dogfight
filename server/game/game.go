@@ -15,6 +15,7 @@ type Game struct {
 
 	// state
 	entities     map[string]Entity
+	usernames    map[string]string
 	frameCounter int64
 
 	// state delta
@@ -28,6 +29,7 @@ func NewGame() Game {
 		Outgoing:     make(chan []byte),
 		mu:           sync.Mutex{},
 		entities:     make(map[string]Entity),
+		usernames:    map[string]string{},
 		frameCounter: 0,
 		updated:      make(map[string]Entity),
 		removed:      []string{},
@@ -39,6 +41,8 @@ func (g *Game) AddPlayer(id string, username string) error {
 	defer g.mu.Unlock()
 
 	g.entities[id] = NewPlayer(id, username)
+	g.usernames[id] = username
+
 	message, err := CreateMessage(JoinEventType, JoinEventData{
 		ID:       id,
 		Username: username,
@@ -50,11 +54,29 @@ func (g *Game) AddPlayer(id string, username string) error {
 	return nil
 }
 
-func (g *Game) RemovePlayer(id string) {
+func (g *Game) remove(id string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	g.removed = append(g.removed, id)
+	delete(g.usernames, id)
+}
+
+func (g *Game) respawn(id string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	_, found := g.entities[id]
+	if found {
+		return
+	}
+
+	username, found := g.usernames[id]
+	if !found {
+		return
+	}
+
+	g.entities[id] = NewPlayer(id, username)
 }
 
 func (g *Game) GetSnapshot() SnapshotEventData {
@@ -96,7 +118,12 @@ func (g *Game) Run(ctx context.Context) {
 				case QuitEventType:
 					var data QuitEventData
 					json.Unmarshal(event.Data, &data)
-					g.RemovePlayer(data.ID)
+					g.remove(data.ID)
+
+				case RespawnEventType:
+					var data RespawnEventData
+					json.Unmarshal(event.Data, &data)
+					g.respawn(data.ID)
 
 				case InputEventType:
 					var data InputEventData

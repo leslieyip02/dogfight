@@ -14,6 +14,7 @@ type EventType string
 const (
 	JoinEventType     EventType = "join"
 	QuitEventType     EventType = "quit"
+	RespawnEventType  EventType = "respawn"
 	InputEventType    EventType = "input"
 	SnapshotEventType EventType = "snapshot"
 	DeltaEventType    EventType = "delta"
@@ -26,6 +27,11 @@ type JoinEventData struct {
 
 type QuitEventData struct {
 	ID string `json:"id"`
+}
+
+type RespawnEventData struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
 }
 
 type InputEventData struct {

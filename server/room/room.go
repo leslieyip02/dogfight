@@ -47,7 +47,6 @@ func (r *Room) Add(client *Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// TODO: add capacity check
 	r.clients[client.id] = client
 }
 
@@ -65,6 +64,7 @@ func (r *Room) Stop() {
 func (r *Room) connect(client *Client) error {
 	go client.readPump(r.game.Incoming)
 	go client.writePump()
+
 	return r.game.AddPlayer(client.id, client.username)
 }
 
@@ -73,6 +73,7 @@ func (r *Room) broadcast() {
 		select {
 		case <-r.ctx.Done():
 			return
+
 		case message := <-r.game.Outgoing:
 			for _, client := range r.clients {
 				client.send <- message

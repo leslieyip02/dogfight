@@ -1,7 +1,7 @@
 import type p5 from "p5";
 
 import { sendMessage } from "../../api/game";
-import type { InputEventData } from "../types/event";
+import type { InputEventData, RespawnEventData } from "../types/event";
 
 const MINIMUM_ZOOM = 0.8;
 const MAXIMUM_ZOOM = 1.0;
@@ -52,7 +52,6 @@ class Input {
 
   handleInput = (instance: p5) => {
     [this.mouseX, this.mouseY] = normalizeMouseValues(instance.mouseX, instance.mouseY);
-
     const data: InputEventData = {
       id: this.clientId,
       mouseX: this.mouseX,
@@ -60,7 +59,18 @@ class Input {
       mousePressed: this.mousePressed,
     };
     sendMessage(this.socket, "input", data);
+    this.mousePressed = false;
+  };
 
+  handleRespawn = () => {
+    if (!this.mousePressed) {
+      return;
+    }
+
+    const data: RespawnEventData = {
+      id: this.clientId,
+    };
+    sendMessage(this.socket, "respawn", data);
     this.mousePressed = false;
   };
 

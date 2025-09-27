@@ -108,12 +108,13 @@ class Engine {
   };
 
   private handleInput = () => {
-    this.input.handleInput(this.instance);
-
     const clientPlayer = this.entities[this.clientId] as Player;
     if (!clientPlayer) {
+      this.input.handleRespawn();
       return;
     }
+
+    this.input.handleInput(this.instance);
     this.canvasConfig.x = clientPlayer.position.x;
     this.canvasConfig.y = clientPlayer.position.y;
     this.canvasConfig.zoom = this.input.calculateZoom();
