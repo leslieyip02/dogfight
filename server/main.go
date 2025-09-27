@@ -46,9 +46,9 @@ func main() {
 
 	r.Route("/api/room", func(r chi.Router) {
 		r.Post("/join", manager.HandleJoin)
-		r.Get("/snapshot", manager.HandleFetchSnapshot)
+		r.Get("/snapshot", manager.HandleSnapshot)
 	})
-	r.Get("/ws", manager.HandleConnect)
+	r.Get("/ws", manager.HandleWS)
 
 	log.Printf("server is running on %s:%s", host, port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
