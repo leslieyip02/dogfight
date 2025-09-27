@@ -8,6 +8,13 @@ import type { Entity } from "./Entity";
 const PLAYER_RADIUS = 40;
 const MAX_PLYAER_TRAIL_POINTS = 32;
 
+function chooseSprite(username: string): Image {
+  // TODO: consider replacing this with a normal field?
+  const asciiSum = [...username].reduce((a, b) => a + b.charCodeAt(0), 0);
+  const spriteNames = ["alpha", "bravo"];
+  return Player.spritesheet[spriteNames[asciiSum % spriteNames.length]][0];
+}
+
 class Player implements Entity {
   static spritesheet: Spritesheet;
 
@@ -23,10 +30,7 @@ class Player implements Entity {
   constructor(position: EntityPosition, username: string) {
     this.position = position;
     this.username = username;
-
-    // TODO: replace with something more robust
-    const spriteNames = ["alpha", "beta"];
-    this.image = Player.spritesheet[spriteNames[Math.floor(Math.random() * spriteNames.length)]][0];
+    this.image = chooseSprite(username);
 
     this.roll = 0;
     this.removed = false;

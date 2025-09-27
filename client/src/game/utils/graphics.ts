@@ -20,8 +20,8 @@ const SPRITESHEET_CONFIGS = {
     width: 96,
     height: 96,
   },
-  beta: {
-    path: "beta.png",
+  bravo: {
+    path: "bravo.png",
     width: 96,
     height: 96,
   },
