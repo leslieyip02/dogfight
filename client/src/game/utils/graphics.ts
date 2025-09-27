@@ -22,6 +22,12 @@ const SPRITESHEET_CONFIGS = {
   },
 };
 
+export type CanvasConfig = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
 export type Spritesheet = Record<string, Image[]>;
 
 export async function loadSpritesheet(instance: p5): Promise<Spritesheet> {
@@ -45,7 +51,7 @@ export async function loadSpritesheet(instance: p5): Promise<Spritesheet> {
     .then(entries => Object.fromEntries(entries));
 }
 
-export function drawBackground(clientPlayer: Player, zoom: number, instance: p5) {
+export function drawBackground(config: CanvasConfig, instance: p5) {
   instance.background(BACKGROUND_COLOR);
 
   if (DEBUG) {
@@ -53,14 +59,12 @@ export function drawBackground(clientPlayer: Player, zoom: number, instance: p5)
   }
 
   instance.push();
-  const originX = clientPlayer.position.x;
-  const originY = clientPlayer.position.y;
-  centerCanvas(originX, originY, zoom, instance);
+  centerCanvas(config, instance);
 
-  const worldLeft = originX - (window.innerWidth / 2) / zoom;
-  const worldRight = originX + (window.innerWidth / 2) / zoom;
-  const worldTop = originY - (window.innerHeight / 2) / zoom;
-  const worldBottom = originY + (window.innerHeight / 2) / zoom;
+  const worldLeft = config.x - (window.innerWidth / 2) / config.zoom;
+  const worldRight = config.x + (window.innerWidth / 2) / config.zoom;
+  const worldTop = config.y - (window.innerHeight / 2) / config.zoom;
+  const worldBottom = config.y + (window.innerHeight / 2) / config.zoom;
 
   const startCol = Math.floor(worldLeft / GRID_SIZE) * GRID_SIZE;
   const endCol = Math.ceil(worldRight / GRID_SIZE) * GRID_SIZE;
@@ -78,11 +82,9 @@ export function drawBackground(clientPlayer: Player, zoom: number, instance: p5)
   instance.pop();
 }
 
-export function drawEntities(clientPlayer: Player, entities: EntityMap, zoom: number, instance: p5) {
+export function drawEntities(config: CanvasConfig, entities: EntityMap, instance: p5) {
   instance.push();
-  const originX = clientPlayer.position.x;
-  const originY = clientPlayer.position.y;
-  centerCanvas(originX, originY, zoom, instance);
+  centerCanvas(config, instance);
 
   // TODO: move this?
   Object.values(entities)
@@ -93,27 +95,13 @@ export function drawEntities(clientPlayer: Player, entities: EntityMap, zoom: nu
   instance.pop();
 }
 
-export function drawMinimap(clientPlayer: Player, entities: EntityMap, instance: p5) {
+export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, entities: EntityMap, instance: p5) {
   instance.push();
   instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
 
   instance.stroke("#ffffff");
   instance.fill(BACKGROUND_COLOR);
   instance.circle(0, 0, MINIMAP_RADIUS * 2);
-
-  instance.push();
-  instance.rotate(clientPlayer.position.theta);
-  instance.noStroke();
-  instance.fill("#ffffff");
-  if (clientPlayer.removed) {
-    // TODO: different icon when dead
-  }
-  instance.triangle(
-    8, 0,
-    -8, 8,
-    -8, -8,
-  );
-  instance.pop();
 
   instance.fill("#ff0000");
   Object.values(entities)
@@ -123,8 +111,8 @@ export function drawMinimap(clientPlayer: Player, entities: EntityMap, instance:
         return;
       }
 
-      const dx = entity.position.x - clientPlayer.position.x;
-      const dy = entity.position.y - clientPlayer.position.y;
+      const dx = entity.position.x - origin.x;
+      const dy = entity.position.y - origin.y;
       const theta = Math.atan2(dy, dx);
       const clamped = Math.min(Math.hypot(dx, dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
 
@@ -134,13 +122,27 @@ export function drawMinimap(clientPlayer: Player, entities: EntityMap, instance:
       instance.pop();
     });
 
+  if (!clientPlayer) {
+    return;
+  }
+  instance.push();
+  instance.rotate(clientPlayer.position.theta);
+  instance.noStroke();
+  instance.fill("#ffffff");
+  instance.triangle(
+    8, 0,
+    -8, 8,
+    -8, -8,
+  );
+  instance.pop();
+
   instance.pop();
 }
 
-function centerCanvas(originX: number, originY: number, zoom: number, instance: p5) {
-  instance.scale(zoom);
+function centerCanvas(config: CanvasConfig, instance: p5) {
+  instance.scale(config.zoom);
   instance.translate(
-    -originX + (window.innerWidth / 2) / zoom,
-    -originY + (window.innerHeight / 2) / zoom,
+    -config.x + (window.innerWidth / 2) / config.zoom,
+    -config.y + (window.innerHeight / 2) / config.zoom,
   );
 }

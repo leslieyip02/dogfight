@@ -10,7 +10,7 @@ import type {
   JoinEventData,
   QuitEventData,
 } from "./types/event";
-import { drawBackground, drawEntities, drawMinimap, loadSpritesheet, type Spritesheet } from "./utils/graphics";
+import { type CanvasConfig, drawBackground, drawEntities, drawMinimap, loadSpritesheet, type Spritesheet } from "./utils/graphics";
 import Input from "./utils/input";
 import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
@@ -21,11 +21,11 @@ class Engine {
 
   clientId: string;
   entities: EntityMap;
+  canvasConfig: CanvasConfig;
+  spritesheet: Spritesheet;
 
   input: Input;
   delta: DeltaEventData;
-
-  spritesheet: Spritesheet;
 
   constructor(
     instance: p5,
@@ -39,6 +39,8 @@ class Engine {
 
     this.clientId = clientId;
     this.entities = {};
+    this.canvasConfig = { x: 0.0, y: 0.0, zoom: 1.0 };
+    this.spritesheet = {};
 
     this.input = new Input(clientId, socket);
     this.delta = {
@@ -46,8 +48,6 @@ class Engine {
       "updated": {},
       "removed": [],
     };
-
-    this.spritesheet = {};
   }
 
   setup = async () => {
@@ -60,15 +60,9 @@ class Engine {
     this.handleInput();
     this.handleUpdates();
 
-    const clientPlayer = this.entities[this.clientId] as Player;
-    if (!clientPlayer) {
-      return;
-    }
-
-    const zoom = this.input.calculateZoom();
-    drawBackground(clientPlayer, zoom, this.instance);
-    drawEntities(clientPlayer, this.entities, zoom, this.instance);
-    drawMinimap(clientPlayer, this.entities, this.instance);
+    drawBackground(this.canvasConfig, this.instance);
+    drawEntities(this.canvasConfig, this.entities, this.instance);
+    drawMinimap(this.canvasConfig, this.entities[this.clientId] as Player, this.entities, this.instance);
   };
 
   mousePressed = () => {
@@ -114,17 +108,18 @@ class Engine {
 
   private handleInput = () => {
     this.input.handleInput(this.instance);
-    this.input.calculateZoom();
+
+    const clientPlayer = this.entities[this.clientId] as Player;
+    if (!clientPlayer) {
+      return;
+    }
+    this.canvasConfig.x = clientPlayer.position.x;
+    this.canvasConfig.y = clientPlayer.position.y;
+    this.canvasConfig.zoom = this.input.calculateZoom();
   };
 
   private handleUpdates = () => {
     addAnimations(this.delta, this.entities, this.spritesheet);
-
-    // TODO: replace with something more robust
-    if (this.delta.removed.includes(this.clientId)) {
-      this.delta.removed = this.delta.removed.filter(id => id !== this.clientId);
-    }
-
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);
 
