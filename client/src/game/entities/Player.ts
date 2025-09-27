@@ -1,14 +1,20 @@
 import type p5 from "p5";
+import type { Image } from "p5";
 
 import type { EntityPosition } from "../types/entity";
+import type { Spritesheet } from "../utils/graphics";
 import type { Entity } from "./Entity";
 
 const RADIUS = 40;
 const MAX_TRAIL_POINTS = 32;
 
 class Player implements Entity {
+  static spritesheet: Spritesheet;
+
   position: EntityPosition;
   username: string;
+  image: Image;
+
   roll: number;
   removed: boolean;
 
@@ -17,6 +23,10 @@ class Player implements Entity {
   constructor(position: EntityPosition, username: string) {
     this.position = position;
     this.username = username;
+
+    // TODO: replace with something more robust
+    this.image = Player.spritesheet["alpha"][0];
+
     this.roll = 0;
     this.removed = false;
 
@@ -33,6 +43,7 @@ class Player implements Entity {
       this.previousPositions.shift();
     }
 
+    // TODO: apply a transform for this?
     this.roll = Math.sign(position.theta - this.position.theta);
     this.position = position;
   };
@@ -53,11 +64,13 @@ class Player implements Entity {
     instance.rotate(this.position.theta);
     instance.fill("#ffffff");
     // TODO: consider changing to a sprite
-    instance.triangle(
-      RADIUS, 0,
-      -RADIUS, RADIUS,
-      -RADIUS, -RADIUS,
-    );
+    // instance.triangle(
+    //   RADIUS, 0,
+    //   -RADIUS, RADIUS,
+    //   -RADIUS, -RADIUS,
+    // );
+    instance.translate(-this.image.width / 2, -this.image.height / 2);
+    instance.image(this.image, 0, 0);
     instance.pop();
 
     instance.noFill();
@@ -90,7 +103,7 @@ class Player implements Entity {
     }
 
     instance.push();
-    instance.stroke("#888888");
+    instance.stroke("#ffa320");
     instance.strokeWeight(4);
     instance.noFill();
     for (let i = 0; i < this.previousPositions.length - 1; i++) {

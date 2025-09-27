@@ -15,6 +15,11 @@ const MINIMAP_OFFSET = 128;
 const MINIMAP_SCALE = 1 / 800;
 
 const SPRITESHEET_CONFIGS = {
+  alpha: {
+    path: "alpha.png",
+    width: 96,
+    height: 96,
+  },
   explosion: {
     path: "explosion.png",
     width: 96,

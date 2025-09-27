@@ -54,6 +54,7 @@ class Engine {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
     this.spritesheet = await loadSpritesheet(this.instance);
+    Player.spritesheet = this.spritesheet;
   };
 
   draw = () => {
