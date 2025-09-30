@@ -5,6 +5,8 @@ import type { Entity } from "./Entity";
 
 export type PowerupAbility = "multishot";
 
+const POWERUP_WIDTH = 20;
+
 class Powerup implements Entity {
   position: EntityPosition;
   ability: PowerupAbility;
@@ -29,16 +31,24 @@ class Powerup implements Entity {
     instance.rotate(this.position.theta);
     instance.noStroke();
     instance.fill("#00ff00");
-    if (debug) {
-      instance.stroke("#ff0000");
-    }
     instance.circle(0, 0, 10);
+
+    if (debug) {
+      instance.push();
+      instance.noFill();
+      instance.stroke("#ff0000");
+      instance.rect(-POWERUP_WIDTH / 2, -POWERUP_WIDTH / 2, POWERUP_WIDTH, POWERUP_WIDTH);
+      instance.pop();
+    }
+
     instance.pop();
   };
 
   drawIcon = (instance: p5) => {
+    instance.push();
     instance.fill("#00ff00");
     instance.circle(0, 0, 8);
+    instance.pop();
   };
 }
 

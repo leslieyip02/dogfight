@@ -5,7 +5,7 @@ import type { EntityPosition } from "../types/entity";
 import type { Spritesheet } from "../utils/graphics";
 import type { Entity } from "./Entity";
 
-const PLAYER_RADIUS = 40;
+const PLAYER_WIDTH = 96;
 const MAX_PLYAER_TRAIL_POINTS = 32;
 
 const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie"];
@@ -45,8 +45,8 @@ class Player implements Entity {
     }
 
     const previousPosition: EntityPosition = {
-      x: this.position.x - Math.cos(this.position.theta) * PLAYER_RADIUS,
-      y: this.position.y - Math.sin(this.position.theta) * PLAYER_RADIUS,
+      x: this.position.x - Math.cos(this.position.theta) * PLAYER_WIDTH / 2,
+      y: this.position.y - Math.sin(this.position.theta) * PLAYER_WIDTH / 2,
       theta: this.position.theta,
     };
     this.previousPositions.push(previousPosition);
@@ -68,16 +68,37 @@ class Player implements Entity {
       return;
     }
 
+    this.drawModel(instance, debug);
+    this.drawUsername(instance, debug);
+  };
+
+  drawIcon = (instance: p5) => {
+    instance.fill("#ff0000");
+    instance.circle(0, 0, 8);
+  };
+
+  drawModel = (instance: p5, debug?: boolean) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
-
-    instance.push();
     instance.rotate(this.position.theta);
-    instance.fill("#ffffff");
     instance.translate(-this.sprite.width / 2, -this.sprite.height / 2);
+    instance.fill("#ffffff");
     instance.image(this.sprite, 0, 0);
-    instance.pop();
 
+    if (debug) {
+      instance.push();
+      instance.stroke("#ff0000");
+      instance.noFill();
+      instance.rect(0, 0, this.sprite.width, this.sprite.height);
+      instance.pop();
+    }
+
+    instance.pop();
+  };
+
+  drawUsername = (instance: p5, debug?: boolean) => {
+    instance.push();
+    instance.translate(this.position.x, this.position.y);
     instance.noFill();
     instance.stroke("#ffffff");
     instance.strokeWeight(1);
@@ -88,18 +109,12 @@ class Player implements Entity {
     if (debug) {
       instance.push();
       instance.stroke("#ff0000");
-      instance.circle(0, 0, 2 * PLAYER_RADIUS);
       instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
       instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
       instance.pop();
     }
 
     instance.pop();
-  };
-
-  drawIcon = (instance: p5) => {
-    instance.fill("#ff0000");
-    instance.circle(0, 0, 8);
   };
 
   drawTrail = (instance: p5) => {
