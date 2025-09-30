@@ -1,6 +1,9 @@
 package game
 
-import "server/utils"
+import (
+	"server/game/geometry"
+	"server/utils"
+)
 
 type PowerupAbility string
 
@@ -14,11 +17,20 @@ const (
 	MultishotPowerupType PowerupAbility = "multishot"
 )
 
+var powerupBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+	geometry.NewVector(-10, -10),
+	geometry.NewVector(10, -10),
+	geometry.NewVector(10, 10),
+	geometry.NewVector(-10, 10),
+})
+
 type Powerup struct {
 	Type     EntityType     `json:"type"`
 	ID       string         `json:"id"`
 	Position EntityPosition `json:"position"`
 	Ability  PowerupAbility `json:"ability"`
+
+	boundingBox *geometry.BoundingBox
 }
 
 func NewPowerup(ability PowerupAbility) (*Powerup, error) {
@@ -28,10 +40,11 @@ func NewPowerup(ability PowerupAbility) (*Powerup, error) {
 	}
 
 	return &Powerup{
-		Type:     PowerupEntityType,
-		ID:       id,
-		Position: randomEntityPosition(),
-		Ability:  ability,
+		Type:        PowerupEntityType,
+		ID:          id,
+		Position:    randomEntityPosition(),
+		Ability:     ability,
+		boundingBox: &powerupBoundingBox,
 	}, nil
 }
 
@@ -49,6 +62,10 @@ func (p *Powerup) GetPosition() EntityPosition {
 
 func (p *Powerup) GetIsExpired() bool {
 	return false
+}
+
+func (p *Powerup) GetBoundingBox() *geometry.BoundingBox {
+	return powerupBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
 func (p *Powerup) Update(g *Game) bool {

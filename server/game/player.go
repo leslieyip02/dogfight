@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"server/game/geometry"
 )
 
 const (
@@ -15,14 +16,22 @@ const (
 	PLAYER_RADIUS = 40.0
 )
 
+var playerBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+	geometry.NewVector(-40, -40),
+	geometry.NewVector(40, -40),
+	geometry.NewVector(40, 40),
+	geometry.NewVector(-40, 40),
+})
+
 type Player struct {
 	Type     EntityType     `json:"type"`
 	ID       string         `json:"id"`
 	Username string         `json:"username"`
 	Position EntityPosition `json:"position"`
 
-	speed   float64
-	powerup *Powerup
+	boundingBox *geometry.BoundingBox
+	speed       float64
+	powerup     *Powerup
 
 	mouseX       float64
 	mouseY       float64
@@ -30,7 +39,7 @@ type Player struct {
 }
 
 func NewPlayer(id string, username string) *Player {
-	return &Player{
+	p := Player{
 		Type:         PlayerEntityType,
 		ID:           id,
 		Username:     username,
@@ -40,7 +49,9 @@ func NewPlayer(id string, username string) *Player {
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
+		boundingBox:  &playerBoundingBox,
 	}
+	return &p
 }
 
 func (p *Player) GetType() EntityType {
@@ -57,6 +68,10 @@ func (p *Player) GetPosition() EntityPosition {
 
 func (p *Player) GetIsExpired() bool {
 	return false
+}
+
+func (p *Player) GetBoundingBox() *geometry.BoundingBox {
+	return playerBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
 func (p *Player) Update(g *Game) bool {

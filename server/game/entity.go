@@ -3,6 +3,7 @@ package game
 import (
 	"math"
 	"math/rand"
+	"server/game/geometry"
 )
 
 type EntityType string
@@ -12,7 +13,7 @@ type Entity interface {
 	GetID() string
 	GetPosition() EntityPosition
 	GetIsExpired() bool
-
+	GetBoundingBox() *geometry.BoundingBox
 	Update(g *Game) bool
 }
 

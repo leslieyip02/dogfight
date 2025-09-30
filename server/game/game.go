@@ -3,7 +3,6 @@ package game
 import (
 	"context"
 	"encoding/json"
-	"math"
 	"sync"
 	"time"
 )
@@ -205,27 +204,7 @@ func (g *Game) resolveCollisions() {
 }
 
 func (g *Game) checkCollision(a Entity, b Entity) bool {
-	// TODO: replace with something more robust
-	dx := a.GetPosition().X - b.GetPosition().X
-	dy := a.GetPosition().Y - b.GetPosition().Y
-	distance := math.Sqrt(dx*dx + dy*dy)
-
-	threshold := 0.0
-	if a.GetType() == PlayerEntityType {
-		threshold += PLAYER_RADIUS
-	} else if a.GetType() == ProjectileEntityType {
-		threshold += PROJECTILE_RADIUS
-	} else if a.GetID() == string(PowerupEntityType) {
-		threshold += PROJECTILE_RADIUS
-	}
-	if b.GetType() == PlayerEntityType {
-		threshold += PLAYER_RADIUS
-	} else if b.GetType() == ProjectileEntityType {
-		threshold += PROJECTILE_RADIUS
-	} else if b.GetID() == string(PowerupEntityType) {
-		threshold += PROJECTILE_RADIUS
-	}
-	return distance <= threshold
+	return a.GetBoundingBox().DidCollide(b.GetBoundingBox())
 }
 
 func (g *Game) handleCollision(a Entity, b Entity) {

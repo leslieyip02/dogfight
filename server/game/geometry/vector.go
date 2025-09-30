@@ -11,6 +11,10 @@ type Vector struct {
 	y float64
 }
 
+func NewVector(x float64, y float64) Vector {
+	return Vector{x: x, y: y}
+}
+
 func (u *Vector) sub(v *Vector) *Vector {
 	return &Vector{
 		x: u.x - v.x,

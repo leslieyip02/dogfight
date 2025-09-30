@@ -10,7 +10,7 @@ import (
 var b1 = BoundingBox{
 	origin: Vector{x: 0, y: 0},
 	theta:  0,
-	points: []Vector{
+	points: &[]Vector{
 		{x: -1, y: -1},
 		{x: 1, y: -1},
 		{x: 1, y: 1},
@@ -21,7 +21,7 @@ var b1 = BoundingBox{
 var b2 = BoundingBox{
 	origin: Vector{x: 1, y: 2},
 	theta:  math.Pi / 4,
-	points: []Vector{
+	points: &[]Vector{
 		{x: -1, y: -1},
 		{x: 1, y: -1},
 		{x: 1, y: 1},
@@ -32,7 +32,7 @@ var b2 = BoundingBox{
 var b3 = BoundingBox{
 	origin: Vector{x: 0, y: 0},
 	theta:  math.Pi / 4,
-	points: []Vector{
+	points: &[]Vector{
 		{x: -1, y: -1},
 		{x: 1, y: -1},
 		{x: 1, y: 1},
@@ -43,7 +43,7 @@ var b3 = BoundingBox{
 var b4 = BoundingBox{
 	origin: Vector{x: 2, y: 2},
 	theta:  math.Pi / 4,
-	points: []Vector{
+	points: &[]Vector{
 		{x: -1, y: -1},
 		{x: 1, y: -1},
 		{x: 1, y: 1},
@@ -83,7 +83,7 @@ func TestNormals(t *testing.T) {
 	}
 }
 
-func TestWordlify(t *testing.T) {
+func TestConvertToWorldSpace(t *testing.T) {
 	tests := []struct {
 		b    *BoundingBox
 		v    Vector
@@ -96,7 +96,7 @@ func TestWordlify(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v wordlify %v", test.b, test.v), func(t *testing.T) {
-			got := test.b.worldify(&test.v)
+			got := test.b.convertToWorldSpace(&test.v)
 			if math.Abs(got.x-test.want.x) > epsilon ||
 				math.Abs(got.y-test.want.y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)

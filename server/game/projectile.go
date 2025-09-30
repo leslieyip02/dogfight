@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"server/game/geometry"
 	"server/utils"
 )
 
@@ -11,12 +12,21 @@ const (
 	PROJECTILE_LIFETIME = 2.4 * FPS
 )
 
+var projectileBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+	geometry.NewVector(-10, -10),
+	geometry.NewVector(10, -10),
+	geometry.NewVector(10, 10),
+	geometry.NewVector(-10, 10),
+})
+
 type Projectile struct {
 	Type     EntityType     `json:"type"`
 	ID       string         `json:"id"`
 	Position EntityPosition `json:"position"`
 	speed    float64
 	lifetime int
+
+	boundingBox *geometry.BoundingBox
 }
 
 func NewProjectile(position EntityPosition) (*Projectile, error) {
@@ -26,12 +36,13 @@ func NewProjectile(position EntityPosition) (*Projectile, error) {
 	}
 
 	return &Projectile{
-		Type:     ProjectileEntityType,
-		ID:       id,
-		Position: position,
-		speed:    PROJECTILE_SPEED,
-		lifetime: PROJECTILE_LIFETIME,
-	}, err
+		Type:        ProjectileEntityType,
+		ID:          id,
+		Position:    position,
+		speed:       PROJECTILE_SPEED,
+		lifetime:    PROJECTILE_LIFETIME,
+		boundingBox: &projectileBoundingBox,
+	}, nil
 }
 
 func (p *Projectile) GetType() EntityType {
@@ -48,6 +59,10 @@ func (p *Projectile) GetPosition() EntityPosition {
 
 func (p *Projectile) GetIsExpired() bool {
 	return p.lifetime <= 0
+}
+
+func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
+	return projectileBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
 func (p *Projectile) Update(g *Game) bool {
