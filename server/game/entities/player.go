@@ -110,6 +110,10 @@ func (p *Player) PollNewEntities() []Entity {
 	return projectiles
 }
 
+func (p *Player) RemoveOnCollision(other Entity) bool {
+	return other.GetType() != PowerupEntityType
+}
+
 func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	// mouseX and mouseY are normalized (i.e. range is [0.0, 1.0])
 	p.mouseX = mouseX

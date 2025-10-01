@@ -227,17 +227,18 @@ func (g *Game) checkCollision(a entities.Entity, b entities.Entity) bool {
 }
 
 func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
+	if a.RemoveOnCollision(b) {
+		g.removed = append(g.removed, a.GetID())
+	}
+	if b.RemoveOnCollision(a) {
+		g.removed = append(g.removed, b.GetID())
+	}
+
 	// TODO: replace with something more robust
 	typeA := a.GetType()
 	typeB := b.GetType()
 
 	switch {
-	case typeA == entities.PlayerEntityType && typeB == entities.PlayerEntityType:
-	case typeA == entities.PlayerEntityType && typeB == entities.ProjectileEntityType:
-	case typeA == entities.ProjectileEntityType && typeB == entities.PlayerEntityType:
-		g.removed = append(g.removed, a.GetID())
-		g.removed = append(g.removed, b.GetID())
-
 	case typeA == entities.PlayerEntityType && typeB == entities.PowerupEntityType:
 		player := a.(*entities.Player)
 		powerup := b.(*entities.Powerup)

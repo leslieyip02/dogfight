@@ -78,3 +78,7 @@ func (a *Asteroid) PollNewEntities() []Entity {
 	// TODO: make it split?
 	return nil
 }
+
+func (a *Asteroid) RemoveOnCollision(other Entity) bool {
+	return true
+}

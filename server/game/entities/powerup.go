@@ -75,3 +75,7 @@ func (p *Powerup) Update() bool {
 func (p *Powerup) PollNewEntities() []Entity {
 	return nil
 }
+
+func (p *Powerup) RemoveOnCollision(other Entity) bool {
+	return true
+}

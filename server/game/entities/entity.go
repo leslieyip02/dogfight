@@ -26,6 +26,7 @@ type Entity interface {
 
 	Update() bool
 	PollNewEntities() []Entity
+	RemoveOnCollision(other Entity) bool
 }
 
 const (

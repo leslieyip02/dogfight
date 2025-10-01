@@ -75,3 +75,7 @@ func (p *Projectile) Update() bool {
 func (p *Projectile) PollNewEntities() []Entity {
 	return nil
 }
+
+func (p *Projectile) RemoveOnCollision(other Entity) bool {
+	return other.GetType() != ProjectileEntityType && other.GetType() != PowerupEntityType
+}
