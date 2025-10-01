@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	ASTEROID_MAX_SPEED = 2.0
+	ASTEROID_MAX_SPEED    = 1.0
+	ASTEROID_MAX_ROTATION = 0.001
 )
 
 type Asteroid struct {
@@ -17,7 +18,8 @@ type Asteroid struct {
 	Position EntityPosition     `json:"position"`
 	Points   *[]geometry.Vector `json:"points"`
 
-	speed float64
+	speed    float64
+	rotation float64
 
 	boundingBox *geometry.BoundingBox
 }
@@ -40,6 +42,7 @@ func NewAsteroid() (*Asteroid, error) {
 		Position:    position,
 		Points:      &points,
 		speed:       rand.Float64() * ASTEROID_MAX_SPEED,
+		rotation:    rand.Float64()*ASTEROID_MAX_ROTATION*2 - ASTEROID_MAX_ROTATION,
 		boundingBox: &boundingBox,
 	}, nil
 }
@@ -67,6 +70,7 @@ func (a *Asteroid) GetBoundingBox() *geometry.BoundingBox {
 func (a *Asteroid) Update() bool {
 	a.Position.X += math.Cos(a.Position.Theta) * a.speed
 	a.Position.Y += math.Sin(a.Position.Theta) * a.speed
+	a.Position.Theta += a.rotation
 	return true
 }
 

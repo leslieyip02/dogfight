@@ -9,7 +9,7 @@ import (
 const (
 	POINT_RANGE_WIDTH  = 300
 	POINT_RANGE_HEIGHT = 300
-	MIN_NUM_POINTS     = 3
+	MIN_NUM_POINTS     = 4
 	MAX_NUM_POINTS     = 16
 )
 
