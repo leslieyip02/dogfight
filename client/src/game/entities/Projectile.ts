@@ -35,11 +35,18 @@ class Projectile implements Entity {
     instance.pop();
 
     if (debug) {
+      instance.push();
       instance.stroke("#ff0000");
       instance.noFill();
+
+      instance.push();
+      instance.rotate(this.position.theta);
       instance.rect(-PROJECTILE_WIDTH / 2, -PROJECTILE_WIDTH / 2, PROJECTILE_WIDTH, PROJECTILE_WIDTH);
+      instance.pop();
+
       instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
       instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
+      instance.pop();
     }
 
     instance.pop();
