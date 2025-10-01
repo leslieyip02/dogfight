@@ -14,7 +14,9 @@ type Entity interface {
 	GetPosition() EntityPosition
 	GetIsExpired() bool
 	GetBoundingBox() *geometry.BoundingBox
-	Update(g *Game) bool
+
+	Update() bool
+	PollNewEntities() []Entity
 }
 
 const (

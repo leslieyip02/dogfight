@@ -14,7 +14,7 @@ const (
 
 // TODO: add more powerups (e.g. invincibilty)
 const (
-	MultishotPowerupType PowerupAbility = "multishot"
+	MultishotPowerupAbility PowerupAbility = "multishot"
 )
 
 var powerupBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
@@ -68,6 +68,10 @@ func (p *Powerup) GetBoundingBox() *geometry.BoundingBox {
 	return powerupBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
-func (p *Powerup) Update(g *Game) bool {
+func (p *Powerup) Update() bool {
 	return false
+}
+
+func (p *Powerup) PollNewEntities() []Entity {
+	return nil
 }

@@ -74,11 +74,40 @@ func (p *Player) GetBoundingBox() *geometry.BoundingBox {
 	return playerBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
-func (p *Player) Update(g *Game) bool {
+func (p *Player) Update() bool {
 	p.move()
 	p.turn()
-	p.shootProjectiles(g)
 	return true
+}
+
+func (p *Player) PollNewEntities() []Entity {
+	if !p.mousePressed {
+		return nil
+	}
+	p.mousePressed = false
+
+	shots := 1
+	if p.powerup != nil && p.powerup.Ability == MultishotPowerupAbility {
+		shots = 3
+	}
+
+	projectiles := []Entity{}
+	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
+	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
+	for i := 0; i < shots; i++ {
+		offset := (i - shots/2) * 32
+		position := EntityPosition{
+			X:     centerX + math.Sin(p.Position.Theta)*float64(offset),
+			Y:     centerY - math.Cos(p.Position.Theta)*float64(offset),
+			Theta: p.Position.Theta,
+		}
+		projectile, err := NewProjectile(position)
+		if err != nil {
+			continue
+		}
+		projectiles = append(projectiles, projectile)
+	}
+	return projectiles
 }
 
 func (p *Player) input(data InputEventData) {
@@ -114,34 +143,4 @@ func normalizeAngle(angle float64) float64 {
 		angle += 2 * math.Pi
 	}
 	return angle
-}
-
-func (p *Player) shootProjectiles(g *Game) {
-	if !p.mousePressed {
-		return
-	}
-	p.mousePressed = false
-
-	var shots int
-	if p.powerup == nil {
-		shots = 1
-	} else {
-		shots = 3
-	}
-
-	centerX := p.Position.X + math.Cos(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
-	centerY := p.Position.Y + math.Sin(p.Position.Theta)*(PLAYER_RADIUS+PROJECTILE_RADIUS+p.speed)
-	for i := 0; i < shots; i++ {
-		offset := (i - shots/2) * 32
-		position := EntityPosition{
-			X:     centerX + math.Sin(p.Position.Theta)*float64(offset),
-			Y:     centerY - math.Cos(p.Position.Theta)*float64(offset),
-			Theta: p.Position.Theta,
-		}
-		projectile, err := NewProjectile(position)
-		if err != nil {
-			continue
-		}
-		g.entities[projectile.ID] = projectile
-	}
 }

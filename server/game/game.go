@@ -169,14 +169,21 @@ func (g *Game) update() {
 }
 
 func (g *Game) updateEntities() {
+	newEntities := []Entity{}
 	for id, entity := range g.entities {
-		if entity.Update(g) {
+		if entity.Update() {
 			g.updated[id] = entity
 		}
 
 		if entity.GetIsExpired() {
 			g.removed = append(g.removed, id)
 		}
+
+		newEntities = append(newEntities, entity.PollNewEntities()...)
+	}
+
+	for _, newEntity := range newEntities {
+		g.entities[newEntity.GetID()] = newEntity
 	}
 }
 
@@ -234,7 +241,7 @@ func (g *Game) handleCollision(a Entity, b Entity) {
 }
 
 func (g *Game) addPowerup() error {
-	powerup, err := NewPowerup(MultishotPowerupType)
+	powerup, err := NewPowerup(MultishotPowerupAbility)
 	if err != nil {
 		return err
 	}

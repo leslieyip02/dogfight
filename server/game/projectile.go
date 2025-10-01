@@ -65,9 +65,13 @@ func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
 	return projectileBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
 }
 
-func (p *Projectile) Update(g *Game) bool {
+func (p *Projectile) Update() bool {
 	p.Position.X += math.Cos(p.Position.Theta) * p.speed
 	p.Position.Y += math.Sin(p.Position.Theta) * p.speed
 	p.lifetime--
 	return true
+}
+
+func (p *Projectile) PollNewEntities() []Entity {
+	return nil
 }
