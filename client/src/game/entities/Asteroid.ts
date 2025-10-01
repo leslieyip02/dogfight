@@ -29,11 +29,20 @@ class Asteroid implements Entity {
     instance.rotate(this.position.theta);
     instance.noFill();
     instance.stroke("#ffffff");
-    instance.strokeWeight(2);
+
+    instance.strokeWeight(4);
     for (let i = 0; i < this.points.length; i++) {
       const j = (i + 1) % this.points.length;
       instance.line(this.points[i].x, this.points[i].y, this.points[j].x, this.points[j].y);
     }
+
+    instance.strokeWeight(1);
+    instance.beginShape(instance.TRIANGLE_STRIP);
+    for (let i = 0; i < this.points.length; i++) {
+      instance.vertex(this.points[i].x, this.points[i].y);
+    }
+    instance.endShape();
+
     instance.pop();
   };
 
