@@ -1,9 +1,10 @@
 import Animation from "../entities/Animation";
+import Asteroid from "../entities/Asteroid";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import type { EntityData, PlayerEntityData, PowerupEntityData } from "../types/entity";
+import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData } from "../types/entity";
 import type { DeltaEventData, SnapshotEventData } from "../types/event";
 import type { Spritesheet } from "./graphics";
 
@@ -54,6 +55,10 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
   }
 
   switch (data.type) {
+  case "asteroid":
+    entities[id] = new Asteroid(position, (data as AsteroidEntityData).points);
+    break;
+
   case "player":
     entities[id] = new Player(position, (data as PlayerEntityData).username);
     break;
@@ -64,9 +69,6 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
 
   case "powerup":
     entities[id] = new Powerup(position, (data as PowerupEntityData).ability);
-    break;
-
-  default:
     break;
   }
 }

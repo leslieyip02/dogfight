@@ -29,6 +29,7 @@ type Entity interface {
 }
 
 const (
+	AsteroidEntityType   EntityType = "asteroid"
 	PlayerEntityType     EntityType = "player"
 	ProjectileEntityType EntityType = "projectile"
 	PowerupEntityType    EntityType = "powerup"

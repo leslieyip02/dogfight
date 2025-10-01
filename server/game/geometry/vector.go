@@ -7,30 +7,30 @@ import (
 const epsilon = 1e-5
 
 type Vector struct {
-	x float64
-	y float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 func NewVector(x float64, y float64) Vector {
-	return Vector{x: x, y: y}
+	return Vector{X: x, Y: y}
 }
 
 func (u *Vector) sub(v *Vector) *Vector {
 	return &Vector{
-		x: u.x - v.x,
-		y: u.y - v.y,
+		X: u.X - v.X,
+		Y: u.Y - v.Y,
 	}
 }
 
 func (u *Vector) multiply(s float64) *Vector {
 	return &Vector{
-		x: s * u.x,
-		y: s * u.y,
+		X: s * u.X,
+		Y: s * u.Y,
 	}
 }
 
 func (u *Vector) dot(v *Vector) float64 {
-	return u.x*v.x + u.y*v.y
+	return u.X*v.X + u.Y*v.Y
 }
 
 func (u *Vector) length() float64 {
@@ -38,19 +38,19 @@ func (u *Vector) length() float64 {
 }
 
 func (u *Vector) gradient() float64 {
-	return u.y / u.x
+	return u.Y / u.X
 }
 
 func (u *Vector) angle() float64 {
-	return math.Atan2(u.y, u.x)
+	return math.Atan2(u.Y, u.X)
 }
 
 func (u *Vector) rotate(theta float64) *Vector {
 	h := math.Sqrt(u.dot(u))
 	theta += u.angle()
 	return &Vector{
-		x: math.Cos(theta) * h,
-		y: math.Sin(theta) * h,
+		X: math.Cos(theta) * h,
+		Y: math.Sin(theta) * h,
 	}
 }
 

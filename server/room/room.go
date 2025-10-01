@@ -30,7 +30,7 @@ func NewRoom() (*Room, error) {
 	game := game.NewGame()
 	room := Room{
 		id:      id,
-		game:    &game,
+		game:    game,
 		clients: map[string]*Client{},
 		mu:      sync.Mutex{},
 		ctx:     ctx,

@@ -15,7 +15,7 @@ type BoundingBox struct {
 
 func NewBoundingBox(points *[]Vector) BoundingBox {
 	return BoundingBox{
-		origin: Vector{x: 0, y: 0},
+		origin: Vector{X: 0, Y: 0},
 		theta:  0,
 		points: points,
 	}
@@ -23,7 +23,7 @@ func NewBoundingBox(points *[]Vector) BoundingBox {
 
 func (b *BoundingBox) Transform(x float64, y float64, theta float64) *BoundingBox {
 	return &BoundingBox{
-		origin: Vector{x: x, y: y},
+		origin: Vector{X: x, Y: y},
 		theta:  theta,
 		points: b.points,
 	}
@@ -43,8 +43,8 @@ func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
 	// transform to world space
 	u := v.rotate(b.theta)
 	return &Vector{
-		x: u.x + b.origin.x,
-		y: u.y + b.origin.y,
+		X: u.X + b.origin.X,
+		Y: u.Y + b.origin.Y,
 	}
 }
 
@@ -84,8 +84,8 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	// calculate the projection
 	for g := range p {
 		perpendicular := Vector{
-			x: 1,
-			y: g,
+			X: 1,
+			Y: g,
 		}
 
 		// check overlaps

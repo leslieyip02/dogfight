@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"encoding/json"
+	"math/rand"
 	"server/game/entities"
 	"sync"
 	"time"
@@ -23,8 +24,8 @@ type Game struct {
 	removed []string
 }
 
-func NewGame() Game {
-	return Game{
+func NewGame() *Game {
+	g := Game{
 		Incoming:     make(chan []byte),
 		Outgoing:     make(chan []byte),
 		mu:           sync.Mutex{},
@@ -34,6 +35,16 @@ func NewGame() Game {
 		updated:      make(map[string]entities.Entity),
 		removed:      []string{},
 	}
+
+	// TODO: refactor somehow?
+	for range rand.Intn(32) {
+		asteroid, err := entities.NewAsteroid()
+		if err != nil {
+			continue
+		}
+		g.entities[asteroid.GetID()] = asteroid
+	}
+	return &g
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
