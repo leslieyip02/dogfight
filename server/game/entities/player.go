@@ -1,4 +1,4 @@
-package game
+package entities
 
 import (
 	"math"
@@ -31,7 +31,7 @@ type Player struct {
 
 	boundingBox *geometry.BoundingBox
 	speed       float64
-	powerup     *Powerup
+	Powerup     *Powerup
 
 	mouseX       float64
 	mouseY       float64
@@ -45,7 +45,7 @@ func NewPlayer(id string, username string) *Player {
 		Username:     username,
 		Position:     randomEntityPosition(),
 		speed:        MAX_PLAYER_SPEED,
-		powerup:      nil,
+		Powerup:      nil,
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
@@ -87,7 +87,7 @@ func (p *Player) PollNewEntities() []Entity {
 	p.mousePressed = false
 
 	shots := 1
-	if p.powerup != nil && p.powerup.Ability == MultishotPowerupAbility {
+	if p.Powerup != nil && p.Powerup.Ability == MultishotPowerupAbility {
 		shots = 3
 	}
 
@@ -110,11 +110,11 @@ func (p *Player) PollNewEntities() []Entity {
 	return projectiles
 }
 
-func (p *Player) input(data InputEventData) {
+func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	// mouseX and mouseY are normalized (i.e. range is [0.0, 1.0])
-	p.mouseX = data.MouseX
-	p.mouseY = data.MouseY
-	p.mousePressed = p.mousePressed || data.MousePressed
+	p.mouseX = mouseX
+	p.mouseY = mouseY
+	p.mousePressed = p.mousePressed || mousePressed
 }
 
 func (p *Player) move() {

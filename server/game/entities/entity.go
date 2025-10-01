@@ -1,9 +1,18 @@
-package game
+package entities
 
 import (
 	"math"
 	"math/rand"
 	"server/game/geometry"
+	"time"
+)
+
+const (
+	SPAWN_AREA_WIDTH  = 10000.0
+	SPAWN_AREA_HEIGHT = 10000.0
+
+	FPS            = 60
+	FRAME_DURATION = time.Second / FPS
 )
 
 type EntityType string
@@ -33,8 +42,8 @@ type EntityPosition struct {
 
 func randomEntityPosition() EntityPosition {
 	return EntityPosition{
-		X:     rand.Float64()*WIDTH - WIDTH/2,
-		Y:     rand.Float64()*HEIGHT - WIDTH/2,
+		X:     rand.Float64()*SPAWN_AREA_WIDTH - SPAWN_AREA_WIDTH/2,
+		Y:     rand.Float64()*SPAWN_AREA_HEIGHT - SPAWN_AREA_WIDTH/2,
 		Theta: -math.Pi / 2,
 	}
 }

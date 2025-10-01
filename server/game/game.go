@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"encoding/json"
+	"server/game/entities"
 	"sync"
 	"time"
 )
@@ -13,12 +14,12 @@ type Game struct {
 	mu       sync.Mutex
 
 	// state
-	entities     map[string]Entity
+	entities     map[string]entities.Entity
 	usernames    map[string]string
 	frameCounter int64
 
 	// state delta
-	updated map[string]Entity
+	updated map[string]entities.Entity
 	removed []string
 }
 
@@ -27,10 +28,10 @@ func NewGame() Game {
 		Incoming:     make(chan []byte),
 		Outgoing:     make(chan []byte),
 		mu:           sync.Mutex{},
-		entities:     make(map[string]Entity),
+		entities:     make(map[string]entities.Entity),
 		usernames:    map[string]string{},
 		frameCounter: 0,
-		updated:      make(map[string]Entity),
+		updated:      make(map[string]entities.Entity),
 		removed:      []string{},
 	}
 }
@@ -39,7 +40,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.entities[id] = NewPlayer(id, username)
+	g.entities[id] = entities.NewPlayer(id, username)
 	g.usernames[id] = username
 
 	message, err := CreateMessage(JoinEventType, JoinEventData{
@@ -75,7 +76,7 @@ func (g *Game) respawn(id string) {
 		return
 	}
 
-	g.entities[id] = NewPlayer(id, username)
+	g.entities[id] = entities.NewPlayer(id, username)
 }
 
 func (g *Game) GetSnapshot() SnapshotEventData {
@@ -94,7 +95,7 @@ func (g *Game) GetDelta() DeltaEventData {
 }
 
 func (g *Game) Run(ctx context.Context) {
-	ticker := time.NewTicker(FRAME_DURATION)
+	ticker := time.NewTicker(time.Second / entities.FPS)
 
 	go func() {
 		defer ticker.Stop()
@@ -140,8 +141,8 @@ func (g *Game) input(data InputEventData) {
 		return
 	}
 
-	if player, ok := entity.(*Player); ok {
-		player.input(data)
+	if player, ok := entity.(*entities.Player); ok {
+		player.Input(data.MouseX, data.MouseY, data.MousePressed)
 	}
 }
 
@@ -149,9 +150,9 @@ func (g *Game) update() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	// TODO: move this?
+	// TODO: move this
 	g.frameCounter++
-	if g.frameCounter%POWERUP_SPAWN_INTERVAL == 0 {
+	if g.frameCounter%1800 == 0 {
 		g.addPowerup()
 		g.frameCounter = 0
 	}
@@ -169,7 +170,7 @@ func (g *Game) update() {
 }
 
 func (g *Game) updateEntities() {
-	newEntities := []Entity{}
+	newEntities := []entities.Entity{}
 	for id, entity := range g.entities {
 		if entity.Update() {
 			g.updated[id] = entity
@@ -210,38 +211,38 @@ func (g *Game) resolveCollisions() {
 	}
 }
 
-func (g *Game) checkCollision(a Entity, b Entity) bool {
+func (g *Game) checkCollision(a entities.Entity, b entities.Entity) bool {
 	return a.GetBoundingBox().DidCollide(b.GetBoundingBox())
 }
 
-func (g *Game) handleCollision(a Entity, b Entity) {
+func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
 	// TODO: replace with something more robust
 	typeA := a.GetType()
 	typeB := b.GetType()
 
 	switch {
-	case typeA == PlayerEntityType && typeB == PlayerEntityType:
-	case typeA == PlayerEntityType && typeB == ProjectileEntityType:
-	case typeA == ProjectileEntityType && typeB == PlayerEntityType:
+	case typeA == entities.PlayerEntityType && typeB == entities.PlayerEntityType:
+	case typeA == entities.PlayerEntityType && typeB == entities.ProjectileEntityType:
+	case typeA == entities.ProjectileEntityType && typeB == entities.PlayerEntityType:
 		g.removed = append(g.removed, a.GetID())
 		g.removed = append(g.removed, b.GetID())
 
-	case typeA == PlayerEntityType && typeB == PowerupEntityType:
-		player := a.(*Player)
-		powerup := b.(*Powerup)
-		player.powerup = powerup
+	case typeA == entities.PlayerEntityType && typeB == entities.PowerupEntityType:
+		player := a.(*entities.Player)
+		powerup := b.(*entities.Powerup)
+		player.Powerup = powerup
 		g.removed = append(g.removed, b.GetID())
 
-	case typeA == PowerupEntityType && typeB == PlayerEntityType:
-		powerup := a.(*Powerup)
-		player := b.(*Player)
-		player.powerup = powerup
+	case typeA == entities.PowerupEntityType && typeB == entities.PlayerEntityType:
+		powerup := a.(*entities.Powerup)
+		player := b.(*entities.Player)
+		player.Powerup = powerup
 		g.removed = append(g.removed, a.GetID())
 	}
 }
 
 func (g *Game) addPowerup() error {
-	powerup, err := NewPowerup(MultishotPowerupAbility)
+	powerup, err := entities.NewPowerup(entities.MultishotPowerupAbility)
 	if err != nil {
 		return err
 	}

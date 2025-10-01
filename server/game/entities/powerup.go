@@ -1,4 +1,4 @@
-package game
+package entities
 
 import (
 	"server/game/geometry"

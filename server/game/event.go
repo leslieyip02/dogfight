@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"server/game/entities"
 )
 
 type Event struct {
@@ -41,14 +42,14 @@ type InputEventData struct {
 }
 
 type SnapshotEventData struct {
-	Timestamp int64             `json:"timestamp"`
-	Entities  map[string]Entity `json:"entities"`
+	Timestamp int64                      `json:"timestamp"`
+	Entities  map[string]entities.Entity `json:"entities"`
 }
 
 type DeltaEventData struct {
-	Timestamp int64             `json:"timestamp"`
-	Updated   map[string]Entity `json:"updated"`
-	Removed   []string          `json:"removed"`
+	Timestamp int64                      `json:"timestamp"`
+	Updated   map[string]entities.Entity `json:"updated"`
+	Removed   []string                   `json:"removed"`
 }
 
 func CreateMessage(eventType EventType, data any) ([]byte, error) {
