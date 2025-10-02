@@ -18,8 +18,9 @@ type Asteroid struct {
 	Position EntityPosition     `json:"position"`
 	Points   *[]geometry.Vector `json:"points"`
 
-	speed    float64
-	rotation float64
+	speed     float64
+	rotation  float64
+	destroyed bool
 
 	boundingBox *geometry.BoundingBox
 }
@@ -43,6 +44,7 @@ func NewAsteroid() (*Asteroid, error) {
 		Points:      &points,
 		speed:       rand.Float64() * ASTEROID_MAX_SPEED,
 		rotation:    rand.Float64()*ASTEROID_MAX_ROTATION*2 - ASTEROID_MAX_ROTATION,
+		destroyed:   false,
 		boundingBox: &boundingBox,
 	}, nil
 }
@@ -75,10 +77,66 @@ func (a *Asteroid) Update() bool {
 }
 
 func (a *Asteroid) PollNewEntities() []Entity {
-	// TODO: make it split?
-	return nil
+	if !a.destroyed {
+		return nil
+	}
+	return a.split()
+}
+
+func (a *Asteroid) split() []Entity {
+	// TODO: finish this/reconsider
+	if len(*a.Points) < 4 {
+		return nil
+	}
+
+	fragments := []Entity{}
+	// mid := 2 + rand.Intn(len(*a.Points)-3)
+	// starts := []int{0, mid}
+	// for i, start := range starts {
+	// 	next := starts[(i+1)%len(starts)]
+
+	// 	points := []geometry.Vector{}
+	// 	for j := start; j != next; j = (j + 1) % len(*a.Points) {
+	// 		points = append(points, geometry.NewVector((*a.Points)[j].X*0.8, (*a.Points)[j].Y*0.8))
+	// 	}
+	// 	points = append(points, geometry.NewVector((*a.Points)[next].X*0.8, (*a.Points)[next].Y*0.8))
+
+	// 	if len(points) < 3 {
+	// 		continue
+	// 	}
+
+	// 	id, err := utils.NewShortId()
+	// 	if err != nil {
+	// 		continue
+	// 	}
+
+	// 	theta := points[len(points)-1].Sub(&points[0]).Normal().Multiply(-1).Angle()
+	// 	position := EntityPosition{
+	// 		X:     a.Position.X + math.Cos(theta)*20,
+	// 		Y:     a.Position.Y + math.Sin(theta)*20,
+	// 		Theta: theta,
+	// 	}
+	// 	boundingBox := geometry.NewBoundingBox(&points)
+
+	// 	fragment := &Asteroid{
+	// 		Type:        AsteroidEntityType,
+	// 		ID:          id,
+	// 		Position:    position,
+	// 		Points:      &points,
+	// 		speed:       rand.Float64() * ASTEROID_MAX_SPEED,
+	// 		rotation:    rand.Float64()*ASTEROID_MAX_ROTATION*2 - ASTEROID_MAX_ROTATION,
+	// 		destroyed:   false,
+	// 		boundingBox: &boundingBox,
+	// 	}
+	// 	fragments = append(fragments, fragment)
+	// }
+	return fragments
 }
 
 func (a *Asteroid) RemoveOnCollision(other Entity) bool {
+	if other.GetType() == PowerupEntityType {
+		return false
+	}
+	a.destroyed = true
 	return true
 }

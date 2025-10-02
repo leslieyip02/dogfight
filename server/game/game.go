@@ -170,6 +170,7 @@ func (g *Game) update() {
 
 	g.updateEntities()
 	g.resolveCollisions()
+	g.pollNewEntities()
 	for _, id := range g.removed {
 		delete(g.entities, id)
 		delete(g.updated, id)
@@ -181,7 +182,6 @@ func (g *Game) update() {
 }
 
 func (g *Game) updateEntities() {
-	newEntities := []entities.Entity{}
 	for id, entity := range g.entities {
 		if entity.Update() {
 			g.updated[id] = entity
@@ -190,21 +190,7 @@ func (g *Game) updateEntities() {
 		if entity.GetIsExpired() {
 			g.removed = append(g.removed, id)
 		}
-
-		newEntities = append(newEntities, entity.PollNewEntities()...)
 	}
-
-	for _, newEntity := range newEntities {
-		g.entities[newEntity.GetID()] = newEntity
-	}
-}
-
-func (g *Game) broadcast() {
-	message, err := CreateMessage(DeltaEventType, g.GetDelta())
-	if err != nil {
-		return
-	}
-	g.Outgoing <- message
 }
 
 func (g *Game) resolveCollisions() {
@@ -234,7 +220,7 @@ func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
 		g.removed = append(g.removed, b.GetID())
 	}
 
-	// TODO: replace with something more robust
+	// TODO: replace with something more elegant
 	typeA := a.GetType()
 	typeB := b.GetType()
 
@@ -243,14 +229,28 @@ func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
 		player := a.(*entities.Player)
 		powerup := b.(*entities.Powerup)
 		player.Powerup = powerup
-		g.removed = append(g.removed, b.GetID())
 
 	case typeA == entities.PowerupEntityType && typeB == entities.PlayerEntityType:
 		powerup := a.(*entities.Powerup)
 		player := b.(*entities.Player)
 		player.Powerup = powerup
-		g.removed = append(g.removed, a.GetID())
 	}
+}
+
+func (g *Game) pollNewEntities() {
+	for _, entity := range g.entities {
+		for _, newEntity := range entity.PollNewEntities() {
+			g.entities[newEntity.GetID()] = newEntity
+		}
+	}
+}
+
+func (g *Game) broadcast() {
+	message, err := CreateMessage(DeltaEventType, g.GetDelta())
+	if err != nil {
+		return
+	}
+	g.Outgoing <- message
 }
 
 func (g *Game) addPowerup() error {

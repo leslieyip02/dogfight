@@ -95,7 +95,7 @@ func TestConvexHull(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("convex hull of %v", test.points), func(t *testing.T) {
-			got := convexHull(test.points)
+			got := ConvexHull(test.points)
 			if len(got) != len(test.want) {
 				t.Errorf("want hull of length %d but got %v", len(test.want), got)
 			}

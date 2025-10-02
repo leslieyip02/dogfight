@@ -20,7 +20,7 @@ func TestSub(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v - %v", test.u, test.v), func(t *testing.T) {
-			got := test.u.sub(&test.v)
+			got := test.u.Sub(&test.v)
 			if math.Abs(got.X-test.want.X) > epsilon ||
 				math.Abs(got.Y-test.want.Y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -42,7 +42,7 @@ func TestMultiply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%f * %v", test.s, test.u), func(t *testing.T) {
-			got := test.u.multiply(test.s)
+			got := test.u.Multiply(test.s)
 			if math.Abs(got.X-test.want.X) > epsilon ||
 				math.Abs(got.Y-test.want.Y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -133,7 +133,7 @@ func TestAngle(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("angle of %v", test.u), func(t *testing.T) {
-			got := test.u.angle()
+			got := test.u.Angle()
 			if math.Abs(got-test.want) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
@@ -172,7 +172,7 @@ func TestNormal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("normalize %v", test.u), func(t *testing.T) {
-			got := test.u.normal()
+			got := test.u.Normal()
 			if math.Abs(got.length()-1) > epsilon {
 				t.Errorf("want vector of length 1 but got %v", got)
 			}

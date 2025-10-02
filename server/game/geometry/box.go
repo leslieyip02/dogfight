@@ -34,7 +34,7 @@ func (b *BoundingBox) normals() []*Vector {
 	for i := range len(*b.points) {
 		u := (*b.points)[i]
 		v := (*b.points)[(i+1)%len((*b.points))]
-		normals = append(normals, (v.sub(&u)).normal())
+		normals = append(normals, (v.Sub(&u)).Normal())
 	}
 	return normals
 }

@@ -77,5 +77,5 @@ func (p *Powerup) PollNewEntities() []Entity {
 }
 
 func (p *Powerup) RemoveOnCollision(other Entity) bool {
-	return true
+	return other.GetType() == PlayerEntityType
 }

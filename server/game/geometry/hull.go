@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	POINT_RANGE_WIDTH  = 300
-	POINT_RANGE_HEIGHT = 300
-	MIN_NUM_POINTS     = 4
-	MAX_NUM_POINTS     = 16
+	MIN_RADIUS     = 20
+	MAX_RADIUS     = 100
+	MIN_NUM_POINTS = 4
+	MAX_NUM_POINTS = 16
 )
 
 func NewRandomConvexHull() []Vector {
@@ -18,14 +18,14 @@ func NewRandomConvexHull() []Vector {
 	points := []Vector{}
 	for range numPoints {
 		points = append(points, Vector{
-			X: rand.Float64()*POINT_RANGE_WIDTH - POINT_RANGE_WIDTH/2,
-			Y: rand.Float64()*POINT_RANGE_HEIGHT - POINT_RANGE_HEIGHT/2,
+			X: math.Copysign(MIN_RADIUS+rand.Float64()*MAX_RADIUS, rand.Float64()-0.5),
+			Y: math.Copysign(MIN_RADIUS+rand.Float64()*MAX_RADIUS, rand.Float64()-0.5),
 		})
 	}
-	return convexHull(points)
+	return ConvexHull(points)
 }
 
-func convexHull(points []Vector) []Vector {
+func ConvexHull(points []Vector) []Vector {
 	// graham scan
 
 	// start at the point with the smallest y (ties broken by x)
@@ -59,7 +59,7 @@ func convexHull(points []Vector) []Vector {
 func sortPoints(origin *Vector, points []Vector) {
 	slices.SortFunc(points, func(a Vector, b Vector) int {
 		// return int(math.Copysign(a.sub(origin).angle()-b.sub(origin).angle(), 1))
-		if a.sub(origin).angle() < b.sub(origin).angle() {
+		if a.Sub(origin).Angle() < b.Sub(origin).Angle() {
 			return -1
 		} else {
 			return 1
@@ -68,7 +68,7 @@ func sortPoints(origin *Vector, points []Vector) {
 }
 
 func isLeftTurn(a *Vector, b *Vector, c *Vector) bool {
-	u := b.sub(a)
-	v := c.sub(b)
+	u := b.Sub(a)
+	v := c.Sub(b)
 	return math.Atan2(u.X*v.Y-u.Y*v.X, u.X*v.X+u.Y*v.Y) > 0
 }
