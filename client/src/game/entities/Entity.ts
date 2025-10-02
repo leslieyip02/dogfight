@@ -6,7 +6,7 @@ export interface Entity {
     position: EntityPosition;
 
     update: (position?: EntityPosition) => void;
-    remove: () => void;
+    removalAnimationName: () => string | null;
 
     draw: (instance: p5, debug?: boolean) => void;
     drawIcon?: (instance: p5) => void;

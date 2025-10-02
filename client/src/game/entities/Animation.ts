@@ -5,9 +5,9 @@ import type { Entity } from "./Entity";
 
 class Animation implements Entity {
   position: EntityPosition;
+
   frames: p5.Image[];
   index: number;
-
   onFinish: () => void;
 
   constructor(position: EntityPosition, frames: p5.Image[], onFinish: () => void) {
@@ -20,7 +20,9 @@ class Animation implements Entity {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   update = (_position?: EntityPosition) => {};
 
-  remove = () => {};
+  removalAnimationName = () => {
+    return null;
+  };
 
   draw = (instance: p5) => {
     if (this.index >= this.frames.length) {

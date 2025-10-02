@@ -9,6 +9,7 @@ const POWERUP_WIDTH = 20;
 
 class Powerup implements Entity {
   position: EntityPosition;
+
   ability: PowerupAbility;
 
   constructor(position: EntityPosition, ability: PowerupAbility) {
@@ -23,7 +24,9 @@ class Powerup implements Entity {
     this.position = position;
   };
 
-  remove = () => {};
+  removalAnimationName = () => {
+    return null;
+  };
 
   draw = (instance: p5, debug?: boolean) => {
     instance.push();

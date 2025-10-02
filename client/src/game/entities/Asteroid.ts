@@ -5,6 +5,7 @@ import type { Entity } from "./Entity";
 
 class Asteroid implements Entity {
   position: EntityPosition;
+
   points: { x: number, y: number }[];
 
   constructor(position: EntityPosition, points: { x: number, y: number }[]) {
@@ -19,7 +20,9 @@ class Asteroid implements Entity {
     this.position = position;
   };
 
-  remove = () => {};
+  removalAnimationName = () => {
+    return "bigExplosion";
+  };
 
   draw = (instance: p5, debug?: boolean) => {
     instance.push();

@@ -35,10 +35,7 @@ export function mergeDeltas(current: DeltaEventData, next: DeltaEventData): Delt
 
 export function removeEntities(delta: DeltaEventData, entities: EntityMap) {
   delta.removed
-    .forEach(id => {
-      entities[id]?.remove();
-      delete entities[id];
-    });
+    .forEach(id => delete entities[id]);
 }
 
 export function updateEntities(delta: DeltaEventData, entities: EntityMap) {
@@ -87,16 +84,19 @@ export function addAnimations(
   // TODO: refactor
   delta.removed
     .forEach(id => {
-      if (entities[id] instanceof Asteroid || entities[id] instanceof Player || entities[id] instanceof Projectile) {
-        const explosionId = `${id}-explosion`;
-        const explosion = new Animation(
-          entities[id].position,
-          spritesheet["explosion"],
-          () => {
-            delete entities[explosionId];
-          },
-        );
-        entities[explosionId] = explosion;
+      const animationName = entities[id].removalAnimationName();
+      if (!animationName || !(animationName in spritesheet)) {
+        return;
       }
+
+      const animationId = `${id}-animation`;
+      const animation = new Animation(
+        entities[id].position,
+        spritesheet[animationName],
+        () => {
+          delete entities[animationId];
+        },
+      );
+      entities[animationId] = animation;
     });
 }

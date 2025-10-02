@@ -19,12 +19,10 @@ class Player implements Entity {
   static spritesheet: Spritesheet;
 
   position: EntityPosition;
+
   username: string;
   sprite: p5.Image;
-
   roll: number;
-  removed: boolean;
-
   previousPositions: EntityPosition[];
 
   constructor(position: EntityPosition, username: string) {
@@ -33,13 +31,12 @@ class Player implements Entity {
     this.sprite = chooseSprite(username);
 
     this.roll = 0;
-    this.removed = false;
 
     this.previousPositions = [];
   }
 
   update = (position?: EntityPosition) => {
-    if (!position || this.removed) {
+    if (!position) {
       return;
     }
 
@@ -58,15 +55,11 @@ class Player implements Entity {
     this.position = position;
   };
 
-  remove = () => {
-    this.removed = true;
+  removalAnimationName = () => {
+    return "smallExplosion";
   };
 
   draw = (instance: p5, debug?: boolean) => {
-    if (this.removed) {
-      return;
-    }
-
     this.drawModel(instance, debug);
     this.drawUsername(instance, debug);
   };
@@ -116,10 +109,6 @@ class Player implements Entity {
   };
 
   drawTrail = (instance: p5) => {
-    if (this.removed) {
-      return;
-    }
-
     instance.push();
     instance.stroke("#ffa320");
     instance.strokeWeight(4);

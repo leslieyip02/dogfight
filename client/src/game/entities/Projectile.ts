@@ -19,7 +19,9 @@ class Projectile implements Entity {
     this.position = position;
   };
 
-  remove = () => {};
+  removalAnimationName = () => {
+    return "smallExplosion";
+  };
 
   draw = (instance: p5, debug?: boolean) => {
     instance.push();
