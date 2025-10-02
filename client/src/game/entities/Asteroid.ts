@@ -24,17 +24,18 @@ class Asteroid implements Entity {
   draw = (instance: p5, debug?: boolean) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
-
     instance.rotate(this.position.theta);
+    instance.fill("#ffffff88");
+    instance.stroke("#ffffff");
+    instance.strokeWeight(4);
+    instance.beginShape();
+    for (let i = 0; i < this.points.length; i++) {
+      instance.vertex(this.points[i].x, this.points[i].y);
+    }
+    instance.endShape(instance.CLOSE);
+
     instance.noFill();
     instance.stroke("#ffffff");
-
-    instance.strokeWeight(4);
-    for (let i = 0; i < this.points.length; i++) {
-      const j = (i + 1) % this.points.length;
-      instance.line(this.points[i].x, this.points[i].y, this.points[j].x, this.points[j].y);
-    }
-
     instance.strokeWeight(1);
     instance.beginShape(instance.TRIANGLE_STRIP);
     for (let i = 0; i < this.points.length; i++) {

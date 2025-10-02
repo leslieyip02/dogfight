@@ -1,4 +1,3 @@
-import type { Image } from "p5";
 import type p5 from "p5";
 
 import type { EntityPosition } from "../types/entity";
@@ -6,12 +5,12 @@ import type { Entity } from "./Entity";
 
 class Animation implements Entity {
   position: EntityPosition;
-  frames: Image[];
+  frames: p5.Image[];
   index: number;
 
   onFinish: () => void;
 
-  constructor(position: EntityPosition, frames: Image[], onFinish: () => void) {
+  constructor(position: EntityPosition, frames: p5.Image[], onFinish: () => void) {
     this.position = position;
     this.frames= frames;
     this.index = 0;

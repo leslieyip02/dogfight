@@ -59,9 +59,15 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
     entities[id] = new Asteroid(position, (data as AsteroidEntityData).points);
     break;
 
-  case "player":
+  case "player": {
+    if (!Player.spritesheet) {
+      // spritesheet hasn't loaded
+      break;
+    }
+
     entities[id] = new Player(position, (data as PlayerEntityData).username);
     break;
+  }
 
   case "projectile":
     entities[id] = new Projectile(position);

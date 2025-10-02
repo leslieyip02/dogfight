@@ -1,5 +1,4 @@
-import type p5 from "p5";
-import type { Image } from "p5";
+import p5 from "p5";
 
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
@@ -43,12 +42,12 @@ export type CanvasConfig = {
   zoom: number;
 };
 
-export type Spritesheet = Record<string, Image[]>;
+export type Spritesheet = Record<string, p5.Image[]>;
 
 export async function loadSpritesheet(instance: p5): Promise<Spritesheet> {
   const loadingPromises = Object.entries(SPRITESHEET_CONFIGS)
     .map(async ([name, config]) => {
-      return new Promise<[string, Image[]]>((resolve) => {
+      return new Promise<[string, p5.Image[]]>((resolve) => {
         const { path, width, height } = config;
         instance.loadImage(path, (image) => {
           const frames = [];

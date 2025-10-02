@@ -9,7 +9,7 @@ import (
 const (
 	MIN_RADIUS     = 20
 	MAX_RADIUS     = 100
-	MIN_NUM_POINTS = 4
+	MIN_NUM_POINTS = 8
 	MAX_NUM_POINTS = 16
 )
 

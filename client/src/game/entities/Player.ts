@@ -1,5 +1,4 @@
 import type p5 from "p5";
-import type { Image } from "p5";
 
 import type { EntityPosition } from "../types/entity";
 import type { Spritesheet } from "../utils/graphics";
@@ -10,7 +9,7 @@ const MAX_PLYAER_TRAIL_POINTS = 32;
 
 const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie"];
 
-function chooseSprite(username: string): Image {
+function chooseSprite(username: string): p5.Image {
   // TODO: consider replacing this with a normal field?
   const asciiSum = [...username].reduce((a, b) => a + b.charCodeAt(0), 0);
   return Player.spritesheet[PLAYER_SPRITE_NAMES[asciiSum % PLAYER_SPRITE_NAMES.length]][0];
@@ -21,7 +20,7 @@ class Player implements Entity {
 
   position: EntityPosition;
   username: string;
-  sprite: Image;
+  sprite: p5.Image;
 
   roll: number;
   removed: boolean;
@@ -82,7 +81,6 @@ class Player implements Entity {
     instance.translate(this.position.x, this.position.y);
     instance.rotate(this.position.theta);
     instance.translate(-this.sprite.width / 2, -this.sprite.height / 2);
-    instance.fill("#ffffff");
     instance.image(this.sprite, 0, 0);
 
     if (debug) {
