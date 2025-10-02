@@ -10,6 +10,7 @@ import (
 const (
 	ASTEROID_MAX_SPEED    = 1.0
 	ASTEROID_MAX_ROTATION = 0.001
+	ASTEROID_MAX_HEALTH   = 3
 )
 
 type Asteroid struct {
@@ -20,6 +21,7 @@ type Asteroid struct {
 
 	speed     float64
 	rotation  float64
+	health    int
 	destroyed bool
 
 	boundingBox *geometry.BoundingBox
@@ -44,6 +46,7 @@ func NewAsteroid() (*Asteroid, error) {
 		Points:      &points,
 		speed:       rand.Float64() * ASTEROID_MAX_SPEED,
 		rotation:    rand.Float64()*ASTEROID_MAX_ROTATION*2 - ASTEROID_MAX_ROTATION,
+		health:      ASTEROID_MAX_HEALTH,
 		destroyed:   false,
 		boundingBox: &boundingBox,
 	}, nil
@@ -134,9 +137,15 @@ func (a *Asteroid) split() []Entity {
 }
 
 func (a *Asteroid) RemoveOnCollision(other Entity) bool {
-	if other.GetType() == PowerupEntityType {
+	switch other.GetType() {
+	case ProjectileEntityType:
+		a.health--
+		return a.health <= 0
+
+	case PowerupEntityType:
 		return false
+
+	default:
+		return true
 	}
-	a.destroyed = true
-	return true
 }

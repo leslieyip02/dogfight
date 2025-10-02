@@ -84,9 +84,10 @@ export function addAnimations(
   entities: EntityMap,
   spritesheet: Spritesheet,
 ) {
+  // TODO: refactor
   delta.removed
     .forEach(id => {
-      if (entities[id] instanceof Player || entities[id] instanceof Asteroid) {
+      if (entities[id] instanceof Asteroid || entities[id] instanceof Player || entities[id] instanceof Projectile) {
         const explosionId = `${id}-explosion`;
         const explosion = new Animation(
           entities[id].position,
