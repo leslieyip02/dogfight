@@ -21,8 +21,7 @@ class Asteroid implements Entity {
 
   remove = () => {};
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-  draw = (instance: p5, _debug?: boolean) => {
+  draw = (instance: p5, debug?: boolean) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
 
@@ -42,6 +41,14 @@ class Asteroid implements Entity {
       instance.vertex(this.points[i].x, this.points[i].y);
     }
     instance.endShape();
+
+    if (debug) {
+      instance.push();
+      instance.stroke("#ff0000");
+      instance.fill("#ffffff");
+      instance.circle(0, 0, 10);
+      instance.pop();
+    }
 
     instance.pop();
   };

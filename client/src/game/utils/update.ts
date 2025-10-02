@@ -80,7 +80,7 @@ export function addAnimations(
 ) {
   delta.removed
     .forEach(id => {
-      if (entities[id] instanceof Player) {
+      if (entities[id] instanceof Player || entities[id] instanceof Asteroid) {
         const explosionId = `${id}-explosion`;
         const explosion = new Animation(
           entities[id].position,
