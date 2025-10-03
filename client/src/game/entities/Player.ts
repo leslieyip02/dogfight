@@ -7,7 +7,7 @@ import type { Entity } from "./Entity";
 const PLAYER_WIDTH = 96;
 const MAX_PLYAER_TRAIL_POINTS = 32;
 
-const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie"];
+const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie", "delta"];
 
 function chooseSprite(username: string): p5.Image {
   // TODO: consider replacing this with a normal field?

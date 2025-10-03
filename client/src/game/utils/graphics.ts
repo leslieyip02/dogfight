@@ -13,6 +13,7 @@ const MINIMAP_RADIUS = 100;
 const MINIMAP_OFFSET = 128;
 const MINIMAP_SCALE = 1 / 800;
 
+// TODO: read from a config file?
 const SPRITESHEET_CONFIGS = {
   alpha: {
     path: "alpha.png",
@@ -26,6 +27,11 @@ const SPRITESHEET_CONFIGS = {
   },
   charlie: {
     path: "charlie.png",
+    width: 96,
+    height: 96,
+  },
+  delta: {
+    path: "delta.png",
     width: 96,
     height: 96,
   },
