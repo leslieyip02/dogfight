@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"math"
 	"server/game/geometry"
 )
 
@@ -113,14 +112,11 @@ func (p *Player) PollNewEntities() []Entity {
 	}
 
 	projectiles := []Entity{}
-	centrePosition := p.Position.Add(p.Velocity.Unit().Multiply(PLAYER_RADIUS + PROJECTILE_RADIUS))
 	velocity := p.Velocity.Unit().Multiply(PROJECTILE_SPEED)
-	for i := 0; i < shots; i++ {
-		offset := (i - shots/2) * 32
-		position := centrePosition.Add(geometry.NewVector(
-			math.Sin(p.Rotation)*float64(offset),
-			math.Cos(p.Rotation)*float64(offset),
-		))
+	for i := range shots {
+		offset := float64(i-shots/2) * 32.0
+		translated := p.Position.Add(p.Velocity.Normal().Multiply(offset))
+		position := translated.Add(p.Velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
 
 		projectile, err := NewProjectile(*position, *velocity)
 		if err != nil {

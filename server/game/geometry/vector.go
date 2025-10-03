@@ -77,7 +77,7 @@ func (u *Vector) rotate(theta float64) *Vector {
 	}
 }
 
-func (u *Vector) normal() *Vector {
+func (u *Vector) Normal() *Vector {
 	return u.rotate(math.Pi / 2).Unit()
 }
 

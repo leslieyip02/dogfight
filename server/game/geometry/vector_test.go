@@ -217,7 +217,7 @@ func TestNormal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("normalize %v", test.u), func(t *testing.T) {
-			got := test.u.normal()
+			got := test.u.Normal()
 			if math.Abs(got.Length()-1) > epsilon {
 				t.Errorf("want vector of length 1 but got %v", got)
 			}
