@@ -1,6 +1,7 @@
 import type p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { EntityData, PlayerEntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 import type { Spritesheet } from "../utils/graphics";
 import type { Entity } from "./Entity";
 
@@ -18,41 +19,39 @@ function chooseSprite(username: string): p5.Image {
 class Player implements Entity {
   static spritesheet: Spritesheet;
 
-  position: EntityPosition;
+  position: Vector;
+  velocity: Vector;
+  rotation: number;
 
   username: string;
   sprite: p5.Image;
-  roll: number;
-  previousPositions: EntityPosition[];
+  previousPositions: Vector[];
 
-  constructor(position: EntityPosition, username: string) {
-    this.position = position;
-    this.username = username;
-    this.sprite = chooseSprite(username);
+  constructor(data: PlayerEntityData) {
+    this.position = data.position;
+    this.velocity = data.velocity;
+    this.rotation = data.rotation;
 
-    this.roll = 0;
-
+    this.username = data.username;
+    this.sprite = chooseSprite(data.username);
     this.previousPositions = [];
   }
 
-  update = (position?: EntityPosition) => {
-    if (!position) {
+  update = (data: EntityData) => {
+    if (!data.position || !data.rotation) {
       return;
     }
 
-    const previousPosition: EntityPosition = {
-      x: this.position.x - Math.cos(this.position.theta) * PLAYER_WIDTH / 2,
-      y: this.position.y - Math.sin(this.position.theta) * PLAYER_WIDTH / 2,
-      theta: this.position.theta,
+    const previousPosition: Vector = {
+      x: this.position.x - Math.cos(this.rotation) * PLAYER_WIDTH / 2,
+      y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
     };
     this.previousPositions.push(previousPosition);
     if (this.previousPositions.length > MAX_PLYAER_TRAIL_POINTS) {
       this.previousPositions.shift();
     }
-
-    // TODO: apply a transform for this?
-    this.roll = Math.sign(position.theta - this.position.theta);
-    this.position = position;
+    this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {
@@ -72,7 +71,7 @@ class Player implements Entity {
   drawModel = (instance: p5, debug?: boolean) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
-    instance.rotate(this.position.theta);
+    instance.rotate(this.rotation);
     instance.translate(-this.sprite.width / 2, -this.sprite.height / 2);
     instance.image(this.sprite, 0, 0);
 
@@ -100,8 +99,8 @@ class Player implements Entity {
     if (debug) {
       instance.push();
       instance.stroke("#ff0000");
-      instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
-      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
+      instance.line(0, 0, Math.cos(this.rotation) * 120, Math.sin(this.rotation) * 120);
+      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -85);
       instance.pop();
     }
 

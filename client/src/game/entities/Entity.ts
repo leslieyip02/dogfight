@@ -1,11 +1,12 @@
 import p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { EntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 
 export interface Entity {
-    position: EntityPosition;
+    position: Vector;
 
-    update: (position?: EntityPosition) => void;
+    update: (data: EntityData) => void;
     removalAnimationName: () => string | null;
 
     draw: (instance: p5, debug?: boolean) => void;

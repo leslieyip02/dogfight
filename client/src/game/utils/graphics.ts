@@ -152,7 +152,7 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
 
   if (clientPlayer) {
     instance.push();
-    instance.rotate(clientPlayer.position.theta);
+    instance.rotate(clientPlayer.rotation);
     instance.noStroke();
     instance.fill("#ffffff");
     instance.triangle(

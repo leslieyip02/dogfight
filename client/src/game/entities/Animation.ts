@@ -1,16 +1,17 @@
 import type p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { EntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 import type { Entity } from "./Entity";
 
 class Animation implements Entity {
-  position: EntityPosition;
+  position: Vector;
 
   frames: p5.Image[];
   index: number;
   onFinish: () => void;
 
-  constructor(position: EntityPosition, frames: p5.Image[], onFinish: () => void) {
+  constructor(position: Vector, frames: p5.Image[], onFinish: () => void) {
     this.position = position;
     this.frames= frames;
     this.index = 0;
@@ -18,7 +19,7 @@ class Animation implements Entity {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-  update = (_position?: EntityPosition) => {};
+  update = (_data: EntityData) => {};
 
   removalAnimationName = () => {
     return null;

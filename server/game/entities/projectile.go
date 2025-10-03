@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"math"
 	"server/game/geometry"
 	"server/utils"
 )
@@ -12,37 +11,46 @@ const (
 	PROJECTILE_LIFETIME = 2.4 * FPS
 )
 
-var projectileBoundingBox = geometry.NewBoundingBox(&[]*geometry.Vector{
+var projectileBoundingBoxPoints = []*geometry.Vector{
 	geometry.NewVector(-10, -10),
 	geometry.NewVector(10, -10),
 	geometry.NewVector(10, 10),
 	geometry.NewVector(-10, 10),
-})
+}
 
 type Projectile struct {
-	Type     EntityType     `json:"type"`
-	ID       string         `json:"id"`
-	Position EntityPosition `json:"position"`
-	speed    float64
-	lifetime int
+	Type     EntityType      `json:"type"`
+	ID       string          `json:"id"`
+	Position geometry.Vector `json:"position"`
+	Velocity geometry.Vector `json:"velocity"`
+	Rotation float64         `json:"rotation"`
 
+	lifetime    int
 	boundingBox *geometry.BoundingBox
 }
 
-func NewProjectile(position EntityPosition) (*Projectile, error) {
+func NewProjectile(position geometry.Vector, velocity geometry.Vector) (*Projectile, error) {
 	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Projectile{
-		Type:        ProjectileEntityType,
-		ID:          id,
-		Position:    position,
-		speed:       PROJECTILE_SPEED,
-		lifetime:    PROJECTILE_LIFETIME,
-		boundingBox: projectileBoundingBox,
-	}, nil
+	rotation := velocity.Angle()
+
+	p := Projectile{
+		Type:     ProjectileEntityType,
+		ID:       id,
+		Position: position,
+		Velocity: velocity,
+		Rotation: rotation,
+		lifetime: PROJECTILE_LIFETIME,
+	}
+	p.boundingBox = geometry.NewBoundingBox(
+		&p.Position,
+		&p.Rotation,
+		&projectileBoundingBoxPoints,
+	)
+	return &p, nil
 }
 
 func (p *Projectile) GetType() EntityType {
@@ -53,8 +61,12 @@ func (p *Projectile) GetID() string {
 	return p.ID
 }
 
-func (p *Projectile) GetPosition() EntityPosition {
+func (p *Projectile) GetPosition() geometry.Vector {
 	return p.Position
+}
+
+func (p *Projectile) GetVelocity() geometry.Vector {
+	return p.Velocity
 }
 
 func (p *Projectile) GetIsExpired() bool {
@@ -62,12 +74,12 @@ func (p *Projectile) GetIsExpired() bool {
 }
 
 func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
-	return projectileBoundingBox.Transform(p.Position.X, p.Position.Y, p.Position.Theta)
+	return p.boundingBox
 }
 
 func (p *Projectile) Update() bool {
-	p.Position.X += math.Cos(p.Position.Theta) * p.speed
-	p.Position.Y += math.Sin(p.Position.Theta) * p.speed
+	p.Position.X += p.Velocity.X
+	p.Position.Y += p.Velocity.Y
 	p.lifetime--
 	return true
 }
