@@ -8,20 +8,19 @@ const PROJECTILE_WIDTH = 20;
 
 class Projectile implements Entity {
   position: Vector;
-  velocity: Vector;
   rotation: number;
 
   constructor(data: EntityData) {
     this.position = data.position;
-    this.velocity = data.velocity;
     this.rotation = data.rotation;
   }
 
   update = (data: EntityData) => {
-    if (!data.position) {
+    if (!data.position || !data.rotation) {
       return;
     }
     this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {

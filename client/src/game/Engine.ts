@@ -58,8 +58,8 @@ class Engine {
   };
 
   draw = () => {
-    this.handleInput();
     this.handleUpdates();
+    this.handleInput();
 
     drawBackground(this.canvasConfig, this.instance);
 

@@ -6,23 +6,22 @@ import type { Entity } from "./Entity";
 
 class Asteroid implements Entity {
   position: Vector;
-  velocity: Vector;
   rotation: number;
 
   points: Vector[];
 
   constructor(data: AsteroidEntityData) {
     this.position = data.position;
-    this.velocity = data.velocity;
     this.rotation = data.rotation;
     this.points = data.points;
   }
 
   update = (data: EntityData) => {
-    if (!data.position) {
+    if (!data.position || !data.rotation) {
       return;
     }
     this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {

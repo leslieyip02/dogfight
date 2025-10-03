@@ -10,23 +10,22 @@ const POWERUP_WIDTH = 20;
 
 class Powerup implements Entity {
   position: Vector;
-  velocity: Vector;
   rotation: number;
 
   ability: PowerupAbility;
 
   constructor(data: PowerupEntityData) {
     this.position = data.position;
-    this.velocity = data.velocity;
     this.rotation = data.rotation;
     this.ability = data.ability;
   }
 
   update = (data: EntityData) => {
-    if (!data.position) {
+    if (!data.position || !data.rotation) {
       return;
     }
     this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {

@@ -114,7 +114,7 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   // called separately so that all entities render above their trails
   Object.values(entities)
     .filter(entity => entity instanceof Player)
-    .forEach(player => player.drawTrail(instance));
+    .forEach(player => player.drawTrail(instance, DEBUG));
 
   Object.values(entities)
     .filter(entity => {

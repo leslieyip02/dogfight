@@ -6,7 +6,7 @@ import type { Spritesheet } from "../utils/graphics";
 import type { Entity } from "./Entity";
 
 const PLAYER_WIDTH = 96;
-const MAX_PLYAER_TRAIL_POINTS = 32;
+const MAX_PLYAER_TRAIL_POINTS = 24;
 
 const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie", "delta"];
 
@@ -40,15 +40,6 @@ class Player implements Entity {
   update = (data: EntityData) => {
     if (!data.position || !data.rotation) {
       return;
-    }
-
-    const previousPosition: Vector = {
-      x: this.position.x - Math.cos(this.rotation) * PLAYER_WIDTH / 2,
-      y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
-    };
-    this.previousPositions.push(previousPosition);
-    if (this.previousPositions.length > MAX_PLYAER_TRAIL_POINTS) {
-      this.previousPositions.shift();
     }
     this.position = data.position;
     this.rotation = data.rotation;
@@ -107,17 +98,37 @@ class Player implements Entity {
     instance.pop();
   };
 
-  drawTrail = (instance: p5) => {
+  drawTrail = (instance: p5, debug?: boolean) => {
+    const previousPosition: Vector = {
+      x: this.position.x - Math.cos(this.rotation) * PLAYER_WIDTH / 2,
+      y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
+    };
+    this.previousPositions.push(previousPosition);
+    if (this.previousPositions.length > MAX_PLYAER_TRAIL_POINTS) {
+      this.previousPositions.shift();
+    }
+
     instance.push();
-    instance.stroke("#ffa320");
+    const color = instance.color("#ffa320");
     instance.strokeWeight(4);
-    instance.noFill();
+    // instance.noFill();
     for (let i = 0; i < this.previousPositions.length - 1; i++) {
+      color.setAlpha(Math.min(i/(MAX_PLYAER_TRAIL_POINTS / 4), 1) * 255);
+      instance.stroke(color);
       instance.line(
         this.previousPositions[i].x, this.previousPositions[i].y,
         this.previousPositions[i + 1].x, this.previousPositions[i + 1].y,
       );
     }
+
+    if (debug && this.previousPositions.length > 0) {
+      instance.push();
+      instance.stroke("#ff0000");
+      instance.strokeWeight(1);
+      instance.circle(this.previousPositions[0].x, this.previousPositions[0].y, 10);
+      instance.pop();
+    }
+
     instance.pop();
   };
 };
