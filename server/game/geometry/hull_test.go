@@ -8,18 +8,18 @@ import (
 func TestSortPoints(t *testing.T) {
 	tests := []struct {
 		origin Vector
-		points []Vector
-		want   []Vector
+		points []*Vector
+		want   []*Vector
 	}{
 		{
 			origin: Vector{X: -2, Y: -2},
-			points: []Vector{
+			points: []*Vector{
 				{X: 1, Y: 1},
 				{X: 4, Y: 2},
 				{X: -3, Y: 1},
 				{X: 0, Y: 4},
 			},
-			want: []Vector{
+			want: []*Vector{
 				{X: 4, Y: 2},
 				{X: 1, Y: 1},
 				{X: 0, Y: 4},
@@ -29,7 +29,7 @@ func TestSortPoints(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("sort %v w.r.t. %v", test.points, test.origin), func(t *testing.T) {
-			sortPoints(&test.origin, test.points)
+			sortPointsAround(&test.origin, test.points)
 			got := test.points
 			if len(got) != len(test.want) {
 				t.Errorf("want sorted points of length %d but got %v", len(test.want), got)
@@ -45,17 +45,17 @@ func TestSortPoints(t *testing.T) {
 
 func TestConvexHull(t *testing.T) {
 	tests := []struct {
-		points []Vector
-		want   []Vector
+		points []*Vector
+		want   []*Vector
 	}{
 		{
-			points: []Vector{
+			points: []*Vector{
 				{X: -1, Y: -1},
 				{X: 1, Y: -1},
 				{X: 1, Y: 1},
 				{X: -1, Y: 1},
 			},
-			want: []Vector{
+			want: []*Vector{
 				{X: -1, Y: -1},
 				{X: 1, Y: -1},
 				{X: 1, Y: 1},
@@ -63,14 +63,14 @@ func TestConvexHull(t *testing.T) {
 			},
 		},
 		{
-			points: []Vector{
+			points: []*Vector{
 				{X: -1, Y: -1},
 				{X: 1, Y: -1},
 				{X: 0, Y: 0},
 				{X: 1, Y: 1},
 				{X: -1, Y: 1},
 			},
-			want: []Vector{
+			want: []*Vector{
 				{X: -1, Y: -1},
 				{X: 1, Y: -1},
 				{X: 1, Y: 1},
@@ -78,14 +78,14 @@ func TestConvexHull(t *testing.T) {
 			},
 		},
 		{
-			points: []Vector{
+			points: []*Vector{
 				{X: 1, Y: 1},
 				{X: 4, Y: 2},
 				{X: -3, Y: 1},
 				{X: -2, Y: -2},
 				{X: 0, Y: 4},
 			},
-			want: []Vector{
+			want: []*Vector{
 				{X: -2, Y: -2},
 				{X: 4, Y: 2},
 				{X: 0, Y: 4},
@@ -103,6 +103,32 @@ func TestConvexHull(t *testing.T) {
 				if got[i].X != want.X || got[i].Y != want.Y {
 					t.Errorf("want %v but got %v", test.want, got)
 				}
+			}
+		})
+	}
+}
+
+func TestHullArea(t *testing.T) {
+	tests := []struct {
+		points []*Vector
+		want   float64
+	}{
+		{
+			points: []*Vector{
+				{X: 2, Y: -3},
+				{X: 3, Y: -1},
+				{X: 2, Y: 1},
+				{X: 0, Y: 1},
+				{X: -1, Y: -1},
+			},
+			want: 10,
+		},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("convex hull of %v", test.points), func(t *testing.T) {
+			got := HullArea(test.points)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
 	}

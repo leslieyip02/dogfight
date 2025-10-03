@@ -105,12 +105,16 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   instance.push();
   centerCanvas(config, instance);
 
-  // TODO: move this?
   // called separately so that all entities render above their trails
   Object.values(entities)
     .filter(entity => entity instanceof Player)
     .forEach(player => player.drawTrail(instance));
+
   Object.values(entities)
+    .filter(entity => {
+      return Math.abs(config.x - entity.position.x) <= window.innerWidth
+        && Math.abs(config.y - entity.position.y) <= window.innerHeight;
+    })
     .forEach(entity => entity.draw(instance, DEBUG));
   instance.pop();
 }

@@ -10,11 +10,11 @@ type BoundingBox struct {
 
 	// points take position as (0, 0)
 	// points are stored in anticlockwise order
-	points *[]Vector
+	points *[]*Vector
 }
 
-func NewBoundingBox(points *[]Vector) BoundingBox {
-	return BoundingBox{
+func NewBoundingBox(points *[]*Vector) *BoundingBox {
+	return &BoundingBox{
 		origin: Vector{X: 0, Y: 0},
 		theta:  0,
 		points: points,
@@ -27,39 +27,6 @@ func (b *BoundingBox) Transform(x float64, y float64, theta float64) *BoundingBo
 		theta:  theta,
 		points: b.points,
 	}
-}
-
-func (b *BoundingBox) normals() []*Vector {
-	normals := []*Vector{}
-	for i := range len(*b.points) {
-		u := (*b.points)[i]
-		v := (*b.points)[(i+1)%len((*b.points))]
-		normals = append(normals, (v.Sub(&u)).Normal())
-	}
-	return normals
-}
-
-func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
-	// transform to world space
-	u := v.rotate(b.theta)
-	return &Vector{
-		X: u.X + b.origin.X,
-		Y: u.Y + b.origin.Y,
-	}
-}
-
-func (b *BoundingBox) projectionRange(v *Vector) (float64, float64) {
-	min := math.Inf(1)
-	max := math.Inf(-1)
-	for _, point := range *b.points {
-		w := b.convertToWorldSpace(&point)
-
-		// scalar projection
-		s := w.dot(v) / v.length()
-		min = math.Min(s, min)
-		max = math.Max(s, max)
-	}
-	return min, max
 }
 
 func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
@@ -97,4 +64,37 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	}
 
 	return true
+}
+
+func (b *BoundingBox) normals() []*Vector {
+	normals := []*Vector{}
+	for i := range len(*b.points) {
+		u := (*b.points)[i]
+		v := (*b.points)[(i+1)%len((*b.points))]
+		normals = append(normals, (v.sub(u)).normal())
+	}
+	return normals
+}
+
+func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
+	// transform to world space
+	u := v.rotate(b.theta)
+	return &Vector{
+		X: u.X + b.origin.X,
+		Y: u.Y + b.origin.Y,
+	}
+}
+
+func (b *BoundingBox) projectionRange(v *Vector) (float64, float64) {
+	min := math.Inf(1)
+	max := math.Inf(-1)
+	for _, point := range *b.points {
+		w := b.convertToWorldSpace(point)
+
+		// scalar projection
+		s := w.dot(v) / v.length()
+		min = math.Min(s, min)
+		max = math.Max(s, max)
+	}
+	return min, max
 }

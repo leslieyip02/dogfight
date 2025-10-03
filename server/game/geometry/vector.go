@@ -11,18 +11,25 @@ type Vector struct {
 	Y float64 `json:"y"`
 }
 
-func NewVector(x float64, y float64) Vector {
-	return Vector{X: x, Y: y}
+func NewVector(x float64, y float64) *Vector {
+	return &Vector{X: x, Y: y}
 }
 
-func (u *Vector) Sub(v *Vector) *Vector {
+func (u *Vector) add(v *Vector) *Vector {
+	return &Vector{
+		X: u.X + v.X,
+		Y: u.Y + v.Y,
+	}
+}
+
+func (u *Vector) sub(v *Vector) *Vector {
 	return &Vector{
 		X: u.X - v.X,
 		Y: u.Y - v.Y,
 	}
 }
 
-func (u *Vector) Multiply(s float64) *Vector {
+func (u *Vector) multiply(s float64) *Vector {
 	return &Vector{
 		X: s * u.X,
 		Y: s * u.Y,
@@ -33,6 +40,10 @@ func (u *Vector) dot(v *Vector) float64 {
 	return u.X*v.X + u.Y*v.Y
 }
 
+func (u *Vector) cross(v *Vector) float64 {
+	return u.X*v.Y - u.Y*v.X
+}
+
 func (u *Vector) length() float64 {
 	return math.Sqrt(u.dot(u))
 }
@@ -41,26 +52,26 @@ func (u *Vector) gradient() float64 {
 	return u.Y / u.X
 }
 
-func (u *Vector) Angle() float64 {
+func (u *Vector) angle() float64 {
 	return math.Atan2(u.Y, u.X)
 }
 
 func (u *Vector) rotate(theta float64) *Vector {
 	h := math.Sqrt(u.dot(u))
-	theta += u.Angle()
+	theta += u.angle()
 	return &Vector{
 		X: math.Cos(theta) * h,
 		Y: math.Sin(theta) * h,
 	}
 }
 
-func (u *Vector) Normal() *Vector {
+func (u *Vector) normal() *Vector {
 	v := u.rotate(math.Pi / 2)
-	return v.Multiply(1 / v.length())
+	return v.multiply(1 / v.length())
 }
 
 func (u *Vector) isParallel(v *Vector) bool {
-	a := u.Angle()
-	b := v.Angle()
+	a := u.angle()
+	b := v.angle()
 	return math.Abs(math.Mod(a-b, math.Pi)) < epsilon
 }

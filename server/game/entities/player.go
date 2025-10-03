@@ -16,7 +16,7 @@ const (
 	PLAYER_RADIUS = 40.0
 )
 
-var playerBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+var playerBoundingBox = geometry.NewBoundingBox(&[]*geometry.Vector{
 	geometry.NewVector(-40, -40),
 	geometry.NewVector(40, -40),
 	geometry.NewVector(40, 40),
@@ -49,7 +49,7 @@ func NewPlayer(id string, username string) *Player {
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
-		boundingBox:  &playerBoundingBox,
+		boundingBox:  playerBoundingBox,
 	}
 	return &p
 }

@@ -84,7 +84,7 @@ export function addAnimations(
   // TODO: refactor
   delta.removed
     .forEach(id => {
-      const animationName = entities[id].removalAnimationName();
+      const animationName = entities[id]?.removalAnimationName();
       if (!animationName || !(animationName in spritesheet)) {
         return;
       }

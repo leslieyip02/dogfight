@@ -62,10 +62,12 @@ class Engine {
     this.handleUpdates();
 
     drawBackground(this.canvasConfig, this.instance);
-    drawEntities(this.canvasConfig, this.entities, this.instance);
-    drawMinimap(this.canvasConfig, this.entities[this.clientId] as Player, this.entities, this.instance);
 
-    if (!this.entities[this.clientId]) {
+    const clientPlayer = this.entities[this.clientId] as Player;
+    drawEntities(this.canvasConfig, this.entities, this.instance);
+    drawMinimap(this.canvasConfig, clientPlayer, this.entities, this.instance);
+
+    if (!clientPlayer) {
       drawRespawnPrompt(this.instance);
     }
   };

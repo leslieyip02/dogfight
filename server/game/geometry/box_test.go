@@ -10,7 +10,7 @@ import (
 var b1 = BoundingBox{
 	origin: Vector{X: 0, Y: 0},
 	theta:  0,
-	points: &[]Vector{
+	points: &[]*Vector{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: 1, Y: 1},
@@ -21,7 +21,7 @@ var b1 = BoundingBox{
 var b2 = BoundingBox{
 	origin: Vector{X: 1, Y: 2},
 	theta:  math.Pi / 4,
-	points: &[]Vector{
+	points: &[]*Vector{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: 1, Y: 1},
@@ -32,7 +32,7 @@ var b2 = BoundingBox{
 var b3 = BoundingBox{
 	origin: Vector{X: 0, Y: 0},
 	theta:  math.Pi / 4,
-	points: &[]Vector{
+	points: &[]*Vector{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: 1, Y: 1},
@@ -43,12 +43,62 @@ var b3 = BoundingBox{
 var b4 = BoundingBox{
 	origin: Vector{X: 2, Y: 2},
 	theta:  math.Pi / 4,
-	points: &[]Vector{
+	points: &[]*Vector{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: 1, Y: 1},
 		{X: -1, Y: 1},
 	},
+}
+
+func TestTransform(t *testing.T) {
+	tests := []struct {
+		b     *BoundingBox
+		x     float64
+		y     float64
+		theta float64
+		want  *BoundingBox
+	}{
+		{&b1, 1, 2, math.Pi / 4, &b2},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("transform %v", test.b), func(t *testing.T) {
+			got := test.b.Transform(test.x, test.y, test.theta)
+			if got.origin.X != test.want.origin.X ||
+				got.origin.Y != test.want.origin.Y ||
+				got.theta != test.want.theta {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+
+			for i, want := range *test.want.points {
+				if math.Abs((*got.points)[i].X-want.X) > epsilon ||
+					math.Abs((*got.points)[i].Y-want.Y) > epsilon {
+					t.Errorf("want %v but got %v", test.want, got)
+				}
+			}
+		})
+	}
+}
+
+func TestDidCollide(t *testing.T) {
+	tests := []struct {
+		b1   *BoundingBox
+		b2   *BoundingBox
+		want bool
+	}{
+		{&b1, &b1, true},
+		{&b1, &b2, true},
+		{&b1, &b3, true},
+		{&b1, &b4, false},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v collide with %v", test.b1, test.b2), func(t *testing.T) {
+			got := test.b1.DidCollide(test.b2)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
 }
 
 func TestNormals(t *testing.T) {
@@ -121,27 +171,6 @@ func TestProjectionRange(t *testing.T) {
 			if math.Abs(gotMin-test.wantMin) > epsilon ||
 				math.Abs(gotMax-test.wantMax) > epsilon {
 				t.Errorf("want (%f, %f) but got (%f, %f)", test.wantMin, test.wantMax, gotMin, gotMax)
-			}
-		})
-	}
-}
-
-func TestDidCollide(t *testing.T) {
-	tests := []struct {
-		b1   *BoundingBox
-		b2   *BoundingBox
-		want bool
-	}{
-		{&b1, &b1, true},
-		{&b1, &b2, true},
-		{&b1, &b3, true},
-		{&b1, &b4, false},
-	}
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v collide with %v", test.b1, test.b2), func(t *testing.T) {
-			got := test.b1.DidCollide(test.b2)
-			if got != test.want {
-				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
 	}

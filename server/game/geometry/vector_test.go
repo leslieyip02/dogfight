@@ -6,6 +6,29 @@ import (
 	"testing"
 )
 
+func TestAdd(t *testing.T) {
+	tests := []struct {
+		u    Vector
+		v    Vector
+		want Vector
+	}{
+		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}},
+		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, Vector{X: 2, Y: 4}},
+		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, Vector{X: 4, Y: 6}},
+		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, Vector{X: -2, Y: -6}},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v + %v", test.u, test.v), func(t *testing.T) {
+			got := test.u.add(&test.v)
+			if math.Abs(got.X-test.want.X) > epsilon ||
+				math.Abs(got.Y-test.want.Y) > epsilon {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
 func TestSub(t *testing.T) {
 	tests := []struct {
 		u    Vector
@@ -20,7 +43,7 @@ func TestSub(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v - %v", test.u, test.v), func(t *testing.T) {
-			got := test.u.Sub(&test.v)
+			got := test.u.sub(&test.v)
 			if math.Abs(got.X-test.want.X) > epsilon ||
 				math.Abs(got.Y-test.want.Y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -42,7 +65,7 @@ func TestMultiply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%f * %v", test.s, test.u), func(t *testing.T) {
-			got := test.u.Multiply(test.s)
+			got := test.u.multiply(test.s)
 			if math.Abs(got.X-test.want.X) > epsilon ||
 				math.Abs(got.Y-test.want.Y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -66,6 +89,28 @@ func TestDot(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v . %v", test.u, test.v), func(t *testing.T) {
 			got := test.u.dot(&test.v)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
+func TestCross(t *testing.T) {
+	tests := []struct {
+		u    Vector
+		v    Vector
+		want float64
+	}{
+		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, 0},
+		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, 0},
+		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, -2},
+		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, -10},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v x %v", test.u, test.v), func(t *testing.T) {
+			got := test.u.cross(&test.v)
 			if got != test.want {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
@@ -133,7 +178,7 @@ func TestAngle(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("angle of %v", test.u), func(t *testing.T) {
-			got := test.u.Angle()
+			got := test.u.angle()
 			if math.Abs(got-test.want) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
@@ -172,7 +217,7 @@ func TestNormal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("normalize %v", test.u), func(t *testing.T) {
-			got := test.u.Normal()
+			got := test.u.normal()
 			if math.Abs(got.length()-1) > epsilon {
 				t.Errorf("want vector of length 1 but got %v", got)
 			}

@@ -3,7 +3,6 @@ package game
 import (
 	"context"
 	"encoding/json"
-	"math/rand"
 	"server/game/entities"
 	"sync"
 	"time"
@@ -37,7 +36,7 @@ func NewGame() *Game {
 	}
 
 	// TODO: refactor somehow?
-	for range rand.Intn(32) {
+	for range 32 {
 		asteroid, err := entities.NewAsteroid()
 		if err != nil {
 			continue

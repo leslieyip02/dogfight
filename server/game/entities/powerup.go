@@ -17,7 +17,7 @@ const (
 	MultishotPowerupAbility PowerupAbility = "multishot"
 )
 
-var powerupBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+var powerupBoundingBox = geometry.NewBoundingBox(&[]*geometry.Vector{
 	geometry.NewVector(-10, -10),
 	geometry.NewVector(10, -10),
 	geometry.NewVector(10, 10),
@@ -44,7 +44,7 @@ func NewPowerup(ability PowerupAbility) (*Powerup, error) {
 		ID:          id,
 		Position:    randomEntityPosition(),
 		Ability:     ability,
-		boundingBox: &powerupBoundingBox,
+		boundingBox: powerupBoundingBox,
 	}, nil
 }
 

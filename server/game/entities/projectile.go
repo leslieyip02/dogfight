@@ -12,7 +12,7 @@ const (
 	PROJECTILE_LIFETIME = 2.4 * FPS
 )
 
-var projectileBoundingBox = geometry.NewBoundingBox(&[]geometry.Vector{
+var projectileBoundingBox = geometry.NewBoundingBox(&[]*geometry.Vector{
 	geometry.NewVector(-10, -10),
 	geometry.NewVector(10, -10),
 	geometry.NewVector(10, 10),
@@ -41,7 +41,7 @@ func NewProjectile(position EntityPosition) (*Projectile, error) {
 		Position:    position,
 		speed:       PROJECTILE_SPEED,
 		lifetime:    PROJECTILE_LIFETIME,
-		boundingBox: &projectileBoundingBox,
+		boundingBox: projectileBoundingBox,
 	}, nil
 }
 
