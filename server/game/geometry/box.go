@@ -28,13 +28,13 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	// get a perpendicular vector
 	p := make(map[float64]bool)
 	for _, normal := range b1.normals() {
-		r := normal.rotate(*b1.rotation)
+		r := normal.Rotate(*b1.rotation)
 		// take gradients to deduplicate parallel lines
 		m := r.gradient()
 		p[m] = true
 	}
 	for _, normal := range b2.normals() {
-		r := normal.rotate(*b2.rotation)
+		r := normal.Rotate(*b2.rotation)
 		m := r.gradient()
 		p[m] = true
 	}
@@ -70,7 +70,7 @@ func (b *BoundingBox) normals() []*Vector {
 
 func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
 	// transform to world space
-	u := v.rotate(*b.rotation)
+	u := v.Rotate(*b.rotation)
 	return &Vector{
 		X: u.X + b.position.X,
 		Y: u.Y + b.position.Y,

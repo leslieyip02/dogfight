@@ -197,7 +197,7 @@ func TestRotate(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("rotate %v", test.u), func(t *testing.T) {
-			got := test.u.rotate(test.theta)
+			got := test.u.Rotate(test.theta)
 			if math.Abs(got.X-test.want.X) > epsilon ||
 				math.Abs(got.Y-test.want.Y) > epsilon {
 				t.Errorf("want %v but got %v", test.want, got)

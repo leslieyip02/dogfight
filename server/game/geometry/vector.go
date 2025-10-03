@@ -49,11 +49,27 @@ func (u *Vector) Length() float64 {
 }
 
 func (u *Vector) Unit() *Vector {
+	if u.Length() == 0 {
+		return &Vector{0, 0}
+	}
 	return u.Multiply(1 / u.Length())
 }
 
 func (u *Vector) Angle() float64 {
 	return math.Atan2(u.Y, u.X)
+}
+
+func (u *Vector) Rotate(theta float64) *Vector {
+	h := math.Sqrt(u.dot(u))
+	theta += u.Angle()
+	return &Vector{
+		X: math.Cos(theta) * h,
+		Y: math.Sin(theta) * h,
+	}
+}
+
+func (u *Vector) Normal() *Vector {
+	return u.Rotate(math.Pi / 2).Unit()
 }
 
 func (u *Vector) dot(v *Vector) float64 {
@@ -66,19 +82,6 @@ func (u *Vector) cross(v *Vector) float64 {
 
 func (u *Vector) gradient() float64 {
 	return u.Y / u.X
-}
-
-func (u *Vector) rotate(theta float64) *Vector {
-	h := math.Sqrt(u.dot(u))
-	theta += u.Angle()
-	return &Vector{
-		X: math.Cos(theta) * h,
-		Y: math.Sin(theta) * h,
-	}
-}
-
-func (u *Vector) Normal() *Vector {
-	return u.rotate(math.Pi / 2).Unit()
 }
 
 func (u *Vector) isParallel(v *Vector) bool {
