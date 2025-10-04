@@ -2,16 +2,10 @@ import p5 from "p5";
 
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
-import { drawInputHelper } from "./input";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const GRID_SIZE = 96;
-const BACKGROUND_COLOR = "#111111";
-
-const MINIMAP_RADIUS = 100;
-const MINIMAP_OFFSET = 128;
-const MINIMAP_SCALE = 1 / 800;
 
 export type CanvasConfig = {
   x: number;
@@ -20,11 +14,7 @@ export type CanvasConfig = {
 };
 
 export function drawBackground(config: CanvasConfig, instance: p5) {
-  instance.background(BACKGROUND_COLOR);
-
-  if (DEBUG) {
-    drawInputHelper(instance);
-  }
+  instance.background("#111111");
 
   instance.push();
   centerCanvas(config, instance);
@@ -65,47 +55,6 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
         && Math.abs(config.y - entity.position.y) <= window.innerHeight;
     })
     .forEach(entity => entity.draw(instance, DEBUG));
-  instance.pop();
-}
-
-export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, entities: EntityMap, instance: p5) {
-  instance.push();
-  instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
-  instance.stroke("#ffffff");
-  instance.fill(BACKGROUND_COLOR);
-  instance.circle(0, 0, MINIMAP_RADIUS * 2);
-
-  Object.values(entities)
-    .forEach(entity => {
-      const drawIcon = entity.drawIcon;
-      if (!drawIcon || entity === clientPlayer) {
-        return;
-      }
-
-      const dx = entity.position.x - origin.x;
-      const dy = entity.position.y - origin.y;
-      const theta = Math.atan2(dy, dx);
-      const clamped = Math.min(Math.hypot(dx, dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
-
-      instance.push();
-      instance.translate(Math.cos(theta) * clamped, Math.sin(theta) * clamped);
-      drawIcon(instance);
-      instance.pop();
-    });
-
-  if (clientPlayer) {
-    instance.push();
-    instance.rotate(clientPlayer.rotation);
-    instance.noStroke();
-    instance.fill("#ffffff");
-    instance.triangle(
-      8, 0,
-      -8, 8,
-      -8, -8,
-    );
-    instance.pop();
-  }
-
   instance.pop();
 }
 

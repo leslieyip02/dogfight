@@ -8,7 +8,7 @@ const MAXIMUM_ZOOM = 0.9;
 const ZOOM_THRESHOLD = 1.0;
 const ZOOM_DELTA = 0.005;
 
-const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.6;
+const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
 function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] {
   const dx = mouseX - window.innerWidth / 2;
@@ -16,15 +16,6 @@ function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] 
   const theta = Math.atan2(dy, dx);
   const clamped = Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS;
   return [Math.cos(theta) * clamped, Math.sin(theta) * clamped];
-}
-
-export function drawInputHelper(instance: p5) {
-  instance.push();
-  instance.noFill();
-  instance.stroke("#0000ff");
-  instance.strokeWeight(2);
-  instance.circle(window.innerWidth / 2, window.innerHeight / 2, MOUSE_INPUT_RADIUS * 2);
-  instance.pop();
 }
 
 class Input {

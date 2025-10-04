@@ -5,8 +5,10 @@ import type { Vector } from "../types/geometry";
 import type { Spritesheet } from "../utils/sprites";
 import type { Entity } from "./Entity";
 
+export const PLAYER_MAX_SPEED = 20.0;
+
 const PLAYER_WIDTH = 96;
-const MAX_PLYAER_TRAIL_POINTS = 24;
+const PLAYER_MAX_TRAIL_POINTS = 24;
 
 const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie", "delta"];
 
@@ -40,10 +42,11 @@ class Player implements Entity {
   }
 
   update = (data: EntityData) => {
-    if (!data.position || !data.rotation) {
+    if (!data.position || !data.velocity || !data.rotation) {
       return;
     }
     this.position = data.position;
+    this.velocity = data.velocity;
     this.rotation = data.rotation;
 
     const playerEntityData = data as PlayerEntityData;
@@ -90,8 +93,9 @@ class Player implements Entity {
     instance.noFill();
     instance.stroke("#ffffff");
     instance.strokeWeight(1);
-    instance.textAlign(instance.CENTER);
     instance.rectMode(instance.CENTER);
+    instance.textAlign(instance.CENTER);
+    instance.textFont("Courier New");
     instance.text(`${this.username}: ${this.score}`, 0, -65);
 
     if (debug) {
@@ -111,16 +115,15 @@ class Player implements Entity {
       y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
     };
     this.previousPositions.push(previousPosition);
-    if (this.previousPositions.length > MAX_PLYAER_TRAIL_POINTS) {
+    if (this.previousPositions.length > PLAYER_MAX_TRAIL_POINTS) {
       this.previousPositions.shift();
     }
 
     instance.push();
-    const color = instance.color("#ffa320");
     instance.strokeWeight(4);
-    // instance.noFill();
+    const color = instance.color("#ffa320");
     for (let i = 0; i < this.previousPositions.length - 1; i++) {
-      color.setAlpha(Math.min(i/(MAX_PLYAER_TRAIL_POINTS / 4), 1) * 255);
+      color.setAlpha(Math.min(i/(PLAYER_MAX_TRAIL_POINTS / 4), 1) * 255);
       instance.stroke(color);
       instance.line(
         this.previousPositions[i].x, this.previousPositions[i].y,

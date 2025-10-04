@@ -14,9 +14,9 @@ import {
   type CanvasConfig,
   drawBackground,
   drawEntities,
-  drawMinimap,
   drawRespawnPrompt,
 } from "./utils/graphics";
+import { drawHUD, drawMinimap } from "./utils/gui";
 import Input from "./utils/input";
 import { loadSpritesheet, type Spritesheet } from "./utils/sprites";
 import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
@@ -73,6 +73,7 @@ class Engine {
     const clientPlayer = this.entities[this.clientId] as Player;
     drawEntities(this.canvasConfig, this.entities, this.instance);
     drawMinimap(this.canvasConfig, clientPlayer, this.entities, this.instance);
+    drawHUD(clientPlayer, this.input, this.instance);
 
     if (!clientPlayer) {
       drawRespawnPrompt(this.instance);
