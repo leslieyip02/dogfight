@@ -56,10 +56,6 @@ export function drawHUD(clientPlayer: Player | null, input: Input, instance: p5)
 }
 
 export function drawSpeedometer(clientPlayer: Player | null, input: Input, instance: p5) {
-  if (!clientPlayer) {
-    return;
-  }
-
   instance.push();
   instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
 
@@ -83,7 +79,7 @@ export function drawSpeedometer(clientPlayer: Player | null, input: Input, insta
   instance.arc(0, 0, 220, 220, start, start + throttle * (end - start));
   instance.pop();
 
-  const speed = Math.hypot(clientPlayer.velocity.x, clientPlayer.velocity.y);
+  const speed = !clientPlayer ? 0 : Math.hypot(clientPlayer.velocity.x, clientPlayer.velocity.y);
   const interval = 0.16;
   const gap = (Math.PI - interval * 16) / 15;
   instance.push();
