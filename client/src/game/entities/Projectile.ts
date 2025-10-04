@@ -1,22 +1,26 @@
 import p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { EntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 import type { Entity } from "./Entity";
 
 const PROJECTILE_WIDTH = 20;
 
 class Projectile implements Entity {
-  position: EntityPosition;
+  position: Vector;
+  rotation: number;
 
-  constructor(position: EntityPosition) {
-    this.position = position;
+  constructor(data: EntityData) {
+    this.position = data.position;
+    this.rotation = data.rotation;
   }
 
-  update = (position?: EntityPosition) => {
-    if (!position) {
+  update = (data: EntityData) => {
+    if (!data.position || !data.rotation) {
       return;
     }
-    this.position = position;
+    this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {
@@ -28,7 +32,7 @@ class Projectile implements Entity {
     instance.translate(this.position.x, this.position.y);
 
     instance.push();
-    instance.rotate(this.position.theta);
+    instance.rotate(this.rotation);
     instance.noStroke();
     instance.fill("#ffffff");
     instance.circle(-20, 0, 10);
@@ -42,12 +46,12 @@ class Projectile implements Entity {
       instance.noFill();
 
       instance.push();
-      instance.rotate(this.position.theta);
+      instance.rotate(this.rotation);
       instance.rect(-PROJECTILE_WIDTH / 2, -PROJECTILE_WIDTH / 2, PROJECTILE_WIDTH, PROJECTILE_WIDTH);
       instance.pop();
 
-      instance.line(0, 0, Math.cos(this.position.theta) * 120, Math.sin(this.position.theta) * 120);
-      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), theta: ${this.position.theta.toFixed(2)}`, 0, -85);
+      instance.line(0, 0, Math.cos(this.rotation) * 120, Math.sin(this.rotation) * 120);
+      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -85);
       instance.pop();
     }
 

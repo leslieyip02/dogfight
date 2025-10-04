@@ -7,78 +7,28 @@ import (
 	"testing"
 )
 
-var b1 = BoundingBox{
-	origin: Vector{X: 0, Y: 0},
-	theta:  0,
-	points: &[]*Vector{
-		{X: -1, Y: -1},
-		{X: 1, Y: -1},
-		{X: 1, Y: 1},
-		{X: -1, Y: 1},
-	},
+var square = []*Vector{
+	NewVector(-1, -1),
+	NewVector(1, -1),
+	NewVector(1, 1),
+	NewVector(-1, 1),
 }
 
-var b2 = BoundingBox{
-	origin: Vector{X: 1, Y: 2},
-	theta:  math.Pi / 4,
-	points: &[]*Vector{
-		{X: -1, Y: -1},
-		{X: 1, Y: -1},
-		{X: 1, Y: 1},
-		{X: -1, Y: 1},
-	},
-}
+var p1 = NewVector(0, 0)
+var r1 = 0.0
+var b1 = NewBoundingBox(p1, &r1, &square)
 
-var b3 = BoundingBox{
-	origin: Vector{X: 0, Y: 0},
-	theta:  math.Pi / 4,
-	points: &[]*Vector{
-		{X: -1, Y: -1},
-		{X: 1, Y: -1},
-		{X: 1, Y: 1},
-		{X: -1, Y: 1},
-	},
-}
+var p2 = NewVector(1, 2)
+var r2 = math.Pi / 4
+var b2 = NewBoundingBox(p2, &r2, &square)
 
-var b4 = BoundingBox{
-	origin: Vector{X: 2, Y: 2},
-	theta:  math.Pi / 4,
-	points: &[]*Vector{
-		{X: -1, Y: -1},
-		{X: 1, Y: -1},
-		{X: 1, Y: 1},
-		{X: -1, Y: 1},
-	},
-}
+var p3 = NewVector(0, 0)
+var r3 = math.Pi / 4
+var b3 = NewBoundingBox(p3, &r3, &square)
 
-func TestTransform(t *testing.T) {
-	tests := []struct {
-		b     *BoundingBox
-		x     float64
-		y     float64
-		theta float64
-		want  *BoundingBox
-	}{
-		{&b1, 1, 2, math.Pi / 4, &b2},
-	}
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("transform %v", test.b), func(t *testing.T) {
-			got := test.b.Transform(test.x, test.y, test.theta)
-			if got.origin.X != test.want.origin.X ||
-				got.origin.Y != test.want.origin.Y ||
-				got.theta != test.want.theta {
-				t.Errorf("want %v but got %v", test.want, got)
-			}
-
-			for i, want := range *test.want.points {
-				if math.Abs((*got.points)[i].X-want.X) > epsilon ||
-					math.Abs((*got.points)[i].Y-want.Y) > epsilon {
-					t.Errorf("want %v but got %v", test.want, got)
-				}
-			}
-		})
-	}
-}
+var p4 = NewVector(2, 2)
+var r4 = math.Pi / 4
+var b4 = NewBoundingBox(p4, &r4, &square)
 
 func TestDidCollide(t *testing.T) {
 	tests := []struct {
@@ -86,10 +36,10 @@ func TestDidCollide(t *testing.T) {
 		b2   *BoundingBox
 		want bool
 	}{
-		{&b1, &b1, true},
-		{&b1, &b2, true},
-		{&b1, &b3, true},
-		{&b1, &b4, false},
+		{b1, b1, true},
+		{b1, b2, true},
+		{b1, b3, true},
+		{b1, b4, false},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v collide with %v", test.b1, test.b2), func(t *testing.T) {
@@ -101,12 +51,38 @@ func TestDidCollide(t *testing.T) {
 	}
 }
 
+func TestDidCollideWithMovement(t *testing.T) {
+	p5 := NewVector(5, 0)
+	r5 := 0.0
+	b5 := NewBoundingBox(p5, &r5, &square)
+
+	got := b5.DidCollide(b1)
+	want := false
+	if got != want {
+		t.Error("should not collide before movement")
+	}
+
+	p5.X = 1
+	got = b5.DidCollide(b1)
+	want = true
+	if got != want {
+		t.Error("should collide after movement")
+	}
+}
+
 func TestNormals(t *testing.T) {
 	tests := []struct {
 		b    *BoundingBox
 		want []Vector
 	}{
-		{&b1, []Vector{{X: -1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}, {X: 1, Y: 0}}},
+		{
+			b1, []Vector{
+				{X: -1, Y: 0},
+				{X: 0, Y: -1},
+				{X: 0, Y: 1},
+				{X: 1, Y: 0},
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v normals", test.b), func(t *testing.T) {
@@ -125,7 +101,7 @@ func TestNormals(t *testing.T) {
 			for i, want := range test.want {
 				if math.Abs(got[i].X-want.X) > epsilon ||
 					math.Abs(got[i].Y-want.Y) > epsilon {
-					t.Errorf("want %v but got %v", test.want, got)
+					t.Errorf("want %v but got %v", want, got[i])
 				}
 			}
 		})
@@ -138,10 +114,10 @@ func TestConvertToWorldSpace(t *testing.T) {
 		v    Vector
 		want Vector
 	}{
-		{&b2, Vector{X: -1, Y: -1}, Vector{X: 1, Y: 2 - math.Sqrt2}},
-		{&b2, Vector{X: 1, Y: -1}, Vector{X: 1 + math.Sqrt2, Y: 2}},
-		{&b2, Vector{X: 1, Y: 1}, Vector{X: 1, Y: 2 + math.Sqrt2}},
-		{&b2, Vector{X: -1, Y: 1}, Vector{X: 1 - math.Sqrt2, Y: 2}},
+		{b2, Vector{X: -1, Y: -1}, Vector{X: 1, Y: 2 - math.Sqrt2}},
+		{b2, Vector{X: 1, Y: -1}, Vector{X: 1 + math.Sqrt2, Y: 2}},
+		{b2, Vector{X: 1, Y: 1}, Vector{X: 1, Y: 2 + math.Sqrt2}},
+		{b2, Vector{X: -1, Y: 1}, Vector{X: 1 - math.Sqrt2, Y: 2}},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v wordlify %v", test.b, test.v), func(t *testing.T) {
@@ -161,9 +137,9 @@ func TestProjectionRange(t *testing.T) {
 		wantMin float64
 		wantMax float64
 	}{
-		{&b3, Vector{X: 0, Y: 1}, -math.Sqrt2, math.Sqrt2},
-		{&b3, Vector{X: 1, Y: 0}, -math.Sqrt2, math.Sqrt2},
-		{&b3, Vector{X: 1, Y: 1}, -1, 1},
+		{b3, Vector{X: 0, Y: 1}, -math.Sqrt2, math.Sqrt2},
+		{b3, Vector{X: 1, Y: 0}, -math.Sqrt2, math.Sqrt2},
+		{b3, Vector{X: 1, Y: 1}, -1, 1},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v projectionRange on %v", test.b, test.v), func(t *testing.T) {

@@ -45,15 +45,15 @@ export function updateEntities(delta: DeltaEventData, entities: EntityMap) {
 }
 
 export function handleEntityData(data: EntityData, entities: EntityMap) {
-  const { id, position } = data;
+  const { id } = data;
   if (entities[id]) {
-    entities[id].update(position);
+    entities[id].update(data);
     return;
   }
 
   switch (data.type) {
   case "asteroid":
-    entities[id] = new Asteroid(position, (data as AsteroidEntityData).points);
+    entities[id] = new Asteroid(data as AsteroidEntityData);
     break;
 
   case "player": {
@@ -62,16 +62,16 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
       break;
     }
 
-    entities[id] = new Player(position, (data as PlayerEntityData).username);
+    entities[id] = new Player(data as PlayerEntityData);
     break;
   }
 
   case "projectile":
-    entities[id] = new Projectile(position);
+    entities[id] = new Projectile(data);
     break;
 
   case "powerup":
-    entities[id] = new Powerup(position, (data as PowerupEntityData).ability);
+    entities[id] = new Powerup(data as PowerupEntityData);
     break;
   }
 }

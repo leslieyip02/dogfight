@@ -65,7 +65,7 @@ func HullArea(points []*Vector) float64 {
 
 func sortPointsAround(origin *Vector, points []*Vector) {
 	slices.SortFunc(points, func(a *Vector, b *Vector) int {
-		if a.sub(origin).angle() < b.sub(origin).angle() {
+		if a.Sub(origin).Angle() < b.Sub(origin).Angle() {
 			return -1
 		} else {
 			return 1
@@ -74,7 +74,7 @@ func sortPointsAround(origin *Vector, points []*Vector) {
 }
 
 func isLeftTurn(a *Vector, b *Vector, c *Vector) bool {
-	u := b.sub(a)
-	v := c.sub(b)
+	u := b.Sub(a)
+	v := c.Sub(b)
 	return math.Atan2(u.X*v.Y-u.Y*v.X, u.X*v.X+u.Y*v.Y) > 0
 }

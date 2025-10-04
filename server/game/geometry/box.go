@@ -5,27 +5,19 @@ import (
 )
 
 type BoundingBox struct {
-	origin Vector
-	theta  float64
+	position *Vector
+	rotation *float64
 
 	// points take position as (0, 0)
 	// points are stored in anticlockwise order
 	points *[]*Vector
 }
 
-func NewBoundingBox(points *[]*Vector) *BoundingBox {
+func NewBoundingBox(position *Vector, rotation *float64, points *[]*Vector) *BoundingBox {
 	return &BoundingBox{
-		origin: Vector{X: 0, Y: 0},
-		theta:  0,
-		points: points,
-	}
-}
-
-func (b *BoundingBox) Transform(x float64, y float64, theta float64) *BoundingBox {
-	return &BoundingBox{
-		origin: Vector{X: x, Y: y},
-		theta:  theta,
-		points: b.points,
+		position: position,
+		rotation: rotation,
+		points:   points,
 	}
 }
 
@@ -36,23 +28,23 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	// get a perpendicular vector
 	p := make(map[float64]bool)
 	for _, normal := range b1.normals() {
-		r := normal.rotate(b1.theta)
+		r := normal.Rotate(*b1.rotation)
 		// take gradients to deduplicate parallel lines
-		g := r.gradient()
-		p[g] = true
+		m := r.gradient()
+		p[m] = true
 	}
 	for _, normal := range b2.normals() {
-		r := normal.rotate(b2.theta)
-		g := r.gradient()
-		p[g] = true
+		r := normal.Rotate(*b2.rotation)
+		m := r.gradient()
+		p[m] = true
 	}
 
 	// for each perpendicular vector,
 	// calculate the projection
-	for g := range p {
+	for m := range p {
 		perpendicular := Vector{
 			X: 1,
-			Y: g,
+			Y: m,
 		}
 
 		// check overlaps
@@ -70,18 +62,18 @@ func (b *BoundingBox) normals() []*Vector {
 	normals := []*Vector{}
 	for i := range len(*b.points) {
 		u := (*b.points)[i]
-		v := (*b.points)[(i+1)%len((*b.points))]
-		normals = append(normals, (v.sub(u)).normal())
+		v := (*b.points)[(i+1)%len(*b.points)]
+		normals = append(normals, (v.Sub(u)).Normal())
 	}
 	return normals
 }
 
 func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
 	// transform to world space
-	u := v.rotate(b.theta)
+	u := v.Rotate(*b.rotation)
 	return &Vector{
-		X: u.X + b.origin.X,
-		Y: u.Y + b.origin.Y,
+		X: u.X + b.position.X,
+		Y: u.Y + b.position.Y,
 	}
 }
 
@@ -92,7 +84,7 @@ func (b *BoundingBox) projectionRange(v *Vector) (float64, float64) {
 		w := b.convertToWorldSpace(point)
 
 		// scalar projection
-		s := w.dot(v) / v.length()
+		s := w.dot(v) / v.Length()
 		min = math.Min(s, min)
 		max = math.Max(s, max)
 	}

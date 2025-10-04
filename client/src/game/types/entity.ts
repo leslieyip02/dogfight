@@ -1,27 +1,24 @@
 import type { PowerupAbility } from "../entities/Powerup";
+import type { Vector } from "./geometry";
+
+export type EntityType = "asteroid" | "player" | "projectile" | "powerup";
 
 export type EntityData = {
   type: EntityType,
   id: string,
-  position: EntityPosition,
-};
-
-export type EntityType = "asteroid" | "player" | "projectile" | "powerup";
-
-export type EntityPosition = {
-  x: number,
-  y: number,
-  theta: number,
+  position: Vector,
+  velocity: Vector,
+  rotation: number,
 };
 
 export type AsteroidEntityData = EntityData & {
-  points: { x: number, y:number }[];
+  points: Vector[],
 }
 
 export type PlayerEntityData = EntityData & {
-  username: string;
+  username: string,
 };
 
 export type PowerupEntityData = EntityData & {
-  ability: PowerupAbility;
+  ability: PowerupAbility,
 };

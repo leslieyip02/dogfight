@@ -1,23 +1,27 @@
 import p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { AsteroidEntityData, EntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 import type { Entity } from "./Entity";
 
 class Asteroid implements Entity {
-  position: EntityPosition;
+  position: Vector;
+  rotation: number;
 
-  points: { x: number, y: number }[];
+  points: Vector[];
 
-  constructor(position: EntityPosition, points: { x: number, y: number }[]) {
-    this.position = position;
-    this.points = points;
+  constructor(data: AsteroidEntityData) {
+    this.position = data.position;
+    this.rotation = data.rotation;
+    this.points = data.points;
   }
 
-  update = (position?: EntityPosition) => {
-    if (!position) {
+  update = (data: EntityData) => {
+    if (!data.position || !data.rotation) {
       return;
     }
-    this.position = position;
+    this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {
@@ -27,7 +31,7 @@ class Asteroid implements Entity {
   draw = (instance: p5, debug?: boolean) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
-    instance.rotate(this.position.theta);
+    instance.rotate(this.rotation);
     instance.fill("#ffffff88");
     instance.stroke("#ffffff");
     instance.strokeWeight(4);

@@ -1,6 +1,7 @@
 import p5 from "p5";
 
-import type { EntityPosition } from "../types/entity";
+import type { EntityData, PowerupEntityData } from "../types/entity";
+import type { Vector } from "../types/geometry";
 import type { Entity } from "./Entity";
 
 export type PowerupAbility = "multishot";
@@ -8,20 +9,23 @@ export type PowerupAbility = "multishot";
 const POWERUP_WIDTH = 20;
 
 class Powerup implements Entity {
-  position: EntityPosition;
+  position: Vector;
+  rotation: number;
 
   ability: PowerupAbility;
 
-  constructor(position: EntityPosition, ability: PowerupAbility) {
-    this.position = position;
-    this.ability = ability;
+  constructor(data: PowerupEntityData) {
+    this.position = data.position;
+    this.rotation = data.rotation;
+    this.ability = data.ability;
   }
 
-  update = (position?: EntityPosition) => {
-    if (!position) {
+  update = (data: EntityData) => {
+    if (!data.position || !data.rotation) {
       return;
     }
-    this.position = position;
+    this.position = data.position;
+    this.rotation = data.rotation;
   };
 
   removalAnimationName = () => {

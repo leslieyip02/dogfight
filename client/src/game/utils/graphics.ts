@@ -57,7 +57,7 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   // called separately so that all entities render above their trails
   Object.values(entities)
     .filter(entity => entity instanceof Player)
-    .forEach(player => player.drawTrail(instance));
+    .forEach(player => player.drawTrail(instance, DEBUG));
 
   Object.values(entities)
     .filter(entity => {
@@ -95,7 +95,7 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
 
   if (clientPlayer) {
     instance.push();
-    instance.rotate(clientPlayer.position.theta);
+    instance.rotate(clientPlayer.rotation);
     instance.noStroke();
     instance.fill("#ffffff");
     instance.triangle(
