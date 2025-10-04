@@ -10,8 +10,15 @@ import type {
   JoinEventData,
   QuitEventData,
 } from "./types/event";
-import { type CanvasConfig, drawBackground, drawEntities, drawMinimap, drawRespawnPrompt, loadSpritesheet, type Spritesheet } from "./utils/graphics";
+import {
+  type CanvasConfig,
+  drawBackground,
+  drawEntities,
+  drawMinimap,
+  drawRespawnPrompt,
+} from "./utils/graphics";
 import Input from "./utils/input";
+import { loadSpritesheet, type Spritesheet } from "./utils/sprites";
 import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
 
 const FPS = 60;

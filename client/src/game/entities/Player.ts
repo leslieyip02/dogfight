@@ -1,7 +1,7 @@
 import type p5 from "p5";
 
 import type { EntityPosition } from "../types/entity";
-import type { Spritesheet } from "../utils/graphics";
+import type { Spritesheet } from "../utils/sprites";
 import type { Entity } from "./Entity";
 
 const PLAYER_WIDTH = 96;

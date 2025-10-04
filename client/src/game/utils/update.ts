@@ -6,7 +6,7 @@ import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
 import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData } from "../types/entity";
 import type { DeltaEventData, SnapshotEventData } from "../types/event";
-import type { Spritesheet } from "./graphics";
+import type { Spritesheet } from "./sprites";
 
 export function syncEntities(snapshot: SnapshotEventData | null, entities: EntityMap) {
   if (!snapshot) {
