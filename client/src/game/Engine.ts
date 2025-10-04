@@ -133,17 +133,17 @@ class Engine {
   };
 
   private handleUpdates = () => {
-    const clientPlayer = this.entities[this.clientId] as Player;
-    if (clientPlayer) {
-      updateCanvasConfig(this.canvasConfig, clientPlayer);
-    }
-
     addAnimations(this.delta, this.entities, this.spritesheet);
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);
 
     this.delta.updated = {};
     this.delta.removed = [];
+
+    const clientPlayer = this.entities[this.clientId] as Player;
+    if (clientPlayer) {
+      updateCanvasConfig(this.canvasConfig, clientPlayer);
+    }
   };
 
   private syncGameState = async () => {
