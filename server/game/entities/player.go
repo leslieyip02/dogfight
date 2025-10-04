@@ -8,8 +8,8 @@ import (
 const (
 	PLAYER_MAX_SPEED          = 20.0
 	PLAYER_ACCELERATION_DECAY = 8.0
-	PLAYER_MAX_TURN_RATE      = 0.2
-	PLAYER_TURN_RATE_DECAY    = 8.0
+	PLAYER_MAX_TURN_RATE      = 0.8
+	PLAYER_TURN_RATE_DECAY    = 4.0
 
 	PLAYER_RADIUS = 40.0
 )
@@ -90,19 +90,25 @@ func (p *Player) GetBoundingBox() *geometry.BoundingBox {
 
 func (p *Player) Update() bool {
 	// TODO: continue iterating on this
-	target := geometry.NewVector(p.mouseX, p.mouseY)
-	difference := target.Unit().Sub(p.Velocity.Unit())
+	currentSpeed := p.Velocity.Length()
+	targetVelocity := geometry.NewVector(p.mouseX, p.mouseY)
 
-	speed := p.Velocity.Length()
-	throttle := math.Max(target.Length(), 0.01)
-	turnRate := 1 / (1 + PLAYER_TURN_RATE_DECAY*speed)
-	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*speed)
+	currentAngle := p.Velocity.Angle()
+	targetAngle := targetVelocity.Angle()
+	turnRate := normalizeAngle(targetAngle - currentAngle)
+	maxTurnRate := PLAYER_MAX_TURN_RATE / (1 + PLAYER_TURN_RATE_DECAY*currentSpeed)
+	if math.Abs(turnRate) > maxTurnRate {
+		turnRate = math.Copysign(maxTurnRate, turnRate)
+	}
+	p.Rotation = normalizeAngle(currentAngle + turnRate)
 
+	throttle := targetVelocity.Length()
 	targetSpeed := throttle * PLAYER_MAX_SPEED
-	p.Velocity = *p.Velocity.
-		Add(difference.Multiply(turnRate * PLAYER_MAX_SPEED)).
-		Multiply(1 + (targetSpeed-speed)/targetSpeed*acceleration)
-	p.Rotation = p.Velocity.Angle()
+	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
+	currentSpeed += (targetSpeed - currentSpeed) * acceleration
+
+	p.Velocity.X = math.Cos(p.Rotation) * currentSpeed
+	p.Velocity.Y = math.Sin(p.Rotation) * currentSpeed
 
 	p.Position.X += p.Velocity.X
 	p.Position.Y += p.Velocity.Y
@@ -145,4 +151,14 @@ func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	p.mouseX = mouseX
 	p.mouseY = mouseY
 	p.mousePressed = p.mousePressed || mousePressed
+}
+
+func normalizeAngle(angle float64) float64 {
+	angle = math.Mod(angle, 2*math.Pi)
+	if angle > math.Pi {
+		angle -= 2 * math.Pi
+	} else if angle < -math.Pi {
+		angle += 2 * math.Pi
+	}
+	return angle
 }
