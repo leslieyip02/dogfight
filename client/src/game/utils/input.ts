@@ -3,11 +3,6 @@ import type p5 from "p5";
 import { sendMessage } from "../../api/game";
 import type { InputEventData, RespawnEventData } from "../types/event";
 
-const MINIMUM_ZOOM = 0.6;
-const MAXIMUM_ZOOM = 0.9;
-const ZOOM_THRESHOLD = 1.0;
-const ZOOM_DELTA = 0.005;
-
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
 function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] {
@@ -25,7 +20,6 @@ class Input {
   mouseX: number;
   mouseY: number;
   mousePressed: boolean;
-  zoom: number;
 
   constructor(clientId: string, socket: WebSocket) {
     this.clientId = clientId;
@@ -34,7 +28,6 @@ class Input {
     this.mouseX = 0;
     this.mouseY = 0;
     this.mousePressed = false;
-    this.zoom = MAXIMUM_ZOOM;
   }
 
   handleMousePress = () => {
@@ -63,16 +56,6 @@ class Input {
     };
     sendMessage(this.socket, "respawn", data);
     this.mousePressed = false;
-  };
-
-  calculateZoom = () => {
-    const throttle = Math.hypot(this.mouseX, this.mouseY);
-    if (throttle >= ZOOM_THRESHOLD) {
-      this.zoom = Math.max(this.zoom - ZOOM_DELTA, MINIMUM_ZOOM);
-    } else {
-      this.zoom = Math.min(this.zoom + ZOOM_DELTA, MAXIMUM_ZOOM);
-    }
-    return this.zoom;
   };
 }
 

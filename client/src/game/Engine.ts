@@ -15,6 +15,7 @@ import {
   drawBackground,
   drawEntities,
   drawRespawnPrompt,
+  updateCanvasConfig,
 } from "./utils/graphics";
 import { drawHUD, drawMinimap } from "./utils/gui";
 import Input from "./utils/input";
@@ -128,14 +129,15 @@ class Engine {
       this.input.handleRespawn();
       return;
     }
-
     this.input.handleInput(this.instance);
-    this.canvasConfig.x = clientPlayer.position.x;
-    this.canvasConfig.y = clientPlayer.position.y;
-    this.canvasConfig.zoom = this.input.calculateZoom();
   };
 
   private handleUpdates = () => {
+    const clientPlayer = this.entities[this.clientId] as Player;
+    if (clientPlayer) {
+      updateCanvasConfig(this.canvasConfig, clientPlayer);
+    }
+
     addAnimations(this.delta, this.entities, this.spritesheet);
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);

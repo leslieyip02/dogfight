@@ -85,16 +85,13 @@ export function drawSpeedometer(clientPlayer: Player | null, input: Input, insta
   const speed = Math.hypot(clientPlayer.velocity.x, clientPlayer.velocity.y);
   const interval = 0.16;
   const gap = (Math.PI - interval * 16) / 15;
-  const startColor = instance.color("#29cc49");
-  const endColor = instance.color("#ec1f26");
   instance.push();
   instance.stroke("#ffffff");
   instance.strokeWeight(12);
   instance.strokeCap(instance.SQUARE);
   instance.noFill();
   for (let i = 0; i < speed / PLAYER_MAX_SPEED * 16; i++) {
-    const color = instance.lerpColor(startColor, endColor, Math.floor(i / 2) / 8);
-    instance.stroke(color);
+    instance.stroke(i >= 12 ? "#ec1f26" : "#29cc49");
     instance.arc(0, 0, 248, 248, start + ((interval + gap) * i), start + (interval * (i + 1)) + gap * i);
   }
   instance.pop();

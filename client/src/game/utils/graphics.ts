@@ -1,17 +1,26 @@
 import p5 from "p5";
 
 import type { EntityMap } from "../entities/Entity";
-import Player from "../entities/Player";
+import Player, { PLAYER_MAX_SPEED } from "../entities/Player";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const GRID_SIZE = 96;
+const MINIMUM_ZOOM = 0.6;
+const MAXIMUM_ZOOM = 1.0;
 
 export type CanvasConfig = {
   x: number;
   y: number;
   zoom: number;
 };
+
+export function updateCanvasConfig(config: CanvasConfig, clientPlayer: Player) {
+  const speed = Math.hypot(clientPlayer.velocity.x, clientPlayer.velocity.y);
+  config.x = clientPlayer.position.x;
+  config.y = clientPlayer.position.y;
+  config.zoom = MAXIMUM_ZOOM - (speed / PLAYER_MAX_SPEED) * (MAXIMUM_ZOOM - MINIMUM_ZOOM);
+}
 
 export function drawBackground(config: CanvasConfig, instance: p5) {
   instance.background("#111111");
