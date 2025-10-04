@@ -96,7 +96,7 @@ class Player implements Entity {
     instance.rectMode(instance.CENTER);
     instance.textAlign(instance.CENTER);
     instance.textFont("Courier New");
-    instance.text(`${this.username}: ${this.score}`, 0, -65);
+    instance.text(this.username, 0, -65);
 
     if (debug) {
       instance.push();

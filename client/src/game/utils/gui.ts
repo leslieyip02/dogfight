@@ -52,6 +52,7 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
 
 export function drawHUD(clientPlayer: Player | null, input: Input, instance: p5) {
   drawSpeedometer(clientPlayer, input, instance);
+  drawScore(clientPlayer, instance);
 }
 
 export function drawSpeedometer(clientPlayer: Player | null, input: Input, instance: p5) {
@@ -96,5 +97,19 @@ export function drawSpeedometer(clientPlayer: Player | null, input: Input, insta
   }
   instance.pop();
 
+  instance.pop();
+}
+
+export function drawScore(clientPlayer: Player | null, instance: p5) {
+  const score = `${clientPlayer?.score ?? "?"}`;
+  instance.push();
+  instance.translate(window.innerWidth - 280, window.innerHeight - 40);
+  instance.noFill();
+  instance.stroke("#ffffff");
+  instance.strokeWeight(1);
+  instance.rectMode(instance.CENTER);
+  instance.textAlign(instance.CENTER);
+  instance.textFont("Courier New");
+  instance.text(`score: ${score}`, 0, 0);
   instance.pop();
 }
