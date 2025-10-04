@@ -17,6 +17,7 @@ export type AsteroidEntityData = EntityData & {
 
 export type PlayerEntityData = EntityData & {
   username: string,
+  score: number,
 };
 
 export type PowerupEntityData = EntityData & {

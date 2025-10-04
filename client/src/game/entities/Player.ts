@@ -24,6 +24,7 @@ class Player implements Entity {
   rotation: number;
 
   username: string;
+  score: number;
   sprite: p5.Image;
   previousPositions: Vector[];
 
@@ -33,6 +34,7 @@ class Player implements Entity {
     this.rotation = data.rotation;
 
     this.username = data.username;
+    this.score = data.score;
     this.sprite = chooseSprite(data.username);
     this.previousPositions = [];
   }
@@ -43,6 +45,11 @@ class Player implements Entity {
     }
     this.position = data.position;
     this.rotation = data.rotation;
+
+    const playerEntityData = data as PlayerEntityData;
+    if (playerEntityData) {
+      this.score = playerEntityData.score;
+    }
   };
 
   removalAnimationName = () => {
@@ -85,7 +92,7 @@ class Player implements Entity {
     instance.strokeWeight(1);
     instance.textAlign(instance.CENTER);
     instance.rectMode(instance.CENTER);
-    instance.text(this.username, 0, -65);
+    instance.text(`${this.username}: ${this.score}`, 0, -65);
 
     if (debug) {
       instance.push();

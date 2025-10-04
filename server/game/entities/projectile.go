@@ -25,11 +25,12 @@ type Projectile struct {
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
 
+	shooter     *Player
 	lifetime    int
 	boundingBox *geometry.BoundingBox
 }
 
-func NewProjectile(position geometry.Vector, velocity geometry.Vector) (*Projectile, error) {
+func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *Player) (*Projectile, error) {
 	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
@@ -43,6 +44,7 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector) (*Project
 		Position: position,
 		Velocity: velocity,
 		Rotation: rotation,
+		shooter:  shooter,
 		lifetime: PROJECTILE_LIFETIME,
 	}
 	p.boundingBox = geometry.NewBoundingBox(
@@ -89,5 +91,15 @@ func (p *Projectile) PollNewEntities() []Entity {
 }
 
 func (p *Projectile) RemoveOnCollision(other Entity) bool {
-	return other.GetType() != ProjectileEntityType && other.GetType() != PowerupEntityType
+	switch other.GetType() {
+	case PlayerEntityType:
+		p.shooter.Score++
+		return true
+
+	case PowerupEntityType, ProjectileEntityType:
+		return false
+
+	default:
+		return true
+	}
 }

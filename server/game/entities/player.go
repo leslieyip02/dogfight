@@ -28,6 +28,7 @@ type Player struct {
 	Position geometry.Vector `json:"position"`
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
+	Score    int             `json:"score"`
 
 	Powerup     *Powerup
 	boundingBox *geometry.BoundingBox
@@ -49,6 +50,7 @@ func NewPlayer(id string, username string) *Player {
 		Position:     position,
 		Velocity:     velocity,
 		Rotation:     rotation,
+		Score:        0,
 		Powerup:      nil,
 		mouseX:       0,
 		mouseY:       0,
@@ -125,7 +127,7 @@ func (p *Player) PollNewEntities() []Entity {
 		translated := p.Position.Add(p.Velocity.Normal().Multiply(offset))
 		position := translated.Add(p.Velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
 
-		projectile, err := NewProjectile(*position, *velocity)
+		projectile, err := NewProjectile(*position, *velocity, p)
 		if err != nil {
 			continue
 		}
