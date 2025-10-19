@@ -2,7 +2,7 @@ import p5 from "p5";
 
 import type { EntityData, PowerupEntityData } from "../types/entity";
 import type { Vector } from "../types/geometry";
-import { type AbilityFlag,isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../utils/abilities";
+import { type AbilityFlag, MULTISHOT_ABILITY_FLAG, SHIELD_ABILITY_FLAG, WIDE_BEAM_ABILITY_FLAG } from "../utils/abilities";
 import type { Entity } from "./Entity";
 
 const POWERUP_WIDTH = 20;
@@ -34,7 +34,7 @@ class Powerup implements Entity {
     instance.push();
     instance.translate(this.position.x, this.position.y);
     instance.noStroke();
-    instance.fill(isAbilityActive(this.ability, WIDE_BEAM_ABILITY_FLAG) ? "#ffff00" : "#00ff00");
+    instance.fill(this.fill());
     instance.circle(0, 0, 10);
 
     if (debug) {
@@ -50,9 +50,22 @@ class Powerup implements Entity {
 
   drawIcon = (instance: p5) => {
     instance.push();
-    instance.fill(isAbilityActive(this.ability, WIDE_BEAM_ABILITY_FLAG) ? "#ffff00" : "#00ff00");
+    instance.fill(this.fill());
     instance.circle(0, 0, 8);
     instance.pop();
+  };
+
+  fill = () => {
+    switch (this.ability) {
+    case MULTISHOT_ABILITY_FLAG:
+      return "#00ffff";
+    case WIDE_BEAM_ABILITY_FLAG:
+      return "#ff00ff";
+    case SHIELD_ABILITY_FLAG:
+      return "#ffff00";
+    default:
+      throw new TypeError("invalid flags");
+    }
   };
 }
 

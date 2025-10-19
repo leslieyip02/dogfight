@@ -2,6 +2,7 @@ import type p5 from "p5";
 
 import type { EntityData, PlayerEntityData } from "../types/entity";
 import type { Vector } from "../types/geometry";
+import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
 import type { Spritesheet } from "../utils/sprites";
 import type { Entity } from "./Entity";
 
@@ -24,6 +25,7 @@ class Player implements Entity {
   position: Vector;
   velocity: Vector;
   rotation: number;
+  flags: AbilityFlag;
 
   username: string;
   score: number;
@@ -34,6 +36,7 @@ class Player implements Entity {
     this.position = data.position;
     this.velocity = data.velocity;
     this.rotation = data.rotation;
+    this.flags = data.flags;
 
     this.username = data.username;
     this.score = data.score;
@@ -52,6 +55,7 @@ class Player implements Entity {
     const playerEntityData = data as PlayerEntityData;
     if (playerEntityData) {
       this.score = playerEntityData.score;
+      this.flags = playerEntityData.flags;
     }
   };
 
@@ -75,6 +79,15 @@ class Player implements Entity {
     instance.rotate(this.rotation);
     instance.translate(-this.sprite.width / 2, -this.sprite.height / 2);
     instance.image(this.sprite, 0, 0);
+
+    if (isAbilityActive(this.flags, SHIELD_ABILITY_FLAG)) {
+      instance.push();
+      instance.stroke("#ffff0088");
+      instance.strokeWeight(4);
+      instance.noFill();
+      instance.circle(this.sprite.width / 2, this.sprite.height / 2, this.sprite.width * 1.2);
+      instance.pop();
+    }
 
     if (debug) {
       instance.push();

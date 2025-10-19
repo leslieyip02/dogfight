@@ -141,7 +141,17 @@ func (p *Player) PollNewEntities() []Entity {
 }
 
 func (p *Player) RemoveOnCollision(other Entity) bool {
-	return other.GetType() != PowerupEntityType
+	// return other.GetType() != PowerupEntityType
+	if other.GetType() == PowerupEntityType {
+		return false
+	}
+
+	if isAbilityActive(p.Flags, ShieldAbilityFlag) {
+		p.Flags ^= ShieldAbilityFlag
+		return false
+	}
+
+	return true
 }
 
 func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
