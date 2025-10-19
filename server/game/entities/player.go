@@ -29,8 +29,8 @@ type Player struct {
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
 	Score    int             `json:"score"`
+	Flags    AbilityFlag     `json:"flags"`
 
-	Powerup     *Powerup
 	boundingBox *geometry.BoundingBox
 
 	mouseX       float64
@@ -51,7 +51,7 @@ func NewPlayer(id string, username string) *Player {
 		Velocity:     velocity,
 		Rotation:     rotation,
 		Score:        0,
-		Powerup:      nil,
+		Flags:        0,
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
@@ -122,7 +122,7 @@ func (p *Player) PollNewEntities() []Entity {
 	p.mousePressed = false
 
 	shots := 1
-	if p.Powerup != nil && p.Powerup.Ability == MultishotPowerupAbility {
+	if isAbilityActive(p.Flags, MultishotAbilityFlag) {
 		shots = 3
 	}
 
@@ -143,7 +143,17 @@ func (p *Player) PollNewEntities() []Entity {
 }
 
 func (p *Player) RemoveOnCollision(other Entity) bool {
-	return other.GetType() != PowerupEntityType
+	// return other.GetType() != PowerupEntityType
+	if other.GetType() == PowerupEntityType {
+		return false
+	}
+
+	if isAbilityActive(p.Flags, ShieldAbilityFlag) {
+		p.Flags ^= ShieldAbilityFlag
+		return false
+	}
+
+	return true
 }
 
 func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
@@ -161,4 +171,8 @@ func normalizeAngle(angle float64) float64 {
 		angle += 2 * math.Pi
 	}
 	return angle
+}
+
+func (p *Player) ActivateAbility(ability AbilityFlag) {
+	p.Flags |= ability
 }

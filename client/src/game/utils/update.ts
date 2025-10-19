@@ -4,7 +4,7 @@ import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData } from "../types/entity";
+import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData, ProjectileEntityData } from "../types/entity";
 import type { DeltaEventData, SnapshotEventData } from "../types/event";
 import type { Spritesheet } from "./sprites";
 
@@ -67,7 +67,7 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
   }
 
   case "projectile":
-    entities[id] = new Projectile(data);
+    entities[id] = new Projectile(data as ProjectileEntityData);
     break;
 
   case "powerup":

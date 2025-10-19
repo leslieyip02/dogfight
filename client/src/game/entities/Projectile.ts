@@ -1,7 +1,8 @@
 import p5 from "p5";
 
-import type { EntityData } from "../types/entity";
+import type { EntityData, ProjectileEntityData } from "../types/entity";
 import type { Vector } from "../types/geometry";
+import { type AbilityFlag,isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../utils/abilities";
 import type { Entity } from "./Entity";
 
 const PROJECTILE_WIDTH = 20;
@@ -9,10 +10,12 @@ const PROJECTILE_WIDTH = 20;
 class Projectile implements Entity {
   position: Vector;
   rotation: number;
+  flags: AbilityFlag;
 
-  constructor(data: EntityData) {
+  constructor(data: ProjectileEntityData) {
     this.position = data.position;
     this.rotation = data.rotation;
+    this.flags = data.flags;
   }
 
   update = (data: EntityData) => {
@@ -33,11 +36,20 @@ class Projectile implements Entity {
 
     instance.push();
     instance.rotate(this.rotation);
-    instance.noStroke();
-    instance.fill("#ffffff");
-    instance.circle(-20, 0, 10);
-    instance.rect(-20, -5, 20, 10);
-    instance.circle(0, 0, 10);
+
+    if (isAbilityActive(this.flags, WIDE_BEAM_ABILITY_FLAG)) {
+      instance.noFill();
+      instance.stroke("#ffffff");
+      instance.strokeWeight(8);
+      instance.arc(-40, 0, 60, 80, 3 / 2 * Math.PI + 0.5, 1 / 2 * Math.PI - 0.5);
+    } else {
+      instance.noStroke();
+      instance.fill("#ffffff");
+      instance.circle(-20, 0, 10);
+      instance.rect(-20, -5, 20, 10);
+      instance.circle(0, 0, 10);
+    }
+
     instance.pop();
 
     if (debug) {

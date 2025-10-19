@@ -1,4 +1,4 @@
-import type { PowerupAbility } from "../entities/Powerup";
+import type { AbilityFlag } from "../utils/abilities";
 import type { Vector } from "./geometry";
 
 export type EntityType = "asteroid" | "player" | "projectile" | "powerup";
@@ -18,8 +18,13 @@ export type AsteroidEntityData = EntityData & {
 export type PlayerEntityData = EntityData & {
   username: string,
   score: number,
+  flags: AbilityFlag,
 };
 
 export type PowerupEntityData = EntityData & {
-  ability: PowerupAbility,
+  ability: AbilityFlag,
+};
+
+export type ProjectileEntityData = EntityData & {
+  flags: AbilityFlag,
 };
