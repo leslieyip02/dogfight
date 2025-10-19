@@ -9,7 +9,7 @@ function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] 
   const dx = mouseX - window.innerWidth / 2;
   const dy = mouseY - window.innerHeight / 2;
   const theta = Math.atan2(dy, dx);
-  const clamped = Math.max(Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS, 0.1);
+  const clamped = Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS;
   return [Math.cos(theta) * clamped, Math.sin(theta) * clamped];
 }
 

@@ -29,8 +29,8 @@ type Player struct {
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
 	Score    int             `json:"score"`
+	Flags    AbilityFlag     `json:"flags"`
 
-	Powerup     *Powerup
 	boundingBox *geometry.BoundingBox
 
 	mouseX       float64
@@ -51,7 +51,7 @@ func NewPlayer(id string, username string) *Player {
 		Velocity:     velocity,
 		Rotation:     rotation,
 		Score:        0,
-		Powerup:      nil,
+		Flags:        0,
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
@@ -94,14 +94,18 @@ func (p *Player) Update() bool {
 	difference := target.Unit().Sub(p.Velocity.Unit())
 
 	speed := p.Velocity.Length()
-	throttle := math.Max(target.Length(), 0.01)
-	turnRate := 1 / (1 + PLAYER_TURN_RATE_DECAY*speed)
-	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*speed)
-
+	throttle := math.Max(target.Length(), 0.1)
 	targetSpeed := throttle * PLAYER_MAX_SPEED
-	p.Velocity = *p.Velocity.
-		Add(difference.Multiply(turnRate * PLAYER_MAX_SPEED)).
-		Multiply(1 + (targetSpeed-speed)/targetSpeed*acceleration)
+	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*speed)
+	if p.Velocity.X == 0 && p.Velocity.Y == 0 {
+		// TODO: check if this is necessary
+		p.Velocity = *target
+	} else {
+		turnRate := 1 / (1 + PLAYER_TURN_RATE_DECAY*speed)
+		p.Velocity = *p.Velocity.
+			Add(difference.Multiply(turnRate * PLAYER_MAX_SPEED)).
+			Multiply(1 + (targetSpeed-speed)/targetSpeed*acceleration)
+	}
 	p.Rotation = p.Velocity.Angle()
 
 	p.Position.X += p.Velocity.X
@@ -116,7 +120,7 @@ func (p *Player) PollNewEntities() []Entity {
 	p.mousePressed = false
 
 	shots := 1
-	if p.Powerup != nil && p.Powerup.Ability == MultishotPowerupAbility {
+	if isAbilityActive(p.Flags, MultishotAbilityFlag) {
 		shots = 3
 	}
 
@@ -145,4 +149,8 @@ func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	p.mouseX = mouseX
 	p.mouseY = mouseY
 	p.mousePressed = p.mousePressed || mousePressed
+}
+
+func (p *Player) ActivateAbility(ability AbilityFlag) {
+	p.Flags |= ability
 }

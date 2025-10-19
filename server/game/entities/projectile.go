@@ -12,10 +12,17 @@ const (
 )
 
 var projectileBoundingBoxPoints = []*geometry.Vector{
-	geometry.NewVector(-10, -10),
-	geometry.NewVector(10, -10),
-	geometry.NewVector(10, 10),
-	geometry.NewVector(-10, 10),
+	geometry.NewVector(-5, -5),
+	geometry.NewVector(5, -5),
+	geometry.NewVector(5, 5),
+	geometry.NewVector(-5, 5),
+}
+
+var wideBeamProjectileBoundingBoxPoints = []*geometry.Vector{
+	geometry.NewVector(-10, -40),
+	geometry.NewVector(10, -40),
+	geometry.NewVector(10, 40),
+	geometry.NewVector(-10, 40),
 }
 
 type Projectile struct {
@@ -24,6 +31,7 @@ type Projectile struct {
 	Position geometry.Vector `json:"position"`
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
+	Flags    AbilityFlag     `json:"flags"`
 
 	shooter     *Player
 	lifetime    int
@@ -37,6 +45,8 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 	}
 
 	rotation := velocity.Angle()
+	flags := shooter.Flags
+	points := chooseBoundingBoxPoints(flags)
 
 	p := Projectile{
 		Type:     ProjectileEntityType,
@@ -44,14 +54,11 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 		Position: position,
 		Velocity: velocity,
 		Rotation: rotation,
+		Flags:    flags,
 		shooter:  shooter,
 		lifetime: PROJECTILE_LIFETIME,
 	}
-	p.boundingBox = geometry.NewBoundingBox(
-		&p.Position,
-		&p.Rotation,
-		&projectileBoundingBoxPoints,
-	)
+	p.boundingBox = geometry.NewBoundingBox(&p.Position, &p.Rotation, points)
 	return &p, nil
 }
 
@@ -102,4 +109,11 @@ func (p *Projectile) RemoveOnCollision(other Entity) bool {
 	default:
 		return true
 	}
+}
+
+func chooseBoundingBoxPoints(flags AbilityFlag) *[]*geometry.Vector {
+	if isAbilityActive(flags, WideBeamAbilityFlag) {
+		return &wideBeamProjectileBoundingBoxPoints
+	}
+	return &projectileBoundingBoxPoints
 }

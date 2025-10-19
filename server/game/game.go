@@ -227,12 +227,12 @@ func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
 	case typeA == entities.PlayerEntityType && typeB == entities.PowerupEntityType:
 		player := a.(*entities.Player)
 		powerup := b.(*entities.Powerup)
-		player.Powerup = powerup
+		player.ActivateAbility(powerup.Ability)
 
 	case typeA == entities.PowerupEntityType && typeB == entities.PlayerEntityType:
 		powerup := a.(*entities.Powerup)
 		player := b.(*entities.Player)
-		player.Powerup = powerup
+		player.ActivateAbility(powerup.Ability)
 	}
 }
 
@@ -253,7 +253,8 @@ func (g *Game) broadcast() {
 }
 
 func (g *Game) addPowerup() error {
-	powerup, err := entities.NewPowerup(entities.MultishotPowerupAbility)
+	ability := entities.NewRandomAbility()
+	powerup, err := entities.NewPowerup(ability)
 	if err != nil {
 		return err
 	}

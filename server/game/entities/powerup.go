@@ -5,16 +5,9 @@ import (
 	"server/utils"
 )
 
-type PowerupAbility string
-
 const (
 	MAX_POWERUP_COUNT      = 16
 	POWERUP_SPAWN_INTERVAL = 30 * FPS
-)
-
-// TODO: add more powerups (e.g. invincibilty)
-const (
-	MultishotPowerupAbility PowerupAbility = "multishot"
 )
 
 var powerupBoundingBoxPoints = []*geometry.Vector{
@@ -30,12 +23,12 @@ type Powerup struct {
 	Position geometry.Vector `json:"position"`
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
-	Ability  PowerupAbility  `json:"ability"`
+	Ability  AbilityFlag     `json:"ability"`
 
 	boundingBox *geometry.BoundingBox
 }
 
-func NewPowerup(ability PowerupAbility) (*Powerup, error) {
+func NewPowerup(ability AbilityFlag) (*Powerup, error) {
 	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
