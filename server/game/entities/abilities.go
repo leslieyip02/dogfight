@@ -1,6 +1,8 @@
 package entities
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type AbilityFlag int
 
@@ -14,6 +16,6 @@ func isAbilityActive(flags AbilityFlag, ability AbilityFlag) bool {
 	return (flags & ability) != 0
 }
 
-func NewRandomAbility() AbilityFlag {
+func newRandomAbility() AbilityFlag {
 	return AbilityFlag(1 << (1 + rand.Intn(3)))
 }

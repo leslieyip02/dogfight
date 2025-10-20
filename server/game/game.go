@@ -8,15 +8,19 @@ import (
 	"time"
 )
 
+const (
+	MAX_ENTITY_COUNT = 256
+)
+
 type Game struct {
 	Incoming chan []byte
 	Outgoing chan []byte
 	mu       sync.Mutex
 
 	// state
-	entities     map[string]entities.Entity
-	usernames    map[string]string
-	frameCounter int64
+	entities  map[string]entities.Entity
+	usernames map[string]string
+	spawner   entities.Spawner
 
 	// state delta
 	updated map[string]entities.Entity
@@ -24,26 +28,16 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	g := Game{
-		Incoming:     make(chan []byte),
-		Outgoing:     make(chan []byte),
-		mu:           sync.Mutex{},
-		entities:     make(map[string]entities.Entity),
-		usernames:    map[string]string{},
-		frameCounter: 0,
-		updated:      make(map[string]entities.Entity),
-		removed:      []string{},
+	return &Game{
+		Incoming:  make(chan []byte),
+		Outgoing:  make(chan []byte),
+		mu:        sync.Mutex{},
+		entities:  make(map[string]entities.Entity),
+		usernames: map[string]string{},
+		spawner:   entities.NewSpawner(),
+		updated:   make(map[string]entities.Entity),
+		removed:   []string{},
 	}
-
-	// TODO: refactor somehow?
-	for range 32 {
-		asteroid, err := entities.NewAsteroid()
-		if err != nil {
-			continue
-		}
-		g.entities[asteroid.GetID()] = asteroid
-	}
-	return &g
 }
 
 func (g *Game) AddPlayer(id string, username string) error {
@@ -107,6 +101,11 @@ func (g *Game) GetDelta() DeltaEventData {
 func (g *Game) Run(ctx context.Context) {
 	ticker := time.NewTicker(time.Second / entities.FPS)
 
+	for _, entity := range g.spawner.InitEntities() {
+		g.entities[entity.GetID()] = entity
+		g.updated[entity.GetID()] = entity
+	}
+
 	go func() {
 		defer ticker.Stop()
 
@@ -159,13 +158,6 @@ func (g *Game) input(data InputEventData) {
 func (g *Game) update() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
-	// TODO: move this
-	g.frameCounter++
-	if g.frameCounter%1800 == 0 {
-		g.addPowerup()
-		g.frameCounter = 0
-	}
 
 	g.updateEntities()
 	g.resolveCollisions()
@@ -227,7 +219,16 @@ func (g *Game) pollNewEntities() {
 	for _, entity := range g.entities {
 		for _, newEntity := range entity.PollNewEntities() {
 			g.entities[newEntity.GetID()] = newEntity
+			g.updated[newEntity.GetID()] = newEntity
 		}
+	}
+
+	if len(g.entities) > MAX_ENTITY_COUNT {
+		return
+	}
+	for _, newEntity := range g.spawner.PollNewEntities() {
+		g.entities[newEntity.GetID()] = newEntity
+		g.updated[newEntity.GetID()] = newEntity
 	}
 }
 
@@ -239,14 +240,25 @@ func (g *Game) broadcast() {
 	g.Outgoing <- message
 }
 
-func (g *Game) addPowerup() error {
-	ability := entities.NewRandomAbility()
-	powerup, err := entities.NewPowerup(ability)
-	if err != nil {
-		return err
-	}
+// func (g *Game) spawnPowerup() error {
+// 	ability := entities.NewRandomAbility()
+// 	powerup, err := entities.NewPowerup(ability)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	g.entities[powerup.ID] = powerup
-	g.updated[powerup.ID] = powerup
-	return nil
-}
+// 	g.entities[powerup.ID] = powerup
+// 	g.updated[powerup.ID] = powerup
+// 	return nil
+// }
+
+// func (g *Game) spawnAsteroid() error {
+// 	asteroid, err := entities.NewAsteroid()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	g.entities[asteroid.ID] = asteroid
+// 	g.updated[asteroid.ID] = asteroid
+// 	return nil
+// }

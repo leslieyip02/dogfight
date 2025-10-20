@@ -33,7 +33,7 @@ type Asteroid struct {
 	boundingBox *geometry.BoundingBox
 }
 
-func NewAsteroid() (*Asteroid, error) {
+func newRandomAsteroid() (*Asteroid, error) {
 	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err

@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	MAX_POWERUP_COUNT      = 16
-	POWERUP_SPAWN_INTERVAL = 30 * FPS
+	MAX_POWERUP_COUNT = 16
 )
 
 var powerupBoundingBoxPoints = []*geometry.Vector{
@@ -28,7 +27,7 @@ type Powerup struct {
 	boundingBox *geometry.BoundingBox
 }
 
-func NewPowerup(ability AbilityFlag) (*Powerup, error) {
+func newRandomPowerup() (*Powerup, error) {
 	id, err := utils.NewShortId()
 	if err != nil {
 		return nil, err
@@ -37,6 +36,7 @@ func NewPowerup(ability AbilityFlag) (*Powerup, error) {
 	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
 	velocity := *geometry.NewVector(0, 0)
 	rotation := 0.0
+	ability := newRandomAbility()
 
 	p := Powerup{
 		Type:     PowerupEntityType,
