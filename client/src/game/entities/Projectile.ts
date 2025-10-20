@@ -11,11 +11,13 @@ class Projectile implements Entity {
   position: Vector;
   rotation: number;
   flags: AbilityFlag;
+  lifetime: number;
 
   constructor(data: ProjectileEntityData) {
     this.position = data.position;
     this.rotation = data.rotation;
     this.flags = data.flags;
+    this.lifetime = data.lifetime;
   }
 
   update = (data: EntityData) => {
@@ -24,10 +26,16 @@ class Projectile implements Entity {
     }
     this.position = data.position;
     this.rotation = data.rotation;
+
+    const projectileEntityData = data as ProjectileEntityData;
+    if (projectileEntityData) {
+      this.lifetime = projectileEntityData.lifetime;
+    }
   };
 
-  removalAnimationName = () => {
-    return "smallExplosion";
+  removalAnimationName = (): string => {
+    // only explode on hit
+    return this.lifetime > 1 ? "explosionSmall" : "";
   };
 
   draw = (instance: p5, debug?: boolean) => {

@@ -32,9 +32,9 @@ type Projectile struct {
 	Velocity geometry.Vector `json:"velocity"`
 	Rotation float64         `json:"rotation"`
 	Flags    AbilityFlag     `json:"flags"`
+	Lifetime int             `json:"lifetime"`
 
 	shooter     *Player
-	lifetime    int
 	boundingBox *geometry.BoundingBox
 }
 
@@ -55,8 +55,8 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 		Velocity: velocity,
 		Rotation: rotation,
 		Flags:    flags,
+		Lifetime: PROJECTILE_LIFETIME,
 		shooter:  shooter,
-		lifetime: PROJECTILE_LIFETIME,
 	}
 	p.boundingBox = geometry.NewBoundingBox(&p.Position, &p.Rotation, points)
 	return &p, nil
@@ -79,7 +79,7 @@ func (p *Projectile) GetVelocity() geometry.Vector {
 }
 
 func (p *Projectile) GetIsExpired() bool {
-	return p.lifetime <= 0
+	return p.Lifetime < 0
 }
 
 func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
@@ -89,13 +89,15 @@ func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
 func (p *Projectile) Update() bool {
 	p.Position.X += p.Velocity.X
 	p.Position.Y += p.Velocity.Y
-	p.lifetime--
+	p.Lifetime--
 	return true
 }
 
 func (p *Projectile) PollNewEntities() []Entity {
 	return nil
 }
+
+func (p *Projectile) UpdateOnCollision(other Entity) {}
 
 func (p *Projectile) RemoveOnCollision(other Entity) bool {
 	switch other.GetType() {

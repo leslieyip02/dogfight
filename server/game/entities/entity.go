@@ -25,6 +25,7 @@ type Entity interface {
 
 	Update() bool
 	PollNewEntities() []Entity
+	UpdateOnCollision(other Entity)
 	RemoveOnCollision(other Entity) bool
 }
 

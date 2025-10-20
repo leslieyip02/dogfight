@@ -2,6 +2,7 @@ import type p5 from "p5";
 
 import { sendMessage } from "../../api/game";
 import type { InputEventData, RespawnEventData } from "../types/event";
+import { SOUNDS } from "./sounds";
 
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
@@ -32,6 +33,7 @@ class Input {
 
   handleMousePress = () => {
     this.mousePressed = true;
+    SOUNDS["shoot"].play();
   };
 
   handleInput = (instance: p5) => {
@@ -42,6 +44,7 @@ class Input {
       mouseY: this.mouseY,
       mousePressed: this.mousePressed,
     };
+
     sendMessage(this.socket, "input", data);
     this.mousePressed = false;
   };
@@ -54,7 +57,9 @@ class Input {
     const data: RespawnEventData = {
       id: this.clientId,
     };
+
     sendMessage(this.socket, "respawn", data);
+
     this.mousePressed = false;
   };
 }

@@ -3,6 +3,7 @@ import type p5 from "p5";
 import type { EntityData, PlayerEntityData } from "../types/entity";
 import type { Vector } from "../types/geometry";
 import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
+import { SOUNDS } from "../utils/sounds";
 import type { Spritesheet } from "../utils/sprites";
 import type { Entity } from "./Entity";
 
@@ -54,13 +55,20 @@ class Player implements Entity {
 
     const playerEntityData = data as PlayerEntityData;
     if (playerEntityData) {
-      this.score = playerEntityData.score;
-      this.flags = playerEntityData.flags;
+      if (this.score < playerEntityData.score) {
+        this.score = playerEntityData.score;
+        SOUNDS["score"].play();
+      }
+
+      if (this.flags != playerEntityData.flags) {
+        this.flags = playerEntityData.flags;
+        SOUNDS["pickup"].play();
+      }
     }
   };
 
   removalAnimationName = () => {
-    return "smallExplosion";
+    return "explosionBig";
   };
 
   draw = (instance: p5, debug?: boolean) => {

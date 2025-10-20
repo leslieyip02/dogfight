@@ -142,8 +142,14 @@ func (p *Player) PollNewEntities() []Entity {
 	return projectiles
 }
 
+func (p *Player) UpdateOnCollision(other Entity) {
+	if other.GetType() == PowerupEntityType {
+		powerup := other.(*Powerup)
+		p.Flags |= powerup.Ability
+	}
+}
+
 func (p *Player) RemoveOnCollision(other Entity) bool {
-	// return other.GetType() != PowerupEntityType
 	if other.GetType() == PowerupEntityType {
 		return false
 	}
@@ -171,8 +177,4 @@ func normalizeAngle(angle float64) float64 {
 		angle += 2 * math.Pi
 	}
 	return angle
-}
-
-func (p *Player) ActivateAbility(ability AbilityFlag) {
-	p.Flags |= ability
 }

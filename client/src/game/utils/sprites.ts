@@ -21,15 +21,15 @@ const SPRITESHEET_CONFIGS = {
     width: 96,
     height: 96,
   },
-  smallExplosion: {
-    path: "explosion-small.png",
-    width: 96,
-    height: 96,
-  },
-  bigExplosion: {
+  explosionBig: {
     path: "explosion-big.png",
     width: 192,
     height: 192,
+  },
+  explosionSmall: {
+    path: "explosion-small.png",
+    width: 96,
+    height: 96,
   },
 };
 

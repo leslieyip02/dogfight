@@ -25,7 +25,7 @@ class Asteroid implements Entity {
   };
 
   removalAnimationName = () => {
-    return "bigExplosion";
+    return "explosionBig";
   };
 
   draw = (instance: p5, debug?: boolean) => {

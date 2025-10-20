@@ -27,4 +27,5 @@ export type PowerupEntityData = EntityData & {
 
 export type ProjectileEntityData = EntityData & {
   flags: AbilityFlag,
+  lifetime: number,
 };

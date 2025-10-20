@@ -107,6 +107,8 @@ func (a *Asteroid) PollNewEntities() []Entity {
 	return nil
 }
 
+func (a *Asteroid) UpdateOnCollision(other Entity) {}
+
 func (a *Asteroid) RemoveOnCollision(other Entity) bool {
 	switch other.GetType() {
 	case ProjectileEntityType:

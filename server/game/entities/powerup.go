@@ -86,6 +86,8 @@ func (p *Powerup) PollNewEntities() []Entity {
 	return nil
 }
 
+func (p *Powerup) UpdateOnCollision(other Entity) {}
+
 func (p *Powerup) RemoveOnCollision(other Entity) bool {
 	return other.GetType() == PlayerEntityType
 }

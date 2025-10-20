@@ -6,6 +6,7 @@ import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
 import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData, ProjectileEntityData } from "../types/entity";
 import type { DeltaEventData, SnapshotEventData } from "../types/event";
+import { SOUNDS } from "./sounds";
 import type { Spritesheet } from "./sprites";
 
 export function syncEntities(snapshot: SnapshotEventData | null, entities: EntityMap) {
@@ -87,6 +88,10 @@ export function addAnimations(
       const animationName = entities[id]?.removalAnimationName();
       if (!animationName || !(animationName in spritesheet)) {
         return;
+      }
+
+      if (animationName in SOUNDS) {
+        SOUNDS[animationName].play();
       }
 
       const animationId = `${id}-animation`;
