@@ -10,9 +10,10 @@ export type JoinResponse = {
     token: string;
 }
 
-export async function joinRoom(username: string): Promise<JoinResponse> {
+export async function joinRoom(username: string, roomId: string): Promise<JoinResponse> {
   const body: JoinRequest = {
-    "username": username,
+    username,
+    ...(roomId === "" ? {} : { roomId: roomId }),
   };
   const payload = {
     method: "POST",

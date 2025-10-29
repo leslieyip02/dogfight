@@ -15,7 +15,7 @@ body,
   justify-content: center;
 }
 
-#root > form {
+#root>form {
   margin: auto;
   padding: 2rem;
   width: fit-content;
@@ -33,17 +33,19 @@ body,
   text-align: center;
 }
 
-.form__username {
+.form__field {
   display: flex;
   flex-direction: row;
   gap: 0.2rem;
 }
 
-.form__username > label {
-  margin: auto;
+.form__field>label {
+  width: 6rem;
+  margin: auto 0;
 }
 
-.form__username > input {
+.form__field>input {
+  width: 12rem;
   padding: 0.3rem;
   background-color: transparent;
   color: #ffffff;
