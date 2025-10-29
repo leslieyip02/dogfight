@@ -33,6 +33,8 @@ const SPRITESHEET_CONFIGS = {
   },
 };
 
+const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie", "delta"];
+
 export type CanvasConfig = {
   x: number;
   y: number;
@@ -60,4 +62,9 @@ export async function loadSpritesheet(instance: p5): Promise<Spritesheet> {
     });
   return Promise.all(loadingPromises)
     .then(entries => Object.fromEntries(entries));
+}
+
+export function chooseSpriteName(username: string): string {
+  const asciiSum = [...username].reduce((a, b) => a + b.charCodeAt(0), 0);
+  return PLAYER_SPRITE_NAMES[asciiSum % PLAYER_SPRITE_NAMES.length];
 }

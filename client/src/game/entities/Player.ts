@@ -4,21 +4,13 @@ import type { EntityData, PlayerEntityData } from "../types/entity";
 import type { Vector } from "../types/geometry";
 import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
 import { SOUNDS } from "../utils/sounds";
-import type { Spritesheet } from "../utils/sprites";
+import { chooseSpriteName, type Spritesheet } from "../utils/sprites";
 import type { Entity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
 
 const PLAYER_WIDTH = 96;
 const PLAYER_MAX_TRAIL_POINTS = 24;
-
-const PLAYER_SPRITE_NAMES = ["alpha", "bravo", "charlie", "delta"];
-
-function chooseSprite(username: string): p5.Image {
-  // TODO: consider replacing this with a normal field?
-  const asciiSum = [...username].reduce((a, b) => a + b.charCodeAt(0), 0);
-  return Player.spritesheet[PLAYER_SPRITE_NAMES[asciiSum % PLAYER_SPRITE_NAMES.length]][0];
-}
 
 class Player implements Entity {
   static spritesheet: Spritesheet;
@@ -41,7 +33,8 @@ class Player implements Entity {
 
     this.username = data.username;
     this.score = data.score;
-    this.sprite = chooseSprite(data.username);
+    const spriteName = chooseSpriteName(data.username);
+    this.sprite = Player.spritesheet[spriteName][0];
     this.previousPositions = [];
   }
 

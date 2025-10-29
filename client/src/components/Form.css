@@ -5,14 +5,28 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
   border: 0.2rem solid #ffffff;
   border-radius: 1rem;
 }
 
 .form__header {
   width: 100%;
+  height: 4rem;
   margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.form__sprite-preview {
+  width: 3rem;
+  height: 3rem;
+}
+
+.form__header>span {
+  font-size: 2rem;
   text-align: center;
 }
 
@@ -25,6 +39,7 @@
 .form__field>label {
   width: 6rem;
   margin: auto 0;
+  font-size: 1rem;
 }
 
 .form__field>input {
@@ -33,13 +48,15 @@
   background-color: transparent;
   color: #ffffff;
   font-family: 'Courier New', Courier, monospace;
-  border: 0.1rem solid #ffffffaa;
+  border: 0.1rem solid #dddddd88;
   border-radius: 0.2rem;
 }
 
 .form__submit {
-  padding: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
   font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
   background-color: #555555;
   color: #ffffff;
   border: 0.1rem solid #ffffffaa;
@@ -52,4 +69,5 @@
   color: #111111;
   border: 0.1rem solid #ffffffaa;
   border-radius: 0.2rem;
+  font-weight: bold;
 }
