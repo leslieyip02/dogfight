@@ -19,17 +19,10 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var room *Room
-	if request.RoomId != nil {
-		room = m.getRoom(*request.RoomId)
-	} else {
-		// TODO: this is kinda dumb
-		room2, err := m.getVacantRoom()
-		if err != nil {
-			http.Error(w, "unable to assign room", http.StatusInternalServerError)
-			return
-		}
-		room = room2
+	room, err := m.getRoom(request.RoomId)
+	if err != nil {
+		http.Error(w, "unable to assign room", http.StatusInternalServerError)
+		return
 	}
 
 	clientId, err := utils.NewShortId()
@@ -87,7 +80,11 @@ func (m *Manager) HandleSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room := m.getRoom(claims.roomId)
+	room, err := m.getRoom(&claims.roomId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
 	body := room.game.GetSnapshot()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)

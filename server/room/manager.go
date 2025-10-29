@@ -1,6 +1,7 @@
 package room
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -20,16 +21,21 @@ func NewManager(session *Session) *Manager {
 	}
 }
 
-func (m *Manager) getRoom(roomId string) *Room {
+func (m *Manager) getRoom(roomId *string) (*Room, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.rooms[roomId]
+
+	if roomId != nil {
+		room, found := m.rooms[*roomId]
+		if !found {
+			return nil, fmt.Errorf("room %v not found", roomId)
+		}
+		return room, nil
+	}
+	return m.getVacantRoom()
 }
 
 func (m *Manager) getVacantRoom() (*Room, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	for _, room := range m.rooms {
 		if room.hasCapacity() {
 			return room, nil
