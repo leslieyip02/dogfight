@@ -33,7 +33,6 @@ class Input {
 
   handleMousePress = () => {
     this.mousePressed = true;
-    SOUNDS["shoot"].play();
   };
 
   handleInput = (instance: p5) => {
@@ -44,8 +43,11 @@ class Input {
       mouseY: this.mouseY,
       mousePressed: this.mousePressed,
     };
-
     sendMessage(this.socket, "input", data);
+
+    if (this.mousePressed) {
+      SOUNDS["shoot"].play();
+    }
     this.mousePressed = false;
   };
 
@@ -57,7 +59,6 @@ class Input {
     const data: RespawnEventData = {
       id: this.clientId,
     };
-
     sendMessage(this.socket, "respawn", data);
 
     this.mousePressed = false;
