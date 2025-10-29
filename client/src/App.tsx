@@ -1,12 +1,13 @@
 import "./App.css";
 
 import { useState } from "react";
+import { generateUsername } from "unique-username-generator";
 
 import { joinRoom } from "./api/room";
 import Game from "./components/Game";
 
 const App = () => {
-  const [username, setUsername] = useState<string>("testificate");
+  const [username, setUsername] = useState<string>(generateUsername("-"));
   const [clientId, setClientId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
