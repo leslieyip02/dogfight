@@ -1,7 +1,6 @@
 package room
 
 import (
-	"server/game"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -15,25 +14,18 @@ type Client struct {
 	mu       sync.Mutex
 }
 
-func NewClient(id string, username string) *Client {
+func NewClient(id string, username string, conn *websocket.Conn) *Client {
 	return &Client{
 		id:       id,
 		username: username,
 		send:     make(chan []byte),
 		mu:       sync.Mutex{},
+		conn:     conn,
 	}
 }
 
 func (c *Client) readPump(incoming chan<- []byte) {
-	defer func() {
-		message, err := game.CreateMessage(game.QuitEventType, game.QuitEventData{
-			ID: c.id,
-		})
-		if err == nil {
-			incoming <- message
-		}
-		c.conn.Close()
-	}()
+	defer c.conn.Close()
 
 	for {
 		_, message, err := c.conn.ReadMessage()
@@ -46,6 +38,7 @@ func (c *Client) readPump(incoming chan<- []byte) {
 
 func (c *Client) writePump() {
 	defer c.conn.Close()
+
 	for data := range c.send {
 		err := c.writeMessage(data)
 		if err != nil {
@@ -57,5 +50,6 @@ func (c *Client) writePump() {
 func (c *Client) writeMessage(data []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	return c.conn.WriteMessage(websocket.TextMessage, data)
 }

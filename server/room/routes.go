@@ -56,62 +56,38 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 
 func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	claims, err := m.session.validateToken(token)
+	claims, err := m.session.parseToken(token)
 	if err != nil {
-		http.Error(w, "unable to validate JWT", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	roomId, found := claims["roomId"].(string)
-	if !found {
-		http.Error(w, "missing room ID", http.StatusBadRequest)
-		return
-	}
-
-	room, found := m.rooms[roomId]
+	room, found := m.rooms[claims.roomId]
 	if !found {
 		http.Error(w, "no such room", http.StatusNotFound)
 		return
 	}
 
-	clientId, found := claims["clientId"].(string)
-	if !found {
-		http.Error(w, "missing client ID", http.StatusBadRequest)
-		return
-	}
-
-	username, found := claims["username"].(string)
-	if !found {
-		username = "testificate"
-	}
-
-	client := NewClient(clientId, username)
-	room.Add(client)
-
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := m.session.createConn(&w, r, claims.clientId, room)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("unable to create connection %v", err), http.StatusInternalServerError)
 		return
 	}
+	client := NewClient(claims.clientId, claims.username, conn)
 
-	client.conn = conn
+	room.Add(client)
 	room.connect(client)
 }
 
 func (m *Manager) HandleSnapshot(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	claims, err := m.session.validateToken(token)
+	claims, err := m.session.parseToken(token)
 	if err != nil {
 		http.Error(w, "unable to validate JWT", http.StatusUnauthorized)
 		return
 	}
 
-	roomId, found := claims["roomId"].(string)
-	if !found {
-		http.Error(w, "missing room ID", http.StatusBadRequest)
-		return
-	}
-	room := m.getRoom(roomId)
+	room := m.getRoom(claims.roomId)
 	body := room.game.GetSnapshot()
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)

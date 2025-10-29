@@ -54,6 +54,7 @@ func (r *Room) Remove(clientId string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	r.game.RemovePlayer(clientId)
 	delete(r.clients, clientId)
 }
 
@@ -93,5 +94,8 @@ func (r *Room) broadcast() {
 }
 
 func (r *Room) hasCapacity() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	return len(r.clients) < ROOM_CAPACITY
 }

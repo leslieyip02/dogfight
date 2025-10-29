@@ -2,17 +2,32 @@ package room
 
 import (
 	"fmt"
+	"net/http"
+	"server/game"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/gorilla/websocket"
 )
 
 type Session struct {
-	secret []byte
+	secret   []byte
+	upgrader websocket.Upgrader
+}
+
+type SessionClaims struct {
+	roomId   string
+	clientId string
+	username string
 }
 
 func NewSession(secret []byte) *Session {
 	return &Session{
 		secret: secret,
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 }
 
@@ -26,7 +41,7 @@ func (s *Session) createToken(roomId string, clientId string, username string) (
 	return token.SignedString(s.secret)
 }
 
-func (s *Session) validateToken(tokenString string) (map[string]any, error) {
+func (s *Session) parseToken(tokenString string) (*SessionClaims, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
@@ -41,9 +56,49 @@ func (s *Session) validateToken(tokenString string) (map[string]any, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, fmt.Errorf("invalid claims")
+	return s.parseClaims(token.Claims.(jwt.MapClaims))
+}
+
+func (s *Session) parseClaims(claims jwt.MapClaims) (*SessionClaims, error) {
+	roomId, found := claims["roomId"].(string)
+	if !found {
+		return nil, fmt.Errorf("missing room ID")
 	}
-	return claims, nil
+
+	clientId, found := claims["clientId"].(string)
+	if !found {
+		return nil, fmt.Errorf("missing client ID")
+	}
+
+	username, found := claims["username"].(string)
+	if !found {
+		username = "testificate"
+	}
+
+	return &SessionClaims{
+		roomId:   roomId,
+		clientId: clientId,
+		username: username,
+	}, nil
+}
+
+func (s *Session) createConn(w *http.ResponseWriter, r *http.Request, clientId string, room *Room) (*websocket.Conn, error) {
+	conn, err := s.upgrader.Upgrade(*w, r, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create connection")
+	}
+
+	conn.SetCloseHandler(func(code int, text string) error {
+		message, err := game.CreateMessage(game.QuitEventType, game.QuitEventData{
+			ID: clientId,
+		})
+		if err != nil {
+			return err
+		}
+
+		room.Remove(clientId)
+		return conn.WriteMessage(websocket.TextMessage, message)
+	})
+
+	return conn, nil
 }

@@ -58,7 +58,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 	return nil
 }
 
-func (g *Game) remove(id string) {
+func (g *Game) RemovePlayer(id string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -124,11 +124,6 @@ func (g *Game) Run(ctx context.Context) {
 				json.Unmarshal(message, &event)
 
 				switch event.Type {
-				case QuitEventType:
-					var data QuitEventData
-					json.Unmarshal(event.Data, &data)
-					g.remove(data.ID)
-
 				case RespawnEventType:
 					var data RespawnEventData
 					json.Unmarshal(event.Data, &data)
@@ -239,26 +234,3 @@ func (g *Game) broadcast() {
 	}
 	g.Outgoing <- message
 }
-
-// func (g *Game) spawnPowerup() error {
-// 	ability := entities.NewRandomAbility()
-// 	powerup, err := entities.NewPowerup(ability)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	g.entities[powerup.ID] = powerup
-// 	g.updated[powerup.ID] = powerup
-// 	return nil
-// }
-
-// func (g *Game) spawnAsteroid() error {
-// 	asteroid, err := entities.NewAsteroid()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	g.entities[asteroid.ID] = asteroid
-// 	g.updated[asteroid.ID] = asteroid
-// 	return nil
-// }
