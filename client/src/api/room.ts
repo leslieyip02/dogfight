@@ -21,7 +21,13 @@ export async function joinRoom(username: string, roomId: string): Promise<JoinRe
   };
 
   return await fetch(`${API_URL}/room/join`, payload)
-    .then(response => response.json())
+    .then(async response => {
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "unknown error");
+      }
+      return response.json();
+    })
     .then(response => {
       localStorage.setItem("jwt", response.token);
       return response;
