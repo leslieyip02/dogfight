@@ -70,6 +70,38 @@ func TestDidCollideWithMovement(t *testing.T) {
 	}
 }
 
+func TestHorizontalBounds(t *testing.T) {
+	tests := []struct {
+		b    *BoundingBox
+		want struct {
+			min float64
+			max float64
+		}
+	}{
+		{
+			b1, struct {
+				min float64
+				max float64
+			}{-1, 1},
+		},
+		{
+			b2, struct {
+				min float64
+				max float64
+			}{1 - math.Sqrt2, 1 + math.Sqrt2},
+		},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v horizontal bounds", test.b), func(t *testing.T) {
+			gotMin, gotMax := test.b.HorizontalBounds()
+			if math.Abs(gotMin-test.want.min) > epsilon ||
+				math.Abs(gotMax-test.want.max) > epsilon {
+				t.Errorf("want %v but got (%v, %v)", test.want, gotMin, gotMax)
+			}
+		})
+	}
+}
+
 func TestNormals(t *testing.T) {
 	tests := []struct {
 		b    *BoundingBox

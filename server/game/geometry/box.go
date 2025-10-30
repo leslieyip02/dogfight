@@ -29,6 +29,7 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	p := make(map[float64]bool)
 	for _, normal := range b1.normals() {
 		r := normal.Rotate(*b1.rotation)
+
 		// take gradients to deduplicate parallel lines
 		m := r.gradient()
 		p[m] = true
@@ -56,6 +57,17 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	}
 
 	return true
+}
+
+func (b *BoundingBox) HorizontalBounds() (float64, float64) {
+	min := math.Inf(1)
+	max := math.Inf(-1)
+	for _, point := range *b.points {
+		w := b.convertToWorldSpace(point)
+		min = math.Min(w.X, min)
+		max = math.Max(w.X, max)
+	}
+	return min, max
 }
 
 func (b *BoundingBox) normals() []*Vector {
