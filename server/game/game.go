@@ -181,7 +181,7 @@ func (g *Game) updateEntities() {
 }
 
 func (g *Game) resolveCollisions() {
-	collision.ResolveCollisions(&g.entities, g.handleCollision)
+	collision.ResolveCollisionsLineSweep(&g.entities, g.handleCollision)
 }
 
 func (g *Game) handleCollision(id1 *string, id2 *string) {

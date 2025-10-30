@@ -1,6 +1,8 @@
 package collision
 
 import (
+	"math"
+	"math/rand/v2"
 	"server/game/entities"
 	"server/game/geometry"
 )
@@ -48,3 +50,18 @@ func (e *MockEntity) UpdateOnCollision(other entities.Entity) {}
 func (e *MockEntity) RemoveOnCollision(other entities.Entity) bool {
 	return false
 }
+
+func newRandomMockEntity(id string) *MockEntity {
+	position := *geometry.NewRandomVector(-100, 100, -100, 100)
+	rotation := rand.Float64() * math.Pi * 2
+	points := geometry.NewRandomConvexHull(8, 16, 8, 32)
+	boundingBox := geometry.NewBoundingBox(&position, &rotation, &points)
+
+	return &MockEntity{
+		id:          id,
+		position:    position,
+		boundingBox: boundingBox,
+	}
+}
+
+func mockCollisionHandler(id1 *string, id2 *string) {}

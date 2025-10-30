@@ -14,7 +14,7 @@ type Edge struct {
 
 type CollisionHandler func(id1 *string, id2 *string)
 
-func ResolveCollisions(
+func ResolveCollisionsLineSweep(
 	entities *map[string]entities.Entity,
 	handleCollision CollisionHandler,
 ) {
@@ -39,6 +39,29 @@ func ResolveCollisions(
 			window[edge.id] = true
 		} else {
 			delete(window, edge.id)
+		}
+	}
+}
+
+func resolveCollisionsNaive(
+	entities *map[string]entities.Entity,
+	handleCollision CollisionHandler,
+) {
+	for id1 := range *entities {
+		e1 := (*entities)[id1]
+		for id2 := range *entities {
+			if id1 == id2 {
+				continue
+			}
+
+			e2 := (*entities)[id2]
+
+			b1 := e1.GetBoundingBox()
+			b2 := e2.GetBoundingBox()
+			if !b1.DidCollide(b2) {
+				continue
+			}
+			handleCollision(&id1, &id2)
 		}
 	}
 }

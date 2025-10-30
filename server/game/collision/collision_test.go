@@ -41,7 +41,17 @@ var r5 = 0.0
 var b5 = geometry.NewBoundingBox(p5, &r5, &square)
 var id5 = "5"
 
-func TestResolveCollisions(t *testing.T) {
+var benchmarkEntities map[string]entities.Entity
+
+func init() {
+	benchmarkEntities = make(map[string]entities.Entity)
+	for i := range 512 {
+		id := fmt.Sprintf("%d", i)
+		benchmarkEntities[id] = newRandomMockEntity(id)
+	}
+}
+
+func TestResolveCollisionsLineSweep(t *testing.T) {
 	tests := []struct {
 		entities map[string]entities.Entity
 		want     map[string][]string
@@ -83,7 +93,7 @@ func TestResolveCollisions(t *testing.T) {
 			got[*id2] = append(got[*id2], *id1)
 		}
 
-		ResolveCollisions(&test.entities, handleCollision)
+		ResolveCollisionsLineSweep(&test.entities, handleCollision)
 		if len(got) != len(test.want) {
 			t.Errorf("want %v but got %v", test.want, got)
 		}
@@ -168,5 +178,17 @@ func TestGetSortedEdges(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func BenchmarkResolveCollisionsLineSweep(b *testing.B) {
+	for b.Loop() {
+		ResolveCollisionsLineSweep(&benchmarkEntities, mockCollisionHandler)
+	}
+}
+
+func BenchmarkResolveCollisionsNaive(b *testing.B) {
+	for b.Loop() {
+		resolveCollisionsNaive(&benchmarkEntities, mockCollisionHandler)
 	}
 }
