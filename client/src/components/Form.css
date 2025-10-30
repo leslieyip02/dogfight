@@ -18,6 +18,11 @@
   justify-content: center;
   align-items: center;
   gap: 1rem;
+
+  &>span {
+    font-size: 2rem;
+    text-align: center;
+  }
 }
 
 .form__sprite-preview {
@@ -25,31 +30,62 @@
   height: 3rem;
 }
 
-.form__header>span {
-  font-size: 2rem;
-  text-align: center;
-}
-
 .form__field {
   display: flex;
   flex-direction: row;
   gap: 0.2rem;
+
+  &>label {
+    width: 6rem;
+    margin: auto 0;
+    font-size: 1rem;
+  }
 }
 
-.form__field>label {
-  width: 6rem;
-  margin: auto 0;
-  font-size: 1rem;
-}
-
-.form__field>input {
+.form__field-wrapper {
   width: 12rem;
   padding: 0.3rem;
-  background-color: transparent;
-  color: #ffffff;
-  font-family: 'Courier New', Courier, monospace;
+  box-sizing: border-box;
   border: 0.1rem solid #dddddd88;
   border-radius: 0.2rem;
+  display: flex;
+  justify-content: space-between;
+
+  &:focus-within {
+    border-color: #ffffff;
+  }
+
+  &>input {
+    width: 100%;
+    color: #ffffff;
+    background-color: transparent;
+    font-family: 'Courier New', Courier, monospace;
+    border: none;
+    outline: none;
+  }
+
+  &>button {
+    color: #ffffff;
+    background-color: transparent;
+    font-family: 'Courier New', Courier, monospace;
+    border: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+
+    &:focus {
+      outline: 0.1rem solid #ffffff88;
+      border-radius: 2px;
+    }
+
+    &:hover {
+      outline: 0.1rem solid #ffffff88;
+      border-radius: 2px;
+    }
+  }
 }
 
 .form__submit {
@@ -59,15 +95,19 @@
   font-size: 1rem;
   background-color: #555555;
   color: #ffffff;
-  border: 0.1rem solid #ffffffaa;
+  border: 0.1rem solid #ffffff88;
   border-radius: 0.2rem;
   transition: all ease-in-out;
-}
 
-.form__submit:hover {
-  background-color: #ffffff;
-  color: #111111;
-  border: 0.1rem solid #ffffffaa;
-  border-radius: 0.2rem;
-  font-weight: bold;
+  &:focus {
+    outline: 0.1rem solid #ffffff;
+  }
+
+  &:hover {
+    color: #111111;
+    background-color: #ffffff;
+    border: 0.1rem solid #ffffffaa;
+    border-radius: 0.2rem;
+    font-weight: bold;
+  }
 }
