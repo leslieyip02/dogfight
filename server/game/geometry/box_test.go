@@ -94,8 +94,8 @@ func TestHorizontalBounds(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v horizontal bounds", test.b), func(t *testing.T) {
 			gotMin, gotMax := test.b.HorizontalBounds()
-			if math.Abs(gotMin-test.want.min) > epsilon ||
-				math.Abs(gotMax-test.want.max) > epsilon {
+			if math.Abs(gotMin-test.want.min) > EPSILON ||
+				math.Abs(gotMax-test.want.max) > EPSILON {
 				t.Errorf("want %v but got (%v, %v)", test.want, gotMin, gotMax)
 			}
 		})
@@ -131,8 +131,8 @@ func TestNormals(t *testing.T) {
 				}
 			})
 			for i, want := range test.want {
-				if math.Abs(got[i].X-want.X) > epsilon ||
-					math.Abs(got[i].Y-want.Y) > epsilon {
+				if math.Abs(got[i].X-want.X) > EPSILON ||
+					math.Abs(got[i].Y-want.Y) > EPSILON {
 					t.Errorf("want %v but got %v", want, got[i])
 				}
 			}
@@ -154,8 +154,8 @@ func TestConvertToWorldSpace(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v wordlify %v", test.b, test.v), func(t *testing.T) {
 			got := test.b.convertToWorldSpace(&test.v)
-			if math.Abs(got.X-test.want.X) > epsilon ||
-				math.Abs(got.Y-test.want.Y) > epsilon {
+			if math.Abs(got.X-test.want.X) > EPSILON ||
+				math.Abs(got.Y-test.want.Y) > EPSILON {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
@@ -176,8 +176,8 @@ func TestProjectionRange(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v projectionRange on %v", test.b, test.v), func(t *testing.T) {
 			gotMin, gotMax := test.b.projectionRange(&test.v)
-			if math.Abs(gotMin-test.wantMin) > epsilon ||
-				math.Abs(gotMax-test.wantMax) > epsilon {
+			if math.Abs(gotMin-test.wantMin) > EPSILON ||
+				math.Abs(gotMax-test.wantMax) > EPSILON {
 				t.Errorf("want (%f, %f) but got (%f, %f)", test.wantMin, test.wantMax, gotMin, gotMax)
 			}
 		})

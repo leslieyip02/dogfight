@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-const epsilon = 1e-5
+const EPSILON = 1e-5
 
 type Vector struct {
 	X float64 `json:"x"`
@@ -87,5 +87,5 @@ func (u *Vector) gradient() float64 {
 func (u *Vector) isParallel(v *Vector) bool {
 	a := u.Angle()
 	b := v.Angle()
-	return math.Abs(math.Mod(a-b, math.Pi)) < epsilon
+	return math.Abs(math.Mod(a-b, math.Pi)) < EPSILON
 }

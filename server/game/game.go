@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"encoding/json"
+	"server/game/collision"
 	"server/game/entities"
 	"sync"
 	"time"
@@ -180,33 +181,24 @@ func (g *Game) updateEntities() {
 }
 
 func (g *Game) resolveCollisions() {
-	// TODO: use line sweep to lower time complexity to O(n log(n))
-	for i, entityA := range g.entities {
-		for j, entityB := range g.entities {
-			if i >= j {
-				continue
-			}
-
-			if g.checkCollision(entityA, entityB) {
-				g.handleCollision(entityA, entityB)
-			}
-		}
-	}
+	collision.ResolveCollisions(&g.entities, g.handleCollision)
 }
 
-func (g *Game) checkCollision(a entities.Entity, b entities.Entity) bool {
-	return a.GetBoundingBox().DidCollide(b.GetBoundingBox())
-}
-
-func (g *Game) handleCollision(a entities.Entity, b entities.Entity) {
-	a.UpdateOnCollision(b)
-	b.UpdateOnCollision(a)
-
-	if a.RemoveOnCollision(b) {
-		g.removed = append(g.removed, a.GetID())
+func (g *Game) handleCollision(id1 *string, id2 *string) {
+	if id1 == id2 {
+		return
 	}
-	if b.RemoveOnCollision(a) {
-		g.removed = append(g.removed, b.GetID())
+
+	e1 := g.entities[*id1]
+	e2 := g.entities[*id2]
+	e1.UpdateOnCollision(e2)
+	e2.UpdateOnCollision(e1)
+
+	if e1.RemoveOnCollision(e2) {
+		g.removed = append(g.removed, e1.GetID())
+	}
+	if e2.RemoveOnCollision(e1) {
+		g.removed = append(g.removed, e2.GetID())
 	}
 }
 

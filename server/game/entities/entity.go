@@ -34,4 +34,5 @@ const (
 	PlayerEntityType     EntityType = "player"
 	ProjectileEntityType EntityType = "projectile"
 	PowerupEntityType    EntityType = "powerup"
+	MockEntityType       EntityType = "mock"
 )
