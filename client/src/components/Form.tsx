@@ -31,7 +31,9 @@ const Form: React.FC<Props> = ({ setClientId, setToken }) => {
         setToken(response.token);
       })
       .catch((error: Error) => {
-        setErrorMessage(error.message);
+        // TODO: feels a bit hacky
+        const errorMessage = error.name === "TypeError" ? "network error" : error.message;
+        setErrorMessage(errorMessage);
 
         setShouldShake(true);
         setTimeout(() => {
