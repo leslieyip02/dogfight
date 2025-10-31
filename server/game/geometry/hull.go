@@ -6,6 +6,19 @@ import (
 	"slices"
 )
 
+var square = []*Vector{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}
+
+func NewRectangleHull(
+	width float64,
+	height float64,
+) []*Vector {
+	points := make([]*Vector, 4)
+	for i, corner := range square {
+		points[i] = NewVector(corner.X*(width/2), corner.Y*(height/2))
+	}
+	return points
+}
+
 func NewRandomConvexHull(
 	minNumPoints int,
 	maxNumPoints int,
@@ -13,12 +26,12 @@ func NewRandomConvexHull(
 	maxRadius float64,
 ) []*Vector {
 	numPoints := minNumPoints + rand.Intn(maxNumPoints-minNumPoints+1)
-	points := []*Vector{}
-	for range numPoints {
-		points = append(points, &Vector{
+	points := make([]*Vector, numPoints)
+	for i := range numPoints {
+		points[i] = &Vector{
 			X: math.Copysign(minRadius+rand.Float64()*maxRadius, rand.Float64()-0.5),
 			Y: math.Copysign(minRadius+rand.Float64()*maxRadius, rand.Float64()-0.5),
-		})
+		}
 	}
 	return ConvexHull(points)
 }
@@ -42,7 +55,7 @@ func ConvexHull(points []*Vector) []*Vector {
 		}
 		remainingPoints = append(remainingPoints, point)
 	}
-	sortPointsAround(origin, remainingPoints)
+	sortPointsAbout(origin, remainingPoints)
 
 	hull := []*Vector{origin}
 	for _, point := range remainingPoints {
@@ -63,7 +76,7 @@ func HullArea(points []*Vector) float64 {
 	return math.Abs(area) / 2.0
 }
 
-func sortPointsAround(origin *Vector, points []*Vector) {
+func sortPointsAbout(origin *Vector, points []*Vector) {
 	slices.SortFunc(points, func(a *Vector, b *Vector) int {
 		if a.Sub(origin).Angle() < b.Sub(origin).Angle() {
 			return -1

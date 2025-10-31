@@ -3,6 +3,7 @@ package collision
 import (
 	"math"
 	"server/game/entities"
+	"server/game/geometry"
 	"slices"
 )
 
@@ -71,15 +72,17 @@ func getSortedEdges(entities *map[string]entities.Entity) []Edge {
 
 	i := 0
 	for id, entity := range *entities {
+		// add minor offset so that overlapping edges will be processed together
+		// by the line sweep algorithm
 		minX, maxX := entity.GetBoundingBox().HorizontalBounds()
 		edges[i] = Edge{
 			id:     &id,
-			x:      minX,
+			x:      minX - geometry.EPSILON,
 			isLeft: true,
 		}
 		edges[i+1] = Edge{
 			id:     &id,
-			x:      maxX,
+			x:      maxX + geometry.EPSILON,
 			isLeft: false,
 		}
 		i += 2

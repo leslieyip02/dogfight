@@ -14,12 +14,7 @@ const (
 	PLAYER_RADIUS = 40.0
 )
 
-var playerBoundingBoxPoints = []*geometry.Vector{
-	geometry.NewVector(-40, -40),
-	geometry.NewVector(40, -40),
-	geometry.NewVector(40, 40),
-	geometry.NewVector(-40, 40),
-}
+var playerBoundingBoxPoints = geometry.NewRectangleHull(80, 80)
 
 type Player struct {
 	Type     EntityType      `json:"type"`

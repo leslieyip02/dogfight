@@ -9,12 +9,7 @@ const (
 	MAX_POWERUP_COUNT = 16
 )
 
-var powerupBoundingBoxPoints = []*geometry.Vector{
-	geometry.NewVector(-10, -10),
-	geometry.NewVector(10, -10),
-	geometry.NewVector(10, 10),
-	geometry.NewVector(-10, 10),
-}
+var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
 
 type Powerup struct {
 	Type     EntityType      `json:"type"`

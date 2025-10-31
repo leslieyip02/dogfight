@@ -72,6 +72,10 @@ func (u *Vector) Normal() *Vector {
 	return u.Rotate(math.Pi / 2).Unit()
 }
 
+func (u *Vector) IsEqual(v *Vector) bool {
+	return math.Abs(u.X-v.X) <= EPSILON && math.Abs(u.Y-v.Y) <= EPSILON
+}
+
 func (u *Vector) dot(v *Vector) float64 {
 	return u.X*v.X + u.Y*v.Y
 }

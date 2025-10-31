@@ -9,37 +9,20 @@ import (
 	"testing"
 )
 
-var square = []*geometry.Vector{
-	geometry.NewVector(-1, -1),
-	geometry.NewVector(1, -1),
-	geometry.NewVector(1, 1),
-	geometry.NewVector(-1, 1),
+func constructMockEntity(id string, x float64, y float64, rotation float64, points []*geometry.Vector) *MockEntity {
+	position := geometry.NewVector(x, y)
+	boundingBox := geometry.NewBoundingBox(position, &rotation, &points)
+	return &MockEntity{id: id, position: *position, boundingBox: boundingBox}
 }
 
-var p1 = geometry.NewVector(0, 0)
-var r1 = 0.0
-var b1 = geometry.NewBoundingBox(p1, &r1, &square)
-var id1 = "1"
+var square = geometry.NewRectangleHull(2, 2)
 
-var p2 = geometry.NewVector(1, 2)
-var r2 = math.Pi / 4
-var b2 = geometry.NewBoundingBox(p2, &r2, &square)
-var id2 = "2"
-
-var p3 = geometry.NewVector(0, 0)
-var r3 = math.Pi / 4
-var b3 = geometry.NewBoundingBox(p3, &r3, &square)
-var id3 = "3"
-
-var p4 = geometry.NewVector(2, 2)
-var r4 = math.Pi / 4
-var b4 = geometry.NewBoundingBox(p4, &r4, &square)
-var id4 = "4"
-
-var p5 = geometry.NewVector(-1, 10)
-var r5 = 0.0
-var b5 = geometry.NewBoundingBox(p5, &r5, &square)
-var id5 = "5"
+var e1 = constructMockEntity("1", 0, 0, 0, square)
+var e2 = constructMockEntity("2", 1, 2, 0, square)
+var e3 = constructMockEntity("3", 0, 0, math.Pi/4, square)
+var e4 = constructMockEntity("4", 1, 2, math.Pi/4, square)
+var e5 = constructMockEntity("5", -1, 10, math.Pi/4, square)
+var e6 = constructMockEntity("6", 2, 2, 0, square)
 
 var benchmarkEntities map[string]entities.Entity
 
@@ -52,38 +35,59 @@ func init() {
 }
 
 func TestResolveCollisionsLineSweep(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		entities map[string]entities.Entity
 		want     map[string][]string
 	}{
-		{
-			entities: map[string]entities.Entity{
-				id1: &MockEntity{id: id1, position: *p1, boundingBox: b1},
-				id2: &MockEntity{id: id2, position: *p2, boundingBox: b2},
+		"ResolveCollisionsLineSweep": {
+			map[string]entities.Entity{
+				"1": e1,
+				"4": e4,
 			},
-			want: map[string][]string{
-				id1: {id2},
-				id2: {id1},
+			map[string][]string{
+				"1": {"4"},
+				"4": {"1"},
 			},
 		},
-		{
-			entities: map[string]entities.Entity{
-				id1: &MockEntity{id: id1, position: *p1, boundingBox: b1},
-				id2: &MockEntity{id: id2, position: *p2, boundingBox: b2},
-				id3: &MockEntity{id: id3, position: *p3, boundingBox: b3},
-				id4: &MockEntity{id: id4, position: *p4, boundingBox: b4},
-				id5: &MockEntity{id: id5, position: *p5, boundingBox: b5},
+		"ResolveCollisionsLineSweep with overlapping edge": {
+			map[string]entities.Entity{
+				"1": e1,
+				"6": e6,
 			},
-			want: map[string][]string{
-				id1: {id2, id3},
-				id2: {id1, id4},
-				id3: {id1},
-				id4: {id2},
-				id5: {},
+			map[string][]string{
+				"1": {"6"},
+				"6": {"1"},
+			},
+		},
+		"ResolveCollisionsLineSweep with empty collision list": {
+			map[string]entities.Entity{
+				"1": e1,
+				"2": e2,
+				"5": e5,
+			},
+			map[string][]string{
+				"1": {"2"},
+				"2": {"1"},
+				"5": {},
+			},
+		},
+		"ResolveCollisionsLineSweep with more entities": {
+			map[string]entities.Entity{
+				"1": e1,
+				"2": e2,
+				"3": e3,
+				"4": e4,
+			},
+			map[string][]string{
+				"1": {"2", "3", "4"},
+				"2": {"1", "3", "4"},
+				"3": {"1", "2"},
+				"4": {"1", "2"},
 			},
 		},
 	}
-	for _, test := range tests {
+
+	for desc, test := range tests {
 		got := make(map[string][]string)
 		for id := range test.want {
 			got[id] = []string{}
@@ -93,84 +97,90 @@ func TestResolveCollisionsLineSweep(t *testing.T) {
 			got[*id2] = append(got[*id2], *id1)
 		}
 
-		ResolveCollisionsLineSweep(&test.entities, handleCollision)
-		if len(got) != len(test.want) {
-			t.Errorf("want %v but got %v", test.want, got)
-		}
-		for id := range test.want {
-			if len(test.want[id]) != len(got[id]) {
-				t.Errorf("want %v but got %v", test.want[id], got[id])
+		title := desc
+		t.Run(title, func(t *testing.T) {
+			ResolveCollisionsLineSweep(&test.entities, handleCollision)
+			if len(got) != len(test.want) {
+				t.Errorf("want %v but got %v", test.want, got)
 			}
-			for _, otherId := range test.want[id] {
-				if !slices.Contains(got[id], otherId) {
-					t.Errorf("expected collision between %v and %v", id, otherId)
+			for id := range test.want {
+				if len(test.want[id]) != len(got[id]) {
+					t.Errorf("want %v but got %v", test.want[id], got[id])
+				}
+				for _, otherId := range test.want[id] {
+					if !slices.Contains(got[id], otherId) {
+						t.Errorf("want collision between %v and %v", id, otherId)
+					}
 				}
 			}
-		}
+		})
 	}
 }
 
 func TestGetSortedEdges(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		entities map[string]entities.Entity
 		want     []Edge
 	}{
-		{
-			entities: map[string]entities.Entity{
-				id1: &MockEntity{id: id1, position: *p1, boundingBox: b1},
-				id2: &MockEntity{id: id2, position: *p2, boundingBox: b2},
+		"getSortedEdges": {
+			map[string]entities.Entity{
+				"1": e1,
+				"4": e4,
 			},
-			want: []Edge{
-				{id: &id1, x: -1, isLeft: true},
-				{id: &id2, x: 1 - math.Sqrt2, isLeft: true},
-				{id: &id1, x: 1, isLeft: false},
-				{id: &id2, x: 1 + math.Sqrt2, isLeft: false},
-			},
-		},
-		{
-			entities: map[string]entities.Entity{
-				id1: &MockEntity{id: id1, position: *p1, boundingBox: b1},
-				id2: &MockEntity{id: id2, position: *p2, boundingBox: b2},
-				id3: &MockEntity{id: id3, position: *p3, boundingBox: b3},
-				id4: &MockEntity{id: id4, position: *p4, boundingBox: b4},
-				id5: &MockEntity{id: id5, position: *p5, boundingBox: b5},
-			},
-			want: []Edge{
-				{id: &id5, x: -2, isLeft: true},
-				{id: &id3, x: -math.Sqrt2, isLeft: true},
-				{id: &id1, x: -1, isLeft: true},
-				{id: &id2, x: 1 - math.Sqrt2, isLeft: true},
-				{id: &id5, x: 0, isLeft: false},
-				{id: &id4, x: 2 - math.Sqrt2, isLeft: true},
-				{id: &id1, x: 1, isLeft: false},
-				{id: &id3, x: math.Sqrt2, isLeft: false},
-				{id: &id2, x: 1 + math.Sqrt2, isLeft: false},
-				{id: &id4, x: 2 + math.Sqrt2, isLeft: false},
+			[]Edge{
+				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e4.id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e4.id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
 			},
 		},
-		{
-			entities: map[string]entities.Entity{
-				id1: &MockEntity{id: id1, position: *p1, boundingBox: b1},
-				id2: &MockEntity{id: id2, position: *p2, boundingBox: b1},
+		"getSortedEdges with overlapping edge": {
+			map[string]entities.Entity{
+				"1": e1,
+				"6": e6,
 			},
-			want: []Edge{
-				{id: &id1, x: -1, isLeft: true},
-				{id: &id2, x: -1, isLeft: true},
-				{id: &id1, x: 1, isLeft: false},
-				{id: &id2, x: 1, isLeft: false},
+			[]Edge{
+				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e6.id, x: 1 - geometry.EPSILON, isLeft: true},
+				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e6.id, x: 3 + geometry.EPSILON, isLeft: false},
+			},
+		},
+		"getSortedEdges with more entities": {
+			map[string]entities.Entity{
+				"1": e1,
+				"2": e2,
+				"3": e3,
+				"4": e4,
+				"5": e5,
+				"6": e6,
+			},
+			[]Edge{
+				{id: &e5.id, x: -1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e3.id, x: -math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e4.id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e2.id, x: -geometry.EPSILON, isLeft: true},
+				{id: &e5.id, x: -1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e6.id, x: 1 - geometry.EPSILON, isLeft: true},
+				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e3.id, x: math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e2.id, x: 2 + geometry.EPSILON, isLeft: false},
+				{id: &e4.id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e6.id, x: 3 + geometry.EPSILON, isLeft: false},
 			},
 		},
 	}
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("sort edges of %v", test.entities), func(t *testing.T) {
+
+	for desc, test := range tests {
+		title := desc
+		t.Run(title, func(t *testing.T) {
 			got := getSortedEdges(&test.entities)
 			if len(got) != len(test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
-			for i := 0; i < len(got); i++ {
-				// as long as x and isLeft is correct, whether id matches doesn't matter
-				// because the edge will be included in the comparison window anyways
-				if got[i].isLeft != test.want[i].isLeft {
+			for i := range got {
+				if *got[i].id != *test.want[i].id || got[i].isLeft != test.want[i].isLeft {
 					t.Errorf("want %v but got %v", test.want[i], got[i])
 				}
 				if math.Abs(got[i].x-test.want[i].x) > geometry.EPSILON {

@@ -11,19 +11,8 @@ const (
 	PROJECTILE_LIFETIME = 2.4 * FPS
 )
 
-var projectileBoundingBoxPoints = []*geometry.Vector{
-	geometry.NewVector(-5, -5),
-	geometry.NewVector(5, -5),
-	geometry.NewVector(5, 5),
-	geometry.NewVector(-5, 5),
-}
-
-var wideBeamProjectileBoundingBoxPoints = []*geometry.Vector{
-	geometry.NewVector(-10, -40),
-	geometry.NewVector(10, -40),
-	geometry.NewVector(10, 40),
-	geometry.NewVector(-10, 40),
-}
+var basicProjectileBoundingBoxPoints = geometry.NewRectangleHull(10, 10)
+var wideBeamProjectileBoundingBoxPoints = geometry.NewRectangleHull(20, 80)
 
 type Projectile struct {
 	Type     EntityType      `json:"type"`
@@ -117,5 +106,5 @@ func chooseBoundingBoxPoints(flags AbilityFlag) *[]*geometry.Vector {
 	if isAbilityActive(flags, WideBeamAbilityFlag) {
 		return &wideBeamProjectileBoundingBoxPoints
 	}
-	return &projectileBoundingBoxPoints
+	return &basicProjectileBoundingBoxPoints
 }

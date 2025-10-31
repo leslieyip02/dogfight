@@ -7,22 +7,20 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		v    Vector
 		want Vector
 	}{
-		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}},
-		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, Vector{X: 2, Y: 4}},
-		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, Vector{X: 4, Y: 6}},
-		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, Vector{X: -2, Y: -6}},
+		"Add":                      {Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, Vector{X: 4, Y: 6}},
+		"Add with negative values": {Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, Vector{X: -2, Y: -6}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v + %v", test.u, test.v), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v + %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Add(&test.v)
-			if math.Abs(got.X-test.want.X) > EPSILON ||
-				math.Abs(got.Y-test.want.Y) > EPSILON {
+			if !got.IsEqual(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
@@ -30,22 +28,20 @@ func TestAdd(t *testing.T) {
 }
 
 func TestSub(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		v    Vector
 		want Vector
 	}{
-		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}},
-		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, Vector{X: 0, Y: 0}},
-		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, Vector{X: -2, Y: -2}},
-		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, Vector{X: 4, Y: 2}},
+		"Sub":                      {Vector{X: 3, Y: 4}, Vector{X: 1, Y: 2}, Vector{X: 2, Y: 2}},
+		"Sub with negative values": {Vector{X: 1, Y: -2}, Vector{X: -3, Y: 4}, Vector{X: 4, Y: -6}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v - %v", test.u, test.v), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v - %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Sub(&test.v)
-			if math.Abs(got.X-test.want.X) > EPSILON ||
-				math.Abs(got.Y-test.want.Y) > EPSILON {
+			if !got.IsEqual(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
@@ -53,65 +49,21 @@ func TestSub(t *testing.T) {
 }
 
 func TestMultiply(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		s    float64
 		want Vector
 	}{
-		{Vector{X: 0, Y: 0}, 1, Vector{X: 0, Y: 0}},
-		{Vector{X: 1, Y: 2}, 1, Vector{X: 1, Y: 2}},
-		{Vector{X: 1, Y: 2}, 2, Vector{X: 2, Y: 4}},
+		"Multiply":                     {Vector{X: 1, Y: 2}, 2, Vector{X: 2, Y: 4}},
+		"Multiply with negative value": {Vector{X: 1, Y: 2}, -2, Vector{X: -2, Y: -4}},
+		"Multiply with zero":           {Vector{X: 1, Y: 2}, 0, Vector{X: 0, Y: 0}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%f * %v", test.s, test.u), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %f * %v", desc, test.s, test.u)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Multiply(test.s)
-			if math.Abs(got.X-test.want.X) > EPSILON ||
-				math.Abs(got.Y-test.want.Y) > EPSILON {
-				t.Errorf("want %v but got %v", test.want, got)
-			}
-		})
-	}
-}
-
-func TestDot(t *testing.T) {
-	tests := []struct {
-		u    Vector
-		v    Vector
-		want float64
-	}{
-		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, 0},
-		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, 5},
-		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, 11},
-		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, 5},
-	}
-
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v . %v", test.u, test.v), func(t *testing.T) {
-			got := test.u.dot(&test.v)
-			if got != test.want {
-				t.Errorf("want %v but got %v", test.want, got)
-			}
-		})
-	}
-}
-
-func TestCross(t *testing.T) {
-	tests := []struct {
-		u    Vector
-		v    Vector
-		want float64
-	}{
-		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, 0},
-		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, 0},
-		{Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, -2},
-		{Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, -10},
-	}
-
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v x %v", test.u, test.v), func(t *testing.T) {
-			got := test.u.cross(&test.v)
-			if got != test.want {
+			if !got.IsEqual(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
@@ -119,16 +71,17 @@ func TestCross(t *testing.T) {
 }
 
 func TestLength(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		want float64
 	}{
-		{Vector{X: 0, Y: 0}, 0},
-		{Vector{X: 1, Y: 2}, math.Sqrt(5)},
+		"Length":                {Vector{X: 1, Y: 2}, math.Sqrt(5)},
+		"Length of zero vector": {Vector{X: 0, Y: 0}, 0},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("length of %v", test.u), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: ||%v||", desc, test.u)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Length()
 			if math.Abs(got-test.want) > EPSILON {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -137,47 +90,39 @@ func TestLength(t *testing.T) {
 	}
 }
 
-func TestGradient(t *testing.T) {
-	tests := []struct {
+func TestUnit(t *testing.T) {
+	tests := map[string]struct {
 		u    Vector
-		want float64
+		want Vector
 	}{
-		{Vector{X: 1, Y: 2}, 2},
-		{Vector{X: 2, Y: 1}, 0.5},
-		{Vector{X: 1, Y: -2}, -2},
+		"Unit":                {Vector{X: 1, Y: 1}, Vector{X: math.Sqrt2 / 2, Y: math.Sqrt2 / 2}},
+		"Unit of zero vector": {Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("gradient of %v", test.u), func(t *testing.T) {
-			got := test.u.gradient()
-			if got != test.want {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: unit vector of %v", desc, test.u)
+		t.Run(title, func(t *testing.T) {
+			got := test.u.Unit()
+			if !got.IsEqual(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
 	}
 }
 
-func TestGradientNaN(t *testing.T) {
-	u := Vector{X: 0, Y: 0}
-	got := u.gradient()
-	if !math.IsNaN(got) {
-		t.Errorf("want NaN but got %v", got)
-	}
-}
-
 func TestAngle(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		want float64
 	}{
-		{Vector{X: 1, Y: 1}, math.Pi / 4},
-		{Vector{X: 1, Y: 2}, 1.10714},
-		{Vector{X: 1, Y: -2}, -1.10714},
-		{Vector{X: 0, Y: 0}, 0},
+		"Angle":                     {Vector{X: 1, Y: 2}, 1.10714},
+		"Angle with negative value": {Vector{X: 1, Y: -2}, -1.10714},
+		"Angle of zero vector":      {Vector{X: 0, Y: 0}, 0},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("angle of %v", test.u), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: angle of %v", desc, test.u)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Angle()
 			if math.Abs(got-test.want) > EPSILON {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -187,19 +132,20 @@ func TestAngle(t *testing.T) {
 }
 
 func TestRotate(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u     Vector
 		theta float64
 		want  Vector
 	}{
-		{Vector{X: 1, Y: 0}, math.Pi / 2, Vector{X: 0, Y: 1}},
+		"Rotate":                     {Vector{X: 1, Y: 0}, math.Pi / 2, Vector{X: 0, Y: 1}},
+		"Rotate with negative value": {Vector{X: 1, Y: 0}, -math.Pi / 2, Vector{X: 0, Y: -1}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("rotate %v", test.u), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: rotate %v", desc, test.u)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Rotate(test.theta)
-			if math.Abs(got.X-test.want.X) > EPSILON ||
-				math.Abs(got.Y-test.want.Y) > EPSILON {
+			if !got.IsEqual(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
 			}
 		})
@@ -207,19 +153,20 @@ func TestRotate(t *testing.T) {
 }
 
 func TestNormal(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		u    Vector
 		want Vector
 	}{
-		{Vector{X: 0, Y: 1}, Vector{X: 1, Y: 0}},
-		{Vector{X: 1, Y: 1}, Vector{X: -math.Sqrt2 / 2, Y: math.Sqrt2 / 2}},
+		"Normal":                 {Vector{X: 1, Y: 1}, Vector{X: -math.Sqrt2 / 2, Y: math.Sqrt2 / 2}},
+		"Normal with zero value": {Vector{X: 0, Y: 1}, Vector{X: 1, Y: 0}},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("normalize %v", test.u), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: normal of %v", desc, test.u)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.Normal()
 			if math.Abs(got.Length()-1) > EPSILON {
-				t.Errorf("want vector of length 1 but got %v", got)
+				t.Errorf("expected vector of length 1 but got %v", got)
 			}
 			if !got.isParallel(&test.want) {
 				t.Errorf("want %v but got %v", test.want, got)
@@ -228,21 +175,117 @@ func TestNormal(t *testing.T) {
 	}
 }
 
-func TestIsParallel(t *testing.T) {
-	tests := []struct {
+func TestIsEqual(t *testing.T) {
+	tests := map[string]struct {
 		u    Vector
 		v    Vector
 		want bool
 	}{
-		{Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, true},
-		{Vector{X: 1, Y: 2}, Vector{X: 2, Y: 4}, true},
-		{Vector{X: 1, Y: 2}, Vector{X: -1, Y: -2}, true},
-		{Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, true},
-		{Vector{X: 1, Y: 0}, Vector{X: 0, Y: 1}, false},
+		"IsEqual":                            {Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, true},
+		"IsEqual with acceptable difference": {Vector{X: 1, Y: 2}, Vector{X: 1 + 1e-8, Y: 2}, true},
+		"IsEqual negative example":           {Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, false},
 	}
 
-	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v isParallel to %v", test.u, test.v), func(t *testing.T) {
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v = %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
+			got := test.u.IsEqual(&test.v)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
+func TestDot(t *testing.T) {
+	tests := map[string]struct {
+		u    Vector
+		v    Vector
+		want float64
+	}{
+		"dot":                      {Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, 11},
+		"dot with negative values": {Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, 5},
+		"dot with zero vector":     {Vector{X: 1, Y: 2}, Vector{X: 0, Y: 0}, 0},
+	}
+
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v . %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
+			got := test.u.dot(&test.v)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
+func TestCross(t *testing.T) {
+	tests := map[string]struct {
+		u    Vector
+		v    Vector
+		want float64
+	}{
+		"cross":                      {Vector{X: 1, Y: 2}, Vector{X: 3, Y: 4}, -2},
+		"cross with negative values": {Vector{X: 1, Y: -2}, Vector{X: -3, Y: -4}, -10},
+		"cross with zero vector":     {Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, 0},
+	}
+
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v x %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
+			got := test.u.cross(&test.v)
+			if got != test.want {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
+func TestGradient(t *testing.T) {
+	tests := map[string]struct {
+		u    Vector
+		want float64
+	}{
+		"gradient":                      {Vector{X: 1, Y: 2}, 2},
+		"gradient with negative values": {Vector{X: 1, Y: -2}, -2},
+		"gradient with zero vector":     {Vector{X: 0, Y: 0}, math.NaN()},
+	}
+
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: gradient of %v", desc, test.u)
+		t.Run(title, func(t *testing.T) {
+			got := test.u.gradient()
+
+			if math.IsNaN(test.want) {
+				if !math.IsNaN(got) {
+					t.Errorf("want %v but got %v", test.want, got)
+				}
+				return
+			}
+
+			if math.Abs(got-test.want) > EPSILON {
+				t.Errorf("want %v but got %v", test.want, got)
+			}
+		})
+	}
+}
+
+func TestIsParallel(t *testing.T) {
+	tests := map[string]struct {
+		u    Vector
+		v    Vector
+		want bool
+	}{
+		"isParallel":                         {Vector{X: 1, Y: 2}, Vector{X: 2, Y: 4}, true},
+		"isParallel with self":               {Vector{X: 1, Y: 2}, Vector{X: 1, Y: 2}, true},
+		"isParallel with zero vector":        {Vector{X: 0, Y: 0}, Vector{X: 0, Y: 0}, true},
+		"isParallel with opposite direction": {Vector{X: 1, Y: 2}, Vector{X: -1, Y: -2}, true},
+		"isParallel negative example":        {Vector{X: 1, Y: 0}, Vector{X: 0, Y: 1}, false},
+	}
+
+	for desc, test := range tests {
+		title := fmt.Sprintf("%s: %v isParallel to %v", desc, test.u, test.v)
+		t.Run(title, func(t *testing.T) {
 			got := test.u.isParallel(&test.v)
 			if got != test.want {
 				t.Errorf("want %v but got %v", test.want, got)
