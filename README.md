@@ -1,9 +1,13 @@
 # Getting Started
 
-
 ## Generate Code
 ```
-protoc --proto_path=protos --go_out=server protos/*.proto
+protoc \
+    --plugin=client/node_modules/.bin/protoc-gen-ts_proto \
+    --proto_path=protos \
+    --ts_proto_out=client/src/pb \
+    --go_out=server \
+    protos/*.proto
 ```
 
 ## Start Client
