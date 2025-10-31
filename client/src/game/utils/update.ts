@@ -1,15 +1,15 @@
+import { type Entity as EntityData,EntityType } from "../../pb/entities";
+import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
 import Animation from "../entities/Animation";
 import Asteroid from "../entities/Asteroid";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import type { AsteroidEntityData, EntityData, PlayerEntityData, PowerupEntityData, ProjectileEntityData } from "../types/entity";
-import type { DeltaEventData, SnapshotEventData } from "../types/event";
 import { SOUNDS } from "./sounds";
 import type { Spritesheet } from "./sprites";
 
-export function syncEntities(snapshot: SnapshotEventData | null, entities: EntityMap) {
+export function syncEntities(snapshot: Event_SnapshotEventData | null, entities: EntityMap) {
   if (!snapshot) {
     return;
   }
@@ -18,15 +18,15 @@ export function syncEntities(snapshot: SnapshotEventData | null, entities: Entit
     .forEach(data => handleEntityData(data, entities));
 }
 
-export function mergeDeltas(current: DeltaEventData, next: DeltaEventData): DeltaEventData {
+export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEventData): Event_DeltaEventData {
   const shouldOverwrite = current.timestamp < next.timestamp;
-  Object.entries(next.updated)
-    .forEach(entry => {
-      const [id, data] = entry;
-      if (!shouldOverwrite && current.updated[id]) {
+  next.updated
+    .forEach(entity => {
+      // TODO: is this necessary?
+      if (!shouldOverwrite && current.updated.some(existing => existing.id === entity.id)) {
         return;
       }
-      current.updated[id] = data;
+      current.updated.push(entity);
     });
 
   current.removed = [...current.removed, ...next.removed];
@@ -34,51 +34,51 @@ export function mergeDeltas(current: DeltaEventData, next: DeltaEventData): Delt
   return current;
 }
 
-export function removeEntities(delta: DeltaEventData, entities: EntityMap) {
+export function removeEntities(delta: Event_DeltaEventData, entities: EntityMap) {
   delta.removed
     .forEach(id => delete entities[id]);
 }
 
-export function updateEntities(delta: DeltaEventData, entities: EntityMap) {
-  Object.entries(delta.updated)
-    .filter(([id]) => !delta.removed.includes(id))
-    .forEach(([,data]) => handleEntityData(data, entities));
+export function updateEntities(delta: Event_DeltaEventData, entities: EntityMap) {
+  delta.updated
+    .filter(({ id }) => !delta.removed.includes(id))
+    .forEach((entity) => handleEntityData(entity, entities));
 }
 
 export function handleEntityData(data: EntityData, entities: EntityMap) {
-  const { id } = data;
+  const { id, type } = data;
   if (entities[id]) {
     entities[id].update(data);
     return;
   }
 
-  switch (data.type) {
-  case "asteroid":
-    entities[id] = new Asteroid(data as AsteroidEntityData);
+  switch (type) {
+  case EntityType.ENTITY_TYPE_ASTEROID:
+    entities[id] = new Asteroid(data);
     break;
 
-  case "player": {
+  case EntityType.ENTITY_TYPE_PLAYER: {
     if (!Player.spritesheet) {
       // spritesheet hasn't loaded
       break;
     }
 
-    entities[id] = new Player(data as PlayerEntityData);
+    entities[id] = new Player(data);
     break;
   }
 
-  case "projectile":
-    entities[id] = new Projectile(data as ProjectileEntityData);
+  case EntityType.ENTITY_TYPE_PROJECTILE:
+    entities[id] = new Projectile(data);
     break;
 
-  case "powerup":
-    entities[id] = new Powerup(data as PowerupEntityData);
+  case EntityType.ENTITY_TYPE_POWERUP:
+    entities[id] = new Powerup(data);
     break;
   }
 }
 
 export function addAnimations(
-  delta: DeltaEventData,
+  delta: Event_DeltaEventData,
   entities: EntityMap,
   spritesheet: Spritesheet,
 ) {

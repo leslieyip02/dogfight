@@ -1,7 +1,7 @@
 import type p5 from "p5";
 
-import { sendMessage } from "../../api/game";
-import type { InputEventData, RespawnEventData } from "../types/event";
+import { sendInputMessage, sendRespawnMessage } from "../../api/game";
+import type { Event_InputEventData, Event_RespawnEventData } from "../../pb/event";
 import { SOUNDS } from "./sounds";
 
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
@@ -37,13 +37,13 @@ class Input {
 
   handleInput = (instance: p5) => {
     [this.mouseX, this.mouseY] = normalizeMouseValues(instance.mouseX, instance.mouseY);
-    const data: InputEventData = {
+    const data: Event_InputEventData = {
       id: this.clientId,
       mouseX: this.mouseX,
       mouseY: this.mouseY,
       mousePressed: this.mousePressed,
     };
-    sendMessage(this.socket, "input", data);
+    sendInputMessage(this.socket, data);
 
     if (this.mousePressed) {
       SOUNDS["shoot"].play();
@@ -56,10 +56,10 @@ class Input {
       return;
     }
 
-    const data: RespawnEventData = {
+    const data: Event_RespawnEventData = {
       id: this.clientId,
     };
-    sendMessage(this.socket, "respawn", data);
+    sendRespawnMessage(this.socket, data);
 
     this.mousePressed = false;
   };

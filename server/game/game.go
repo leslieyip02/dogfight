@@ -102,12 +102,18 @@ func (g *Game) GetPBEntities() []*pb.Entity {
 	return entities
 }
 
+func (g *Game) GetTimestamp() int32 {
+	// JavaScript's Number.MAX_SAFE_INTEGER
+	// is less than an int64 so just downcast
+	return int32(time.Now().Unix())
+}
+
 func (g *Game) GetSnapshot() *pb.Event {
 	return &pb.Event{
 		Type: pb.EventType_EVENT_TYPE_SNAPSHOT,
 		Data: &pb.Event_SnapshotEventData_{
 			SnapshotEventData: &pb.Event_SnapshotEventData{
-				Timestamp: time.Now().UnixNano(),
+				Timestamp: g.GetTimestamp(),
 				Entities:  g.GetPBEntities(),
 			},
 		},
@@ -119,7 +125,7 @@ func (g *Game) GetDelta() *pb.Event {
 		Type: pb.EventType_EVENT_TYPE_DELTA,
 		Data: &pb.Event_DeltaEventData_{
 			DeltaEventData: &pb.Event_DeltaEventData{
-				Timestamp: time.Now().UnixNano(),
+				Timestamp: g.GetTimestamp(),
 				Updated:   g.GetPBEntities(),
 				Removed:   g.removed,
 			},

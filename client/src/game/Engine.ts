@@ -1,15 +1,9 @@
 import p5 from "p5";
 
 import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
+import { type Event, type Event_DeltaEventData,Event_JoinEventData,Event_QuitEventData,EventType } from "../pb/event";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
-import type {
-  DeltaEventData,
-  Event,
-  EventType,
-  JoinEventData,
-  QuitEventData,
-} from "./types/event";
 import {
   type CanvasConfig,
   drawBackground,
@@ -33,7 +27,7 @@ class Engine {
   spritesheet: Spritesheet;
 
   input: Input;
-  delta: DeltaEventData;
+  delta: Event_DeltaEventData;
 
   constructor(
     instance: p5,
@@ -52,9 +46,9 @@ class Engine {
 
     this.input = new Input(clientId, socket);
     this.delta = {
-      "timestamp": 0,
-      "updated": {},
-      "removed": [],
+      timestamp: 0,
+      updated: [],
+      removed: [],
     };
   }
 
@@ -90,17 +84,17 @@ class Engine {
   };
 
   receive = (gameEvent: Event) => {
-    switch (gameEvent["type"] as EventType) {
-    case "join":
-      this.handleJoin(gameEvent.data as JoinEventData);
+    switch (gameEvent.type) {
+    case EventType.EVENT_TYPE_JOIN:
+      this.handleJoin(gameEvent.joinEventData!);
       break;
 
-    case "quit":
-      this.handleQuit(gameEvent.data as QuitEventData);
+    case EventType.EVENT_TYPE_QUIT:
+      this.handleQuit(gameEvent.quitEventData!);
       break;
 
-    case "delta":
-      this.handleDelta(gameEvent.data as DeltaEventData);
+    case EventType.EVENT_TYPE_DELTA:
+      this.handleDelta(gameEvent.deltaEventData!);
       break;
 
     default:
@@ -109,17 +103,17 @@ class Engine {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-  private handleJoin = (_data: JoinEventData) => {
+  private handleJoin = (_data: Event_JoinEventData) => {
     // TODO: maybe log a chat message
     return;
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-  private handleQuit = (_data: QuitEventData) => {
+  private handleQuit = (_data: Event_QuitEventData) => {
     // TODO: maybe log a chat message
   };
 
-  private handleDelta = (data: DeltaEventData) => {
+  private handleDelta = (data: Event_DeltaEventData) => {
     this.delta = mergeDeltas(this.delta, data);
   };
 
@@ -137,7 +131,7 @@ class Engine {
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);
 
-    this.delta.updated = {};
+    this.delta.updated = [];
     this.delta.removed = [];
 
     const clientPlayer = this.entities[this.clientId] as Player;
@@ -148,7 +142,9 @@ class Engine {
 
   private syncGameState = async () => {
     await fetchGameSnapshotData()
-      .then((snapshot) => syncEntities(snapshot, this.entities));
+      .then((snapshot) => {
+        syncEntities(snapshot, this.entities);
+      });
   };
 };
 

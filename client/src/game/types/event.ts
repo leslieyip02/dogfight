@@ -1,53 +1,53 @@
-import type { EntityData } from "./entity";
+// import type { EntityData } from "./entity";
 
-export type EventType = "join"
-  | "quit"
-  | "respawn"
-  | "input"
-  | "snapshot"
-  | "delta";
+// export type EventType = "join"
+//   | "quit"
+//   | "respawn"
+//   | "input"
+//   | "snapshot"
+//   | "delta";
 
-export type Event = {
-  type: EventType
-  data: JoinEventData
-    | QuitEventData
-    | RespawnEventData
-    | InputEventData
-    | SnapshotEventData
-    | DeltaEventData;
-};
+// export type Event = {
+//   type: EventType
+//   data: JoinEventData
+//     | QuitEventData
+//     | RespawnEventData
+//     | InputEventData
+//     | SnapshotEventData
+//     | DeltaEventData;
+// };
 
-export type JoinEventData = {
-  id: string,
-  username: string,
-};
+// export type JoinEventData = {
+//   id: string,
+//   username: string,
+// };
 
-export type QuitEventData = {
-  id: string,
-};
+// export type QuitEventData = {
+//   id: string,
+// };
 
-export type RespawnEventData = {
-  id: string,
-};
+// export type RespawnEventData = {
+//   id: string,
+// };
 
-export type InputEventData = {
-  id: string,
-  mouseX: number,
-  mouseY: number,
-  mousePressed: boolean,
-};
+// export type InputEventData = {
+//   id: string,
+//   mouseX: number,
+//   mouseY: number,
+//   mousePressed: boolean,
+// };
 
-export type SnapshotEventData = {
-  timestamp: number,
-  entities: {
-    [id: string]: EntityData,
-  },
-};
+// export type SnapshotEventData = {
+//   timestamp: number,
+//   entities: {
+//     [id: string]: EntityData,
+//   },
+// };
 
-export type DeltaEventData = {
-  timestamp: number,
-  updated: {
-    [id: string]: EntityData,
-  },
-  removed: string[],
-};
+// export type DeltaEventData = {
+//   timestamp: number,
+//   updated: {
+//     [id: string]: EntityData,
+//   },
+//   removed: string[],
+// };

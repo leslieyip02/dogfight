@@ -1,9 +1,9 @@
 import p5 from "p5";
 
-import type { EntityData } from "../types/entity";
-import type { Vector } from "../types/geometry";
+import type { Entity as EntityData } from "../../pb/entities";
+import type { Vector } from "../../pb/vector";
 
-export interface Entity {
+export interface BaseEntity {
     position: Vector;
 
     update: (data: EntityData) => void;
@@ -14,5 +14,5 @@ export interface Entity {
 };
 
 export type EntityMap = {
-    [id: string]: Entity,
+    [id: string]: BaseEntity,
 }

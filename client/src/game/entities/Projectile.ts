@@ -1,23 +1,31 @@
 import p5 from "p5";
 
-import type { EntityData, ProjectileEntityData } from "../types/entity";
-import type { Vector } from "../types/geometry";
+import type { Entity as EntityData } from "../../pb/entities";
+import type { Vector } from "../../pb/vector";
 import { type AbilityFlag,isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../utils/abilities";
-import type { Entity } from "./Entity";
+import type { BaseEntity } from "./Entity";
 
 const PROJECTILE_WIDTH = 20;
 
-class Projectile implements Entity {
+class Projectile implements BaseEntity {
   position: Vector;
   rotation: number;
   flags: AbilityFlag;
   lifetime: number;
 
-  constructor(data: ProjectileEntityData) {
+  constructor(data: EntityData) {
+    if (!data.position || !data.velocity) {
+      throw new Error(`expected entity data but got ${data}`);
+    }
     this.position = data.position;
     this.rotation = data.rotation;
-    this.flags = data.flags;
-    this.lifetime = data.lifetime;
+
+    const projectileData = data.projectileData;
+    if (!projectileData) {
+      throw new Error(`expected projectile data but got ${data}`);
+    }
+    this.flags = projectileData.flags;
+    this.lifetime = projectileData.lifetime;
   }
 
   update = (data: EntityData) => {
@@ -27,9 +35,9 @@ class Projectile implements Entity {
     this.position = data.position;
     this.rotation = data.rotation;
 
-    const projectileEntityData = data as ProjectileEntityData;
-    if (projectileEntityData) {
-      this.lifetime = projectileEntityData.lifetime;
+    const projectileData = data.projectileData;
+    if (projectileData) {
+      this.lifetime = projectileData.lifetime;
     }
   };
 

@@ -1,19 +1,27 @@
 import p5 from "p5";
 
-import type { AsteroidEntityData, EntityData } from "../types/entity";
-import type { Vector } from "../types/geometry";
-import type { Entity } from "./Entity";
+import type { Entity as EntityData } from "../../pb/entities";
+import type { Vector } from "../../pb/vector";
+import type { BaseEntity } from "./Entity";
 
-class Asteroid implements Entity {
+class Asteroid implements BaseEntity {
   position: Vector;
   rotation: number;
 
   points: Vector[];
 
-  constructor(data: AsteroidEntityData) {
+  constructor(data: EntityData) {
+    if (!data.position || !data.rotation) {
+      throw new Error(`expected entity data but got ${data}`);
+    }
     this.position = data.position;
     this.rotation = data.rotation;
-    this.points = data.points;
+
+    const asteroidData = data.asteroidData;
+    if (!asteroidData) {
+      throw new Error(`expected asteroid data but got ${data}`);
+    }
+    this.points = asteroidData.points;
   }
 
   update = (data: EntityData) => {

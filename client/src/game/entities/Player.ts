@@ -1,18 +1,18 @@
 import type p5 from "p5";
 
-import type { EntityData, PlayerEntityData } from "../types/entity";
-import type { Vector } from "../types/geometry";
+import type { Entity as EntityData } from "../../pb/entities";
+import type { Vector } from "../../pb/vector";
 import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
 import { SOUNDS } from "../utils/sounds";
 import { chooseSpriteName, type Spritesheet } from "../utils/sprites";
-import type { Entity } from "./Entity";
+import type { BaseEntity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
 
 const PLAYER_WIDTH = 96;
 const PLAYER_MAX_TRAIL_POINTS = 24;
 
-class Player implements Entity {
+class Player implements BaseEntity {
   static spritesheet: Spritesheet;
 
   position: Vector;
@@ -25,15 +25,23 @@ class Player implements Entity {
   sprite: p5.Image;
   previousPositions: Vector[];
 
-  constructor(data: PlayerEntityData) {
+  constructor(data: EntityData) {
+    if (!data.position || !data.velocity) {
+      throw new Error(`expected entity data but got ${data}`);
+    }
     this.position = data.position;
     this.velocity = data.velocity;
     this.rotation = data.rotation;
-    this.flags = data.flags;
 
-    this.username = data.username;
-    this.score = data.score;
-    const spriteName = chooseSpriteName(data.username);
+    const playerData = data.playerData;
+    if (!playerData) {
+      throw new Error(`expected player data but got ${data}`);
+    }
+    this.username = playerData.username;
+    this.score = playerData.score;
+    this.flags = playerData.flags;
+
+    const spriteName = chooseSpriteName(this.username);
     this.sprite = Player.spritesheet[spriteName][0];
     this.previousPositions = [];
   }
@@ -46,15 +54,15 @@ class Player implements Entity {
     this.velocity = data.velocity;
     this.rotation = data.rotation;
 
-    const playerEntityData = data as PlayerEntityData;
-    if (playerEntityData) {
-      if (this.score < playerEntityData.score) {
-        this.score = playerEntityData.score;
+    const playerData = data.playerData;
+    if (playerData) {
+      if (this.score < playerData.score) {
+        this.score = playerData.score;
         SOUNDS["score"].play();
       }
 
-      if (this.flags != playerEntityData.flags) {
-        this.flags = playerEntityData.flags;
+      if (this.flags != playerData.flags) {
+        this.flags = playerData.flags;
         SOUNDS["pickup"].play();
       }
     }
