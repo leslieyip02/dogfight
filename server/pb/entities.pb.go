@@ -79,7 +79,7 @@ func (EntityType) EnumDescriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0}
 }
 
-type Entity struct {
+type EntityData struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Type     EntityType             `protobuf:"varint,1,opt,name=type,proto3,enum=dogfight.EntityType" json:"type,omitempty"`
 	Id       string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -88,29 +88,29 @@ type Entity struct {
 	Rotation float64                `protobuf:"fixed64,5,opt,name=rotation,proto3" json:"rotation,omitempty"`
 	// Types that are valid to be assigned to Data:
 	//
-	//	*Entity_AsteroidData_
-	//	*Entity_PlayerData_
-	//	*Entity_PowerupData_
-	//	*Entity_ProjectileData_
-	Data          isEntity_Data `protobuf_oneof:"data"`
+	//	*EntityData_AsteroidData_
+	//	*EntityData_PlayerData_
+	//	*EntityData_PowerupData_
+	//	*EntityData_ProjectileData_
+	Data          isEntityData_Data `protobuf_oneof:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Entity) Reset() {
-	*x = Entity{}
+func (x *EntityData) Reset() {
+	*x = EntityData{}
 	mi := &file_entities_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity) String() string {
+func (x *EntityData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity) ProtoMessage() {}
+func (*EntityData) ProtoMessage() {}
 
-func (x *Entity) ProtoReflect() protoreflect.Message {
+func (x *EntityData) ProtoReflect() protoreflect.Message {
 	mi := &file_entities_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -122,138 +122,138 @@ func (x *Entity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity.ProtoReflect.Descriptor instead.
-func (*Entity) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityData.ProtoReflect.Descriptor instead.
+func (*EntityData) Descriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Entity) GetType() EntityType {
+func (x *EntityData) GetType() EntityType {
 	if x != nil {
 		return x.Type
 	}
 	return EntityType_ENTITY_TYPE_UNKNOWN
 }
 
-func (x *Entity) GetId() string {
+func (x *EntityData) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Entity) GetPosition() *Vector {
+func (x *EntityData) GetPosition() *Vector {
 	if x != nil {
 		return x.Position
 	}
 	return nil
 }
 
-func (x *Entity) GetVelocity() *Vector {
+func (x *EntityData) GetVelocity() *Vector {
 	if x != nil {
 		return x.Velocity
 	}
 	return nil
 }
 
-func (x *Entity) GetRotation() float64 {
+func (x *EntityData) GetRotation() float64 {
 	if x != nil {
 		return x.Rotation
 	}
 	return 0
 }
 
-func (x *Entity) GetData() isEntity_Data {
+func (x *EntityData) GetData() isEntityData_Data {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *Entity) GetAsteroidData() *Entity_AsteroidData {
+func (x *EntityData) GetAsteroidData() *EntityData_AsteroidData {
 	if x != nil {
-		if x, ok := x.Data.(*Entity_AsteroidData_); ok {
+		if x, ok := x.Data.(*EntityData_AsteroidData_); ok {
 			return x.AsteroidData
 		}
 	}
 	return nil
 }
 
-func (x *Entity) GetPlayerData() *Entity_PlayerData {
+func (x *EntityData) GetPlayerData() *EntityData_PlayerData {
 	if x != nil {
-		if x, ok := x.Data.(*Entity_PlayerData_); ok {
+		if x, ok := x.Data.(*EntityData_PlayerData_); ok {
 			return x.PlayerData
 		}
 	}
 	return nil
 }
 
-func (x *Entity) GetPowerupData() *Entity_PowerupData {
+func (x *EntityData) GetPowerupData() *EntityData_PowerupData {
 	if x != nil {
-		if x, ok := x.Data.(*Entity_PowerupData_); ok {
+		if x, ok := x.Data.(*EntityData_PowerupData_); ok {
 			return x.PowerupData
 		}
 	}
 	return nil
 }
 
-func (x *Entity) GetProjectileData() *Entity_ProjectileData {
+func (x *EntityData) GetProjectileData() *EntityData_ProjectileData {
 	if x != nil {
-		if x, ok := x.Data.(*Entity_ProjectileData_); ok {
+		if x, ok := x.Data.(*EntityData_ProjectileData_); ok {
 			return x.ProjectileData
 		}
 	}
 	return nil
 }
 
-type isEntity_Data interface {
-	isEntity_Data()
+type isEntityData_Data interface {
+	isEntityData_Data()
 }
 
-type Entity_AsteroidData_ struct {
-	AsteroidData *Entity_AsteroidData `protobuf:"bytes,6,opt,name=asteroidData,proto3,oneof"`
+type EntityData_AsteroidData_ struct {
+	AsteroidData *EntityData_AsteroidData `protobuf:"bytes,6,opt,name=asteroidData,proto3,oneof"`
 }
 
-type Entity_PlayerData_ struct {
-	PlayerData *Entity_PlayerData `protobuf:"bytes,7,opt,name=playerData,proto3,oneof"`
+type EntityData_PlayerData_ struct {
+	PlayerData *EntityData_PlayerData `protobuf:"bytes,7,opt,name=playerData,proto3,oneof"`
 }
 
-type Entity_PowerupData_ struct {
-	PowerupData *Entity_PowerupData `protobuf:"bytes,8,opt,name=powerupData,proto3,oneof"`
+type EntityData_PowerupData_ struct {
+	PowerupData *EntityData_PowerupData `protobuf:"bytes,8,opt,name=powerupData,proto3,oneof"`
 }
 
-type Entity_ProjectileData_ struct {
-	ProjectileData *Entity_ProjectileData `protobuf:"bytes,9,opt,name=projectileData,proto3,oneof"`
+type EntityData_ProjectileData_ struct {
+	ProjectileData *EntityData_ProjectileData `protobuf:"bytes,9,opt,name=projectileData,proto3,oneof"`
 }
 
-func (*Entity_AsteroidData_) isEntity_Data() {}
+func (*EntityData_AsteroidData_) isEntityData_Data() {}
 
-func (*Entity_PlayerData_) isEntity_Data() {}
+func (*EntityData_PlayerData_) isEntityData_Data() {}
 
-func (*Entity_PowerupData_) isEntity_Data() {}
+func (*EntityData_PowerupData_) isEntityData_Data() {}
 
-func (*Entity_ProjectileData_) isEntity_Data() {}
+func (*EntityData_ProjectileData_) isEntityData_Data() {}
 
-type Entity_AsteroidData struct {
+type EntityData_AsteroidData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Points        []*Vector              `protobuf:"bytes,1,rep,name=points,proto3" json:"points,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Entity_AsteroidData) Reset() {
-	*x = Entity_AsteroidData{}
+func (x *EntityData_AsteroidData) Reset() {
+	*x = EntityData_AsteroidData{}
 	mi := &file_entities_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity_AsteroidData) String() string {
+func (x *EntityData_AsteroidData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity_AsteroidData) ProtoMessage() {}
+func (*EntityData_AsteroidData) ProtoMessage() {}
 
-func (x *Entity_AsteroidData) ProtoReflect() protoreflect.Message {
+func (x *EntityData_AsteroidData) ProtoReflect() protoreflect.Message {
 	mi := &file_entities_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -265,19 +265,19 @@ func (x *Entity_AsteroidData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity_AsteroidData.ProtoReflect.Descriptor instead.
-func (*Entity_AsteroidData) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityData_AsteroidData.ProtoReflect.Descriptor instead.
+func (*EntityData_AsteroidData) Descriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0, 0}
 }
 
-func (x *Entity_AsteroidData) GetPoints() []*Vector {
+func (x *EntityData_AsteroidData) GetPoints() []*Vector {
 	if x != nil {
 		return x.Points
 	}
 	return nil
 }
 
-type Entity_PlayerData struct {
+type EntityData_PlayerData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Score         uint32                 `protobuf:"varint,2,opt,name=score,proto3" json:"score,omitempty"`
@@ -286,20 +286,20 @@ type Entity_PlayerData struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Entity_PlayerData) Reset() {
-	*x = Entity_PlayerData{}
+func (x *EntityData_PlayerData) Reset() {
+	*x = EntityData_PlayerData{}
 	mi := &file_entities_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity_PlayerData) String() string {
+func (x *EntityData_PlayerData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity_PlayerData) ProtoMessage() {}
+func (*EntityData_PlayerData) ProtoMessage() {}
 
-func (x *Entity_PlayerData) ProtoReflect() protoreflect.Message {
+func (x *EntityData_PlayerData) ProtoReflect() protoreflect.Message {
 	mi := &file_entities_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -311,53 +311,53 @@ func (x *Entity_PlayerData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity_PlayerData.ProtoReflect.Descriptor instead.
-func (*Entity_PlayerData) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityData_PlayerData.ProtoReflect.Descriptor instead.
+func (*EntityData_PlayerData) Descriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0, 1}
 }
 
-func (x *Entity_PlayerData) GetUsername() string {
+func (x *EntityData_PlayerData) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *Entity_PlayerData) GetScore() uint32 {
+func (x *EntityData_PlayerData) GetScore() uint32 {
 	if x != nil {
 		return x.Score
 	}
 	return 0
 }
 
-func (x *Entity_PlayerData) GetFlags() uint32 {
+func (x *EntityData_PlayerData) GetFlags() uint32 {
 	if x != nil {
 		return x.Flags
 	}
 	return 0
 }
 
-type Entity_PowerupData struct {
+type EntityData_PowerupData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ability       uint32                 `protobuf:"varint,1,opt,name=ability,proto3" json:"ability,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Entity_PowerupData) Reset() {
-	*x = Entity_PowerupData{}
+func (x *EntityData_PowerupData) Reset() {
+	*x = EntityData_PowerupData{}
 	mi := &file_entities_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity_PowerupData) String() string {
+func (x *EntityData_PowerupData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity_PowerupData) ProtoMessage() {}
+func (*EntityData_PowerupData) ProtoMessage() {}
 
-func (x *Entity_PowerupData) ProtoReflect() protoreflect.Message {
+func (x *EntityData_PowerupData) ProtoReflect() protoreflect.Message {
 	mi := &file_entities_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -369,19 +369,19 @@ func (x *Entity_PowerupData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity_PowerupData.ProtoReflect.Descriptor instead.
-func (*Entity_PowerupData) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityData_PowerupData.ProtoReflect.Descriptor instead.
+func (*EntityData_PowerupData) Descriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0, 2}
 }
 
-func (x *Entity_PowerupData) GetAbility() uint32 {
+func (x *EntityData_PowerupData) GetAbility() uint32 {
 	if x != nil {
 		return x.Ability
 	}
 	return 0
 }
 
-type Entity_ProjectileData struct {
+type EntityData_ProjectileData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Flags         uint32                 `protobuf:"varint,1,opt,name=flags,proto3" json:"flags,omitempty"`
 	Lifetime      int32                  `protobuf:"varint,2,opt,name=lifetime,proto3" json:"lifetime,omitempty"`
@@ -389,20 +389,20 @@ type Entity_ProjectileData struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Entity_ProjectileData) Reset() {
-	*x = Entity_ProjectileData{}
+func (x *EntityData_ProjectileData) Reset() {
+	*x = EntityData_ProjectileData{}
 	mi := &file_entities_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity_ProjectileData) String() string {
+func (x *EntityData_ProjectileData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity_ProjectileData) ProtoMessage() {}
+func (*EntityData_ProjectileData) ProtoMessage() {}
 
-func (x *Entity_ProjectileData) ProtoReflect() protoreflect.Message {
+func (x *EntityData_ProjectileData) ProtoReflect() protoreflect.Message {
 	mi := &file_entities_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -414,19 +414,19 @@ func (x *Entity_ProjectileData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity_ProjectileData.ProtoReflect.Descriptor instead.
-func (*Entity_ProjectileData) Descriptor() ([]byte, []int) {
+// Deprecated: Use EntityData_ProjectileData.ProtoReflect.Descriptor instead.
+func (*EntityData_ProjectileData) Descriptor() ([]byte, []int) {
 	return file_entities_proto_rawDescGZIP(), []int{0, 3}
 }
 
-func (x *Entity_ProjectileData) GetFlags() uint32 {
+func (x *EntityData_ProjectileData) GetFlags() uint32 {
 	if x != nil {
 		return x.Flags
 	}
 	return 0
 }
 
-func (x *Entity_ProjectileData) GetLifetime() int32 {
+func (x *EntityData_ProjectileData) GetLifetime() int32 {
 	if x != nil {
 		return x.Lifetime
 	}
@@ -437,19 +437,20 @@ var File_entities_proto protoreflect.FileDescriptor
 
 const file_entities_proto_rawDesc = "" +
 	"\n" +
-	"\x0eentities.proto\x12\bdogfight\x1a\fvector.proto\"\xd0\x05\n" +
-	"\x06Entity\x12(\n" +
+	"\x0eentities.proto\x12\bdogfight\x1a\fvector.proto\"\xe4\x05\n" +
+	"\n" +
+	"EntityData\x12(\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x14.dogfight.EntityTypeR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12,\n" +
 	"\bposition\x18\x03 \x01(\v2\x10.dogfight.VectorR\bposition\x12,\n" +
 	"\bvelocity\x18\x04 \x01(\v2\x10.dogfight.VectorR\bvelocity\x12\x1a\n" +
-	"\brotation\x18\x05 \x01(\x01R\brotation\x12C\n" +
-	"\fasteroidData\x18\x06 \x01(\v2\x1d.dogfight.Entity.AsteroidDataH\x00R\fasteroidData\x12=\n" +
+	"\brotation\x18\x05 \x01(\x01R\brotation\x12G\n" +
+	"\fasteroidData\x18\x06 \x01(\v2!.dogfight.EntityData.AsteroidDataH\x00R\fasteroidData\x12A\n" +
 	"\n" +
-	"playerData\x18\a \x01(\v2\x1b.dogfight.Entity.PlayerDataH\x00R\n" +
-	"playerData\x12@\n" +
-	"\vpowerupData\x18\b \x01(\v2\x1c.dogfight.Entity.PowerupDataH\x00R\vpowerupData\x12I\n" +
-	"\x0eprojectileData\x18\t \x01(\v2\x1f.dogfight.Entity.ProjectileDataH\x00R\x0eprojectileData\x1a8\n" +
+	"playerData\x18\a \x01(\v2\x1f.dogfight.EntityData.PlayerDataH\x00R\n" +
+	"playerData\x12D\n" +
+	"\vpowerupData\x18\b \x01(\v2 .dogfight.EntityData.PowerupDataH\x00R\vpowerupData\x12M\n" +
+	"\x0eprojectileData\x18\t \x01(\v2#.dogfight.EntityData.ProjectileDataH\x00R\x0eprojectileData\x1a8\n" +
 	"\fAsteroidData\x12(\n" +
 	"\x06points\x18\x01 \x03(\v2\x10.dogfight.VectorR\x06points\x1aT\n" +
 	"\n" +
@@ -487,23 +488,23 @@ func file_entities_proto_rawDescGZIP() []byte {
 var file_entities_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_entities_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_entities_proto_goTypes = []any{
-	(EntityType)(0),               // 0: dogfight.EntityType
-	(*Entity)(nil),                // 1: dogfight.Entity
-	(*Entity_AsteroidData)(nil),   // 2: dogfight.Entity.AsteroidData
-	(*Entity_PlayerData)(nil),     // 3: dogfight.Entity.PlayerData
-	(*Entity_PowerupData)(nil),    // 4: dogfight.Entity.PowerupData
-	(*Entity_ProjectileData)(nil), // 5: dogfight.Entity.ProjectileData
-	(*Vector)(nil),                // 6: dogfight.Vector
+	(EntityType)(0),                   // 0: dogfight.EntityType
+	(*EntityData)(nil),                // 1: dogfight.EntityData
+	(*EntityData_AsteroidData)(nil),   // 2: dogfight.EntityData.AsteroidData
+	(*EntityData_PlayerData)(nil),     // 3: dogfight.EntityData.PlayerData
+	(*EntityData_PowerupData)(nil),    // 4: dogfight.EntityData.PowerupData
+	(*EntityData_ProjectileData)(nil), // 5: dogfight.EntityData.ProjectileData
+	(*Vector)(nil),                    // 6: dogfight.Vector
 }
 var file_entities_proto_depIdxs = []int32{
-	0, // 0: dogfight.Entity.type:type_name -> dogfight.EntityType
-	6, // 1: dogfight.Entity.position:type_name -> dogfight.Vector
-	6, // 2: dogfight.Entity.velocity:type_name -> dogfight.Vector
-	2, // 3: dogfight.Entity.asteroidData:type_name -> dogfight.Entity.AsteroidData
-	3, // 4: dogfight.Entity.playerData:type_name -> dogfight.Entity.PlayerData
-	4, // 5: dogfight.Entity.powerupData:type_name -> dogfight.Entity.PowerupData
-	5, // 6: dogfight.Entity.projectileData:type_name -> dogfight.Entity.ProjectileData
-	6, // 7: dogfight.Entity.AsteroidData.points:type_name -> dogfight.Vector
+	0, // 0: dogfight.EntityData.type:type_name -> dogfight.EntityType
+	6, // 1: dogfight.EntityData.position:type_name -> dogfight.Vector
+	6, // 2: dogfight.EntityData.velocity:type_name -> dogfight.Vector
+	2, // 3: dogfight.EntityData.asteroidData:type_name -> dogfight.EntityData.AsteroidData
+	3, // 4: dogfight.EntityData.playerData:type_name -> dogfight.EntityData.PlayerData
+	4, // 5: dogfight.EntityData.powerupData:type_name -> dogfight.EntityData.PowerupData
+	5, // 6: dogfight.EntityData.projectileData:type_name -> dogfight.EntityData.ProjectileData
+	6, // 7: dogfight.EntityData.AsteroidData.points:type_name -> dogfight.Vector
 	8, // [8:8] is the sub-list for method output_type
 	8, // [8:8] is the sub-list for method input_type
 	8, // [8:8] is the sub-list for extension type_name
@@ -518,10 +519,10 @@ func file_entities_proto_init() {
 	}
 	file_vector_proto_init()
 	file_entities_proto_msgTypes[0].OneofWrappers = []any{
-		(*Entity_AsteroidData_)(nil),
-		(*Entity_PlayerData_)(nil),
-		(*Entity_PowerupData_)(nil),
-		(*Entity_ProjectileData_)(nil),
+		(*EntityData_AsteroidData_)(nil),
+		(*EntityData_PlayerData_)(nil),
+		(*EntityData_PowerupData_)(nil),
+		(*EntityData_ProjectileData_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

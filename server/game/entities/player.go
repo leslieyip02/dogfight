@@ -17,7 +17,7 @@ const (
 var playerBoundingBoxPoints = geometry.NewRectangleHull(PLAYER_RADIUS*2, PLAYER_RADIUS*2)
 
 type Player struct {
-	entity *pb.Entity
+	entityData *pb.EntityData
 
 	// state
 	position    geometry.Vector
@@ -36,14 +36,14 @@ func NewPlayer(id string, username string) *Player {
 	velocity := *geometry.NewVector(0, 0)
 	rotation := 0.0
 
-	entity := &pb.Entity{
+	entity := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_PLAYER,
 		Id:       id,
 		Position: &pb.Vector{X: position.X, Y: position.Y},
 		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Data: &pb.Entity_PlayerData_{
-			PlayerData: &pb.Entity_PlayerData{
+		Data: &pb.EntityData_PlayerData_{
+			PlayerData: &pb.EntityData_PlayerData{
 				Username: username,
 				Score:    0,
 				Flags:    0,
@@ -52,7 +52,7 @@ func NewPlayer(id string, username string) *Player {
 	}
 
 	p := Player{
-		entity:       entity,
+		entityData:   entity,
 		position:     position,
 		velocity:     velocity,
 		rotation:     rotation,
@@ -68,16 +68,16 @@ func NewPlayer(id string, username string) *Player {
 	return &p
 }
 
-func (p *Player) GetType() pb.EntityType {
+func (p *Player) GetEntityType() pb.EntityType {
 	return pb.EntityType_ENTITY_TYPE_PLAYER
 }
 
-func (p *Player) GetEntity() *pb.Entity {
-	return p.entity
+func (p *Player) GetEntityData() *pb.EntityData {
+	return p.entityData
 }
 
 func (p *Player) GetID() string {
-	return p.entity.Id
+	return p.entityData.Id
 }
 
 func (p *Player) GetPosition() geometry.Vector {
@@ -122,11 +122,11 @@ func (p *Player) Update() bool {
 	p.position.Y += p.velocity.Y
 
 	// copy to entity
-	p.entity.Position.X = p.position.X
-	p.entity.Position.Y = p.position.Y
-	p.entity.Velocity.X = p.velocity.X
-	p.entity.Velocity.Y = p.velocity.Y
-	p.entity.Rotation = p.rotation
+	p.entityData.Position.X = p.position.X
+	p.entityData.Position.Y = p.position.Y
+	p.entityData.Velocity.X = p.velocity.X
+	p.entityData.Velocity.Y = p.velocity.Y
+	p.entityData.Rotation = p.rotation
 
 	return true
 }
@@ -138,7 +138,7 @@ func (p *Player) PollNewEntities() []Entity {
 	p.mousePressed = false
 
 	shots := 1
-	flags := AbilityFlag(p.entity.GetPlayerData().Flags)
+	flags := AbilityFlag(p.entityData.GetPlayerData().Flags)
 	if isAbilityActive(flags, MultishotAbilityFlag) {
 		shots = 3
 	}
@@ -160,20 +160,20 @@ func (p *Player) PollNewEntities() []Entity {
 }
 
 func (p *Player) UpdateOnCollision(other Entity) {
-	if other.GetType() == pb.EntityType_ENTITY_TYPE_POWERUP {
+	if other.GetEntityType() == pb.EntityType_ENTITY_TYPE_POWERUP {
 		powerup := other.(*Powerup)
-		p.entity.GetPlayerData().Flags |= powerup.entity.GetPowerupData().Ability
+		p.entityData.GetPlayerData().Flags |= powerup.entityData.GetPowerupData().Ability
 	}
 }
 
 func (p *Player) RemoveOnCollision(other Entity) bool {
-	if other.GetType() == pb.EntityType_ENTITY_TYPE_POWERUP {
+	if other.GetEntityType() == pb.EntityType_ENTITY_TYPE_POWERUP {
 		return false
 	}
 
-	flags := AbilityFlag(p.entity.GetPlayerData().Flags)
+	flags := AbilityFlag(p.entityData.GetPlayerData().Flags)
 	if isAbilityActive(flags, ShieldAbilityFlag) {
-		p.entity.GetPlayerData().Flags ^= uint32(ShieldAbilityFlag)
+		p.entityData.GetPlayerData().Flags ^= uint32(ShieldAbilityFlag)
 		return false
 	}
 

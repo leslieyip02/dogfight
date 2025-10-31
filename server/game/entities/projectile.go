@@ -16,7 +16,7 @@ var basicProjectileBoundingBoxPoints = geometry.NewRectangleHull(10, 10)
 var wideBeamProjectileBoundingBoxPoints = geometry.NewRectangleHull(20, 80)
 
 type Projectile struct {
-	entity *pb.Entity
+	entityData *pb.EntityData
 
 	// state
 	shooter     *Player
@@ -32,28 +32,28 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 		return nil, err
 	}
 	rotation := velocity.Angle()
-	flags := shooter.entity.GetPlayerData().GetFlags()
+	flags := shooter.entityData.GetPlayerData().GetFlags()
 
-	entity := &pb.Entity{
+	entity := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_PROJECTILE,
 		Id:       id,
 		Position: &pb.Vector{X: position.X, Y: position.Y},
 		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Data: &pb.Entity_ProjectileData_{
-			ProjectileData: &pb.Entity_ProjectileData{
-				Flags:    shooter.entity.GetPlayerData().GetFlags(),
+		Data: &pb.EntityData_ProjectileData_{
+			ProjectileData: &pb.EntityData_ProjectileData{
+				Flags:    shooter.entityData.GetPlayerData().GetFlags(),
 				Lifetime: PROJECTILE_LIFETIME,
 			},
 		},
 	}
 
 	p := Projectile{
-		entity:   entity,
-		position: position,
-		velocity: velocity,
-		rotation: rotation,
-		shooter:  shooter,
+		entityData: entity,
+		position:   position,
+		velocity:   velocity,
+		rotation:   rotation,
+		shooter:    shooter,
 	}
 	p.boundingBox = geometry.NewBoundingBox(
 		&p.position,
@@ -63,16 +63,16 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 	return &p, nil
 }
 
-func (p *Projectile) GetType() pb.EntityType {
+func (p *Projectile) GetEntityType() pb.EntityType {
 	return pb.EntityType_ENTITY_TYPE_PROJECTILE
 }
 
-func (p *Projectile) GetEntity() *pb.Entity {
-	return p.entity
+func (p *Projectile) GetEntityData() *pb.EntityData {
+	return p.entityData
 }
 
 func (p *Projectile) GetID() string {
-	return p.entity.Id
+	return p.entityData.Id
 }
 
 func (p *Projectile) GetPosition() geometry.Vector {
@@ -84,7 +84,7 @@ func (p *Projectile) GetVelocity() geometry.Vector {
 }
 
 func (p *Projectile) GetIsExpired() bool {
-	return p.entity.GetProjectileData().Lifetime < 0
+	return p.entityData.GetProjectileData().Lifetime < 0
 }
 
 func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
@@ -94,11 +94,11 @@ func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
 func (p *Projectile) Update() bool {
 	p.position.X += p.velocity.X
 	p.position.Y += p.velocity.Y
-	p.entity.GetProjectileData().Lifetime--
+	p.entityData.GetProjectileData().Lifetime--
 
 	// copy to entity
-	p.entity.Position.X = p.position.X
-	p.entity.Position.Y = p.position.Y
+	p.entityData.Position.X = p.position.X
+	p.entityData.Position.Y = p.position.Y
 
 	return true
 }
@@ -110,9 +110,9 @@ func (p *Projectile) PollNewEntities() []Entity {
 func (p *Projectile) UpdateOnCollision(other Entity) {}
 
 func (p *Projectile) RemoveOnCollision(other Entity) bool {
-	switch other.GetType() {
+	switch other.GetEntityType() {
 	case pb.EntityType_ENTITY_TYPE_PLAYER:
-		p.shooter.entity.GetPlayerData().Score++
+		p.shooter.entityData.GetPlayerData().Score++
 		return true
 
 	case pb.EntityType_ENTITY_TYPE_POWERUP, pb.EntityType_ENTITY_TYPE_PROJECTILE:

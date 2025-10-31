@@ -93,11 +93,11 @@ func (g *Game) respawn(id string) {
 	g.entities[id] = entities.NewPlayer(id, username)
 }
 
-func (g *Game) GetPBEntities() []*pb.Entity {
-	entities := make([]*pb.Entity, len(g.entities))
+func (g *Game) GetPBEntities() []*pb.EntityData {
+	entities := make([]*pb.EntityData, len(g.entities))
 	i := 0
 	for _, entity := range g.entities {
-		entities[i] = entity.GetEntity()
+		entities[i] = entity.GetEntityData()
 		i++
 	}
 	return entities

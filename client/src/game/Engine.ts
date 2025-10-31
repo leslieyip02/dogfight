@@ -1,7 +1,13 @@
 import p5 from "p5";
 
 import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
-import { type Event, type Event_DeltaEventData,Event_JoinEventData,Event_QuitEventData,EventType } from "../pb/event";
+import {
+  type Event,
+  type Event_DeltaEventData,
+  Event_JoinEventData,
+  Event_QuitEventData,
+  EventType,
+} from "../pb/event";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
 import {
@@ -14,7 +20,13 @@ import {
 import { drawHUD, drawMinimap } from "./utils/gui";
 import Input from "./utils/input";
 import { loadSpritesheet, type Spritesheet } from "./utils/sprites";
-import { addAnimations, mergeDeltas, removeEntities, syncEntities, updateEntities } from "./utils/update";
+import {
+  addAnimations,
+  mergeDeltas,
+  removeEntities,
+  syncEntities,
+  updateEntities,
+} from "./utils/update";
 
 const FPS = 60;
 

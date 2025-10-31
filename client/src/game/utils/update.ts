@@ -1,4 +1,4 @@
-import { type Entity as EntityData,EntityType } from "../../pb/entities";
+import { type EntityData, EntityType } from "../../pb/entities";
 import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
 import Animation from "../entities/Animation";
 import Asteroid from "../entities/Asteroid";

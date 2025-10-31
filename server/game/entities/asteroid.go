@@ -22,7 +22,7 @@ const (
 )
 
 type Asteroid struct {
-	entity *pb.Entity
+	entityData *pb.EntityData
 
 	// state
 	position    geometry.Vector
@@ -62,25 +62,25 @@ func newRandomAsteroid() (*Asteroid, error) {
 		}
 	}
 
-	entity := &pb.Entity{
+	entity := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_ASTEROID,
 		Id:       id,
 		Position: &pb.Vector{X: position.X, Y: position.Y},
 		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Data: &pb.Entity_AsteroidData_{
-			AsteroidData: &pb.Entity_AsteroidData{
+		Data: &pb.EntityData_AsteroidData_{
+			AsteroidData: &pb.EntityData_AsteroidData{
 				Points: entityPoints,
 			},
 		},
 	}
 	a := Asteroid{
-		entity:   entity,
-		position: position,
-		velocity: velocity,
-		rotation: rotation,
-		spin:     spin,
-		health:   ASTEROID_MAX_HEALTH,
+		entityData: entity,
+		position:   position,
+		velocity:   velocity,
+		rotation:   rotation,
+		spin:       spin,
+		health:     ASTEROID_MAX_HEALTH,
 	}
 	a.boundingBox = geometry.NewBoundingBox(
 		&a.position,
@@ -90,16 +90,16 @@ func newRandomAsteroid() (*Asteroid, error) {
 	return &a, nil
 }
 
-func (a *Asteroid) GetType() pb.EntityType {
-	return a.entity.GetType()
+func (a *Asteroid) GetEntityType() pb.EntityType {
+	return a.entityData.GetType()
 }
 
-func (a *Asteroid) GetEntity() *pb.Entity {
-	return a.entity
+func (a *Asteroid) GetEntityData() *pb.EntityData {
+	return a.entityData
 }
 
 func (a *Asteroid) GetID() string {
-	return a.entity.Id
+	return a.entityData.Id
 }
 
 func (a *Asteroid) GetPosition() geometry.Vector {
@@ -124,9 +124,9 @@ func (a *Asteroid) Update() bool {
 	a.rotation += a.spin
 
 	// copy to entity
-	a.entity.Position.X = a.position.X
-	a.entity.Position.Y = a.position.Y
-	a.entity.Rotation = a.rotation
+	a.entityData.Position.X = a.position.X
+	a.entityData.Position.Y = a.position.Y
+	a.entityData.Rotation = a.rotation
 
 	return true
 }
@@ -138,7 +138,7 @@ func (a *Asteroid) PollNewEntities() []Entity {
 func (a *Asteroid) UpdateOnCollision(other Entity) {}
 
 func (a *Asteroid) RemoveOnCollision(other Entity) bool {
-	switch other.GetType() {
+	switch other.GetEntityType() {
 	case pb.EntityType_ENTITY_TYPE_PROJECTILE:
 		a.health--
 		return a.health <= 0

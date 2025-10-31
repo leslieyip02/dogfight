@@ -67,38 +67,38 @@ export function entityTypeToJSON(object: EntityType): string {
   }
 }
 
-export interface Entity {
+export interface EntityData {
   type: EntityType;
   id: string;
   position: Vector | undefined;
   velocity: Vector | undefined;
   rotation: number;
-  asteroidData?: Entity_AsteroidData | undefined;
-  playerData?: Entity_PlayerData | undefined;
-  powerupData?: Entity_PowerupData | undefined;
-  projectileData?: Entity_ProjectileData | undefined;
+  asteroidData?: EntityData_AsteroidData | undefined;
+  playerData?: EntityData_PlayerData | undefined;
+  powerupData?: EntityData_PowerupData | undefined;
+  projectileData?: EntityData_ProjectileData | undefined;
 }
 
-export interface Entity_AsteroidData {
+export interface EntityData_AsteroidData {
   points: Vector[];
 }
 
-export interface Entity_PlayerData {
+export interface EntityData_PlayerData {
   username: string;
   score: number;
   flags: number;
 }
 
-export interface Entity_PowerupData {
+export interface EntityData_PowerupData {
   ability: number;
 }
 
-export interface Entity_ProjectileData {
+export interface EntityData_ProjectileData {
   flags: number;
   lifetime: number;
 }
 
-function createBaseEntity(): Entity {
+function createBaseEntityData(): EntityData {
   return {
     type: 0,
     id: "",
@@ -112,8 +112,8 @@ function createBaseEntity(): Entity {
   };
 }
 
-export const Entity: MessageFns<Entity> = {
-  encode(message: Entity, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EntityData: MessageFns<EntityData> = {
+  encode(message: EntityData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
@@ -130,24 +130,24 @@ export const Entity: MessageFns<Entity> = {
       writer.uint32(41).double(message.rotation);
     }
     if (message.asteroidData !== undefined) {
-      Entity_AsteroidData.encode(message.asteroidData, writer.uint32(50).fork()).join();
+      EntityData_AsteroidData.encode(message.asteroidData, writer.uint32(50).fork()).join();
     }
     if (message.playerData !== undefined) {
-      Entity_PlayerData.encode(message.playerData, writer.uint32(58).fork()).join();
+      EntityData_PlayerData.encode(message.playerData, writer.uint32(58).fork()).join();
     }
     if (message.powerupData !== undefined) {
-      Entity_PowerupData.encode(message.powerupData, writer.uint32(66).fork()).join();
+      EntityData_PowerupData.encode(message.powerupData, writer.uint32(66).fork()).join();
     }
     if (message.projectileData !== undefined) {
-      Entity_ProjectileData.encode(message.projectileData, writer.uint32(74).fork()).join();
+      EntityData_ProjectileData.encode(message.projectileData, writer.uint32(74).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Entity {
+  decode(input: BinaryReader | Uint8Array, length?: number): EntityData {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEntity();
+    const message = createBaseEntityData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -196,7 +196,7 @@ export const Entity: MessageFns<Entity> = {
             break;
           }
 
-          message.asteroidData = Entity_AsteroidData.decode(reader, reader.uint32());
+          message.asteroidData = EntityData_AsteroidData.decode(reader, reader.uint32());
           continue;
         }
         case 7: {
@@ -204,7 +204,7 @@ export const Entity: MessageFns<Entity> = {
             break;
           }
 
-          message.playerData = Entity_PlayerData.decode(reader, reader.uint32());
+          message.playerData = EntityData_PlayerData.decode(reader, reader.uint32());
           continue;
         }
         case 8: {
@@ -212,7 +212,7 @@ export const Entity: MessageFns<Entity> = {
             break;
           }
 
-          message.powerupData = Entity_PowerupData.decode(reader, reader.uint32());
+          message.powerupData = EntityData_PowerupData.decode(reader, reader.uint32());
           continue;
         }
         case 9: {
@@ -220,7 +220,7 @@ export const Entity: MessageFns<Entity> = {
             break;
           }
 
-          message.projectileData = Entity_ProjectileData.decode(reader, reader.uint32());
+          message.projectileData = EntityData_ProjectileData.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -232,21 +232,23 @@ export const Entity: MessageFns<Entity> = {
     return message;
   },
 
-  fromJSON(object: any): Entity {
+  fromJSON(object: any): EntityData {
     return {
       type: isSet(object.type) ? entityTypeFromJSON(object.type) : 0,
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       position: isSet(object.position) ? Vector.fromJSON(object.position) : undefined,
       velocity: isSet(object.velocity) ? Vector.fromJSON(object.velocity) : undefined,
       rotation: isSet(object.rotation) ? globalThis.Number(object.rotation) : 0,
-      asteroidData: isSet(object.asteroidData) ? Entity_AsteroidData.fromJSON(object.asteroidData) : undefined,
-      playerData: isSet(object.playerData) ? Entity_PlayerData.fromJSON(object.playerData) : undefined,
-      powerupData: isSet(object.powerupData) ? Entity_PowerupData.fromJSON(object.powerupData) : undefined,
-      projectileData: isSet(object.projectileData) ? Entity_ProjectileData.fromJSON(object.projectileData) : undefined,
+      asteroidData: isSet(object.asteroidData) ? EntityData_AsteroidData.fromJSON(object.asteroidData) : undefined,
+      playerData: isSet(object.playerData) ? EntityData_PlayerData.fromJSON(object.playerData) : undefined,
+      powerupData: isSet(object.powerupData) ? EntityData_PowerupData.fromJSON(object.powerupData) : undefined,
+      projectileData: isSet(object.projectileData)
+        ? EntityData_ProjectileData.fromJSON(object.projectileData)
+        : undefined,
     };
   },
 
-  toJSON(message: Entity): unknown {
+  toJSON(message: EntityData): unknown {
     const obj: any = {};
     if (message.type !== 0) {
       obj.type = entityTypeToJSON(message.type);
@@ -264,25 +266,25 @@ export const Entity: MessageFns<Entity> = {
       obj.rotation = message.rotation;
     }
     if (message.asteroidData !== undefined) {
-      obj.asteroidData = Entity_AsteroidData.toJSON(message.asteroidData);
+      obj.asteroidData = EntityData_AsteroidData.toJSON(message.asteroidData);
     }
     if (message.playerData !== undefined) {
-      obj.playerData = Entity_PlayerData.toJSON(message.playerData);
+      obj.playerData = EntityData_PlayerData.toJSON(message.playerData);
     }
     if (message.powerupData !== undefined) {
-      obj.powerupData = Entity_PowerupData.toJSON(message.powerupData);
+      obj.powerupData = EntityData_PowerupData.toJSON(message.powerupData);
     }
     if (message.projectileData !== undefined) {
-      obj.projectileData = Entity_ProjectileData.toJSON(message.projectileData);
+      obj.projectileData = EntityData_ProjectileData.toJSON(message.projectileData);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Entity>, I>>(base?: I): Entity {
-    return Entity.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EntityData>, I>>(base?: I): EntityData {
+    return EntityData.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Entity>, I>>(object: I): Entity {
-    const message = createBaseEntity();
+  fromPartial<I extends Exact<DeepPartial<EntityData>, I>>(object: I): EntityData {
+    const message = createBaseEntityData();
     message.type = object.type ?? 0;
     message.id = object.id ?? "";
     message.position = (object.position !== undefined && object.position !== null)
@@ -293,37 +295,37 @@ export const Entity: MessageFns<Entity> = {
       : undefined;
     message.rotation = object.rotation ?? 0;
     message.asteroidData = (object.asteroidData !== undefined && object.asteroidData !== null)
-      ? Entity_AsteroidData.fromPartial(object.asteroidData)
+      ? EntityData_AsteroidData.fromPartial(object.asteroidData)
       : undefined;
     message.playerData = (object.playerData !== undefined && object.playerData !== null)
-      ? Entity_PlayerData.fromPartial(object.playerData)
+      ? EntityData_PlayerData.fromPartial(object.playerData)
       : undefined;
     message.powerupData = (object.powerupData !== undefined && object.powerupData !== null)
-      ? Entity_PowerupData.fromPartial(object.powerupData)
+      ? EntityData_PowerupData.fromPartial(object.powerupData)
       : undefined;
     message.projectileData = (object.projectileData !== undefined && object.projectileData !== null)
-      ? Entity_ProjectileData.fromPartial(object.projectileData)
+      ? EntityData_ProjectileData.fromPartial(object.projectileData)
       : undefined;
     return message;
   },
 };
 
-function createBaseEntity_AsteroidData(): Entity_AsteroidData {
+function createBaseEntityData_AsteroidData(): EntityData_AsteroidData {
   return { points: [] };
 }
 
-export const Entity_AsteroidData: MessageFns<Entity_AsteroidData> = {
-  encode(message: Entity_AsteroidData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EntityData_AsteroidData: MessageFns<EntityData_AsteroidData> = {
+  encode(message: EntityData_AsteroidData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.points) {
       Vector.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Entity_AsteroidData {
+  decode(input: BinaryReader | Uint8Array, length?: number): EntityData_AsteroidData {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEntity_AsteroidData();
+    const message = createBaseEntityData_AsteroidData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -344,13 +346,13 @@ export const Entity_AsteroidData: MessageFns<Entity_AsteroidData> = {
     return message;
   },
 
-  fromJSON(object: any): Entity_AsteroidData {
+  fromJSON(object: any): EntityData_AsteroidData {
     return {
       points: globalThis.Array.isArray(object?.points) ? object.points.map((e: any) => Vector.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: Entity_AsteroidData): unknown {
+  toJSON(message: EntityData_AsteroidData): unknown {
     const obj: any = {};
     if (message.points?.length) {
       obj.points = message.points.map((e) => Vector.toJSON(e));
@@ -358,22 +360,22 @@ export const Entity_AsteroidData: MessageFns<Entity_AsteroidData> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Entity_AsteroidData>, I>>(base?: I): Entity_AsteroidData {
-    return Entity_AsteroidData.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EntityData_AsteroidData>, I>>(base?: I): EntityData_AsteroidData {
+    return EntityData_AsteroidData.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Entity_AsteroidData>, I>>(object: I): Entity_AsteroidData {
-    const message = createBaseEntity_AsteroidData();
+  fromPartial<I extends Exact<DeepPartial<EntityData_AsteroidData>, I>>(object: I): EntityData_AsteroidData {
+    const message = createBaseEntityData_AsteroidData();
     message.points = object.points?.map((e) => Vector.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseEntity_PlayerData(): Entity_PlayerData {
+function createBaseEntityData_PlayerData(): EntityData_PlayerData {
   return { username: "", score: 0, flags: 0 };
 }
 
-export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
-  encode(message: Entity_PlayerData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EntityData_PlayerData: MessageFns<EntityData_PlayerData> = {
+  encode(message: EntityData_PlayerData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.username !== "") {
       writer.uint32(10).string(message.username);
     }
@@ -386,10 +388,10 @@ export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Entity_PlayerData {
+  decode(input: BinaryReader | Uint8Array, length?: number): EntityData_PlayerData {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEntity_PlayerData();
+    const message = createBaseEntityData_PlayerData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -426,7 +428,7 @@ export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
     return message;
   },
 
-  fromJSON(object: any): Entity_PlayerData {
+  fromJSON(object: any): EntityData_PlayerData {
     return {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       score: isSet(object.score) ? globalThis.Number(object.score) : 0,
@@ -434,7 +436,7 @@ export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
     };
   },
 
-  toJSON(message: Entity_PlayerData): unknown {
+  toJSON(message: EntityData_PlayerData): unknown {
     const obj: any = {};
     if (message.username !== "") {
       obj.username = message.username;
@@ -448,11 +450,11 @@ export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Entity_PlayerData>, I>>(base?: I): Entity_PlayerData {
-    return Entity_PlayerData.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EntityData_PlayerData>, I>>(base?: I): EntityData_PlayerData {
+    return EntityData_PlayerData.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Entity_PlayerData>, I>>(object: I): Entity_PlayerData {
-    const message = createBaseEntity_PlayerData();
+  fromPartial<I extends Exact<DeepPartial<EntityData_PlayerData>, I>>(object: I): EntityData_PlayerData {
+    const message = createBaseEntityData_PlayerData();
     message.username = object.username ?? "";
     message.score = object.score ?? 0;
     message.flags = object.flags ?? 0;
@@ -460,22 +462,22 @@ export const Entity_PlayerData: MessageFns<Entity_PlayerData> = {
   },
 };
 
-function createBaseEntity_PowerupData(): Entity_PowerupData {
+function createBaseEntityData_PowerupData(): EntityData_PowerupData {
   return { ability: 0 };
 }
 
-export const Entity_PowerupData: MessageFns<Entity_PowerupData> = {
-  encode(message: Entity_PowerupData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EntityData_PowerupData: MessageFns<EntityData_PowerupData> = {
+  encode(message: EntityData_PowerupData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.ability !== 0) {
       writer.uint32(8).uint32(message.ability);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Entity_PowerupData {
+  decode(input: BinaryReader | Uint8Array, length?: number): EntityData_PowerupData {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEntity_PowerupData();
+    const message = createBaseEntityData_PowerupData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -496,11 +498,11 @@ export const Entity_PowerupData: MessageFns<Entity_PowerupData> = {
     return message;
   },
 
-  fromJSON(object: any): Entity_PowerupData {
+  fromJSON(object: any): EntityData_PowerupData {
     return { ability: isSet(object.ability) ? globalThis.Number(object.ability) : 0 };
   },
 
-  toJSON(message: Entity_PowerupData): unknown {
+  toJSON(message: EntityData_PowerupData): unknown {
     const obj: any = {};
     if (message.ability !== 0) {
       obj.ability = Math.round(message.ability);
@@ -508,22 +510,22 @@ export const Entity_PowerupData: MessageFns<Entity_PowerupData> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Entity_PowerupData>, I>>(base?: I): Entity_PowerupData {
-    return Entity_PowerupData.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EntityData_PowerupData>, I>>(base?: I): EntityData_PowerupData {
+    return EntityData_PowerupData.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Entity_PowerupData>, I>>(object: I): Entity_PowerupData {
-    const message = createBaseEntity_PowerupData();
+  fromPartial<I extends Exact<DeepPartial<EntityData_PowerupData>, I>>(object: I): EntityData_PowerupData {
+    const message = createBaseEntityData_PowerupData();
     message.ability = object.ability ?? 0;
     return message;
   },
 };
 
-function createBaseEntity_ProjectileData(): Entity_ProjectileData {
+function createBaseEntityData_ProjectileData(): EntityData_ProjectileData {
   return { flags: 0, lifetime: 0 };
 }
 
-export const Entity_ProjectileData: MessageFns<Entity_ProjectileData> = {
-  encode(message: Entity_ProjectileData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const EntityData_ProjectileData: MessageFns<EntityData_ProjectileData> = {
+  encode(message: EntityData_ProjectileData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.flags !== 0) {
       writer.uint32(8).uint32(message.flags);
     }
@@ -533,10 +535,10 @@ export const Entity_ProjectileData: MessageFns<Entity_ProjectileData> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Entity_ProjectileData {
+  decode(input: BinaryReader | Uint8Array, length?: number): EntityData_ProjectileData {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEntity_ProjectileData();
+    const message = createBaseEntityData_ProjectileData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -565,14 +567,14 @@ export const Entity_ProjectileData: MessageFns<Entity_ProjectileData> = {
     return message;
   },
 
-  fromJSON(object: any): Entity_ProjectileData {
+  fromJSON(object: any): EntityData_ProjectileData {
     return {
       flags: isSet(object.flags) ? globalThis.Number(object.flags) : 0,
       lifetime: isSet(object.lifetime) ? globalThis.Number(object.lifetime) : 0,
     };
   },
 
-  toJSON(message: Entity_ProjectileData): unknown {
+  toJSON(message: EntityData_ProjectileData): unknown {
     const obj: any = {};
     if (message.flags !== 0) {
       obj.flags = Math.round(message.flags);
@@ -583,11 +585,11 @@ export const Entity_ProjectileData: MessageFns<Entity_ProjectileData> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Entity_ProjectileData>, I>>(base?: I): Entity_ProjectileData {
-    return Entity_ProjectileData.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<EntityData_ProjectileData>, I>>(base?: I): EntityData_ProjectileData {
+    return EntityData_ProjectileData.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Entity_ProjectileData>, I>>(object: I): Entity_ProjectileData {
-    const message = createBaseEntity_ProjectileData();
+  fromPartial<I extends Exact<DeepPartial<EntityData_ProjectileData>, I>>(object: I): EntityData_ProjectileData {
+    const message = createBaseEntityData_ProjectileData();
     message.flags = object.flags ?? 0;
     message.lifetime = object.lifetime ?? 0;
     return message;

@@ -14,11 +14,11 @@ type MockEntity struct {
 	boundingBox *geometry.BoundingBox
 }
 
-func (e *MockEntity) GetType() pb.EntityType {
+func (e *MockEntity) GetEntityType() pb.EntityType {
 	return pb.EntityType_ENTITY_TYPE_MOCK
 }
 
-func (e *MockEntity) GetEntity() *pb.Entity {
+func (e *MockEntity) GetEntityData() *pb.EntityData {
 	return nil
 }
 

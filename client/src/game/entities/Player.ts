@@ -1,6 +1,6 @@
 import type p5 from "p5";
 
-import type { Entity as EntityData } from "../../pb/entities";
+import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
 import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
 import { SOUNDS } from "../utils/sounds";

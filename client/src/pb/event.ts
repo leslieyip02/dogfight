@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Entity } from "./entities";
+import { EntityData } from "./entities";
 
 export const protobufPackage = "dogfight";
 
@@ -105,12 +105,12 @@ export interface Event_InputEventData {
 
 export interface Event_SnapshotEventData {
   timestamp: number;
-  entities: Entity[];
+  entities: EntityData[];
 }
 
 export interface Event_DeltaEventData {
   timestamp: number;
-  updated: Entity[];
+  updated: EntityData[];
   removed: string[];
 }
 
@@ -604,7 +604,7 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
       writer.uint32(8).int32(message.timestamp);
     }
     for (const v of message.entities) {
-      Entity.encode(v!, writer.uint32(18).fork()).join();
+      EntityData.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -629,7 +629,7 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
             break;
           }
 
-          message.entities.push(Entity.decode(reader, reader.uint32()));
+          message.entities.push(EntityData.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -644,7 +644,9 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
   fromJSON(object: any): Event_SnapshotEventData {
     return {
       timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
-      entities: globalThis.Array.isArray(object?.entities) ? object.entities.map((e: any) => Entity.fromJSON(e)) : [],
+      entities: globalThis.Array.isArray(object?.entities)
+        ? object.entities.map((e: any) => EntityData.fromJSON(e))
+        : [],
     };
   },
 
@@ -654,7 +656,7 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
       obj.timestamp = Math.round(message.timestamp);
     }
     if (message.entities?.length) {
-      obj.entities = message.entities.map((e) => Entity.toJSON(e));
+      obj.entities = message.entities.map((e) => EntityData.toJSON(e));
     }
     return obj;
   },
@@ -665,7 +667,7 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
   fromPartial<I extends Exact<DeepPartial<Event_SnapshotEventData>, I>>(object: I): Event_SnapshotEventData {
     const message = createBaseEvent_SnapshotEventData();
     message.timestamp = object.timestamp ?? 0;
-    message.entities = object.entities?.map((e) => Entity.fromPartial(e)) || [];
+    message.entities = object.entities?.map((e) => EntityData.fromPartial(e)) || [];
     return message;
   },
 };
@@ -680,7 +682,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
       writer.uint32(8).int32(message.timestamp);
     }
     for (const v of message.updated) {
-      Entity.encode(v!, writer.uint32(18).fork()).join();
+      EntityData.encode(v!, writer.uint32(18).fork()).join();
     }
     for (const v of message.removed) {
       writer.uint32(26).string(v!);
@@ -708,7 +710,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
             break;
           }
 
-          message.updated.push(Entity.decode(reader, reader.uint32()));
+          message.updated.push(EntityData.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -731,7 +733,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
   fromJSON(object: any): Event_DeltaEventData {
     return {
       timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
-      updated: globalThis.Array.isArray(object?.updated) ? object.updated.map((e: any) => Entity.fromJSON(e)) : [],
+      updated: globalThis.Array.isArray(object?.updated) ? object.updated.map((e: any) => EntityData.fromJSON(e)) : [],
       removed: globalThis.Array.isArray(object?.removed) ? object.removed.map((e: any) => globalThis.String(e)) : [],
     };
   },
@@ -742,7 +744,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
       obj.timestamp = Math.round(message.timestamp);
     }
     if (message.updated?.length) {
-      obj.updated = message.updated.map((e) => Entity.toJSON(e));
+      obj.updated = message.updated.map((e) => EntityData.toJSON(e));
     }
     if (message.removed?.length) {
       obj.removed = message.removed;
@@ -756,7 +758,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
   fromPartial<I extends Exact<DeepPartial<Event_DeltaEventData>, I>>(object: I): Event_DeltaEventData {
     const message = createBaseEvent_DeltaEventData();
     message.timestamp = object.timestamp ?? 0;
-    message.updated = object.updated?.map((e) => Entity.fromPartial(e)) || [];
+    message.updated = object.updated?.map((e) => EntityData.fromPartial(e)) || [];
     message.removed = object.removed?.map((e) => e) || [];
     return message;
   },

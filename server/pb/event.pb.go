@@ -447,7 +447,7 @@ func (x *Event_InputEventData) GetMousePressed() bool {
 type Event_SnapshotEventData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamp     int32                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Entities      []*Entity              `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
+	Entities      []*EntityData          `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -489,7 +489,7 @@ func (x *Event_SnapshotEventData) GetTimestamp() int32 {
 	return 0
 }
 
-func (x *Event_SnapshotEventData) GetEntities() []*Entity {
+func (x *Event_SnapshotEventData) GetEntities() []*EntityData {
 	if x != nil {
 		return x.Entities
 	}
@@ -499,7 +499,7 @@ func (x *Event_SnapshotEventData) GetEntities() []*Entity {
 type Event_DeltaEventData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamp     int32                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Updated       []*Entity              `protobuf:"bytes,2,rep,name=updated,proto3" json:"updated,omitempty"`
+	Updated       []*EntityData          `protobuf:"bytes,2,rep,name=updated,proto3" json:"updated,omitempty"`
 	Removed       []string               `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -542,7 +542,7 @@ func (x *Event_DeltaEventData) GetTimestamp() int32 {
 	return 0
 }
 
-func (x *Event_DeltaEventData) GetUpdated() []*Entity {
+func (x *Event_DeltaEventData) GetUpdated() []*EntityData {
 	if x != nil {
 		return x.Updated
 	}
@@ -560,7 +560,7 @@ var File_event_proto protoreflect.FileDescriptor
 
 const file_event_proto_rawDesc = "" +
 	"\n" +
-	"\vevent.proto\x12\bdogfight\x1a\x0eentities.proto\"\xcc\a\n" +
+	"\vevent.proto\x12\bdogfight\x1a\x0eentities.proto\"\xd4\a\n" +
 	"\x05Event\x12'\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x13.dogfight.EventTypeR\x04type\x12E\n" +
 	"\rjoinEventData\x18\x02 \x01(\v2\x1d.dogfight.Event.JoinEventDataH\x00R\rjoinEventData\x12E\n" +
@@ -580,13 +580,13 @@ const file_event_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06mouseX\x18\x02 \x01(\x01R\x06mouseX\x12\x16\n" +
 	"\x06mouseY\x18\x03 \x01(\x01R\x06mouseY\x12\"\n" +
-	"\fmousePressed\x18\x04 \x01(\bR\fmousePressed\x1a_\n" +
+	"\fmousePressed\x18\x04 \x01(\bR\fmousePressed\x1ac\n" +
 	"\x11SnapshotEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12,\n" +
-	"\bentities\x18\x02 \x03(\v2\x10.dogfight.EntityR\bentities\x1at\n" +
+	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x120\n" +
+	"\bentities\x18\x02 \x03(\v2\x14.dogfight.EntityDataR\bentities\x1ax\n" +
 	"\x0eDeltaEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12*\n" +
-	"\aupdated\x18\x02 \x03(\v2\x10.dogfight.EntityR\aupdated\x12\x18\n" +
+	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12.\n" +
+	"\aupdated\x18\x02 \x03(\v2\x14.dogfight.EntityDataR\aupdated\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\tR\aremovedB\x06\n" +
 	"\x04data*\xaa\x01\n" +
 	"\tEventType\x12\x16\n" +
@@ -621,7 +621,7 @@ var file_event_proto_goTypes = []any{
 	(*Event_InputEventData)(nil),    // 5: dogfight.Event.InputEventData
 	(*Event_SnapshotEventData)(nil), // 6: dogfight.Event.SnapshotEventData
 	(*Event_DeltaEventData)(nil),    // 7: dogfight.Event.DeltaEventData
-	(*Entity)(nil),                  // 8: dogfight.Entity
+	(*EntityData)(nil),              // 8: dogfight.EntityData
 }
 var file_event_proto_depIdxs = []int32{
 	0, // 0: dogfight.Event.type:type_name -> dogfight.EventType
@@ -631,8 +631,8 @@ var file_event_proto_depIdxs = []int32{
 	5, // 4: dogfight.Event.inputEventData:type_name -> dogfight.Event.InputEventData
 	6, // 5: dogfight.Event.snapshotEventData:type_name -> dogfight.Event.SnapshotEventData
 	7, // 6: dogfight.Event.deltaEventData:type_name -> dogfight.Event.DeltaEventData
-	8, // 7: dogfight.Event.SnapshotEventData.entities:type_name -> dogfight.Entity
-	8, // 8: dogfight.Event.DeltaEventData.updated:type_name -> dogfight.Entity
+	8, // 7: dogfight.Event.SnapshotEventData.entities:type_name -> dogfight.EntityData
+	8, // 8: dogfight.Event.DeltaEventData.updated:type_name -> dogfight.EntityData
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name

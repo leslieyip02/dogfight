@@ -15,13 +15,16 @@ const (
 )
 
 type Entity interface {
-	GetType() pb.EntityType
-	GetEntity() *pb.Entity
+	// wrap over protobuf data
+	GetEntityType() pb.EntityType
+	GetEntityData() *pb.EntityData
 
 	GetID() string
+	GetIsExpired() bool
+
+	// internal representations
 	GetPosition() geometry.Vector
 	GetVelocity() geometry.Vector
-	GetIsExpired() bool
 	GetBoundingBox() *geometry.BoundingBox
 
 	Update() bool

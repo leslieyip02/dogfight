@@ -5,7 +5,7 @@ option go_package = "/pb";
 
 import "vector.proto";
 
-message Entity {
+message EntityData {
     EntityType type = 1;
     string id = 2;
     Vector position = 3;

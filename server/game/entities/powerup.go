@@ -13,7 +13,7 @@ const (
 var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
 
 type Powerup struct {
-	entity *pb.Entity
+	entityData *pb.EntityData
 
 	// state
 	position    geometry.Vector
@@ -32,24 +32,24 @@ func newRandomPowerup() (*Powerup, error) {
 	rotation := 0.0
 	ability := newRandomAbility()
 
-	entity := &pb.Entity{
+	entity := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_POWERUP,
 		Id:       id,
 		Position: &pb.Vector{X: position.X, Y: position.Y},
 		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Data: &pb.Entity_PowerupData_{
-			PowerupData: &pb.Entity_PowerupData{
+		Data: &pb.EntityData_PowerupData_{
+			PowerupData: &pb.EntityData_PowerupData{
 				Ability: uint32(ability),
 			},
 		},
 	}
 
 	p := Powerup{
-		entity:   entity,
-		position: position,
-		velocity: velocity,
-		rotation: rotation,
+		entityData: entity,
+		position:   position,
+		velocity:   velocity,
+		rotation:   rotation,
 	}
 	p.boundingBox = geometry.NewBoundingBox(
 		&p.position,
@@ -59,16 +59,16 @@ func newRandomPowerup() (*Powerup, error) {
 	return &p, nil
 }
 
-func (p *Powerup) GetType() pb.EntityType {
+func (p *Powerup) GetEntityType() pb.EntityType {
 	return pb.EntityType_ENTITY_TYPE_POWERUP
 }
 
-func (p *Powerup) GetEntity() *pb.Entity {
-	return p.entity
+func (p *Powerup) GetEntityData() *pb.EntityData {
+	return p.entityData
 }
 
 func (p *Powerup) GetID() string {
-	return p.entity.Id
+	return p.entityData.Id
 }
 
 func (p *Powerup) GetPosition() geometry.Vector {
@@ -98,5 +98,5 @@ func (p *Powerup) PollNewEntities() []Entity {
 func (p *Powerup) UpdateOnCollision(other Entity) {}
 
 func (p *Powerup) RemoveOnCollision(other Entity) bool {
-	return other.GetType() == pb.EntityType_ENTITY_TYPE_PLAYER
+	return other.GetEntityType() == pb.EntityType_ENTITY_TYPE_PLAYER
 }
