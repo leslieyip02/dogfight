@@ -3,8 +3,8 @@ package room
 import (
 	"context"
 	"server/game"
+	"server/id"
 	"server/pb"
-	"server/utils"
 
 	"sync"
 
@@ -23,7 +23,7 @@ type Room struct {
 }
 
 func NewRoom() (*Room, error) {
-	id, err := utils.NewShortId()
+	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}

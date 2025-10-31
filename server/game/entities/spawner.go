@@ -5,7 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"server/game/geometry"
-	"server/utils"
+	"server/id"
 )
 
 const (
@@ -31,7 +31,7 @@ func NewSpawner() Spawner {
 }
 
 func (s *Spawner) SpawnRandomAsteroid() (*Asteroid, error) {
-	id, err := utils.NewShortId()
+	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (s *Spawner) SpawnPlayer(id string, username string) (*Player, error) {
 }
 
 func (s *Spawner) SpawnPowerup() (*Powerup, error) {
-	id, err := utils.NewShortId()
+	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}

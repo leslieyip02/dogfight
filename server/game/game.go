@@ -145,8 +145,8 @@ func (g *Game) Run(ctx context.Context) {
 	ticker := time.NewTicker(time.Second / entities.FPS)
 
 	for _, entity := range g.spawner.InitEntities() {
-		g.entities[entity.GetID()] = entity
-		g.updated[entity.GetID()] = entity
+		g.entities[entity.GetId()] = entity
+		g.updated[entity.GetId()] = entity
 	}
 
 	go func() {
@@ -234,18 +234,18 @@ func (g *Game) handleCollision(id1 *string, id2 *string) {
 	e2.UpdateOnCollision(e1)
 
 	if e1.RemoveOnCollision(e2) {
-		g.removed = append(g.removed, e1.GetID())
+		g.removed = append(g.removed, e1.GetId())
 	}
 	if e2.RemoveOnCollision(e1) {
-		g.removed = append(g.removed, e2.GetID())
+		g.removed = append(g.removed, e2.GetId())
 	}
 }
 
 func (g *Game) pollNewEntities() {
 	for _, entity := range g.entities {
 		for _, newEntity := range entity.PollNewEntities() {
-			g.entities[newEntity.GetID()] = newEntity
-			g.updated[newEntity.GetID()] = newEntity
+			g.entities[newEntity.GetId()] = newEntity
+			g.updated[newEntity.GetId()] = newEntity
 		}
 	}
 
@@ -253,8 +253,8 @@ func (g *Game) pollNewEntities() {
 		return
 	}
 	for _, newEntity := range g.spawner.PollNewEntities() {
-		g.entities[newEntity.GetID()] = newEntity
-		g.updated[newEntity.GetID()] = newEntity
+		g.entities[newEntity.GetId()] = newEntity
+		g.updated[newEntity.GetId()] = newEntity
 	}
 }
 

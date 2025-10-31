@@ -16,7 +16,7 @@ type Entity interface {
 	GetEntityType() pb.EntityType
 	GetEntityData() *pb.EntityData
 
-	GetID() string
+	GetId() string
 	GetIsExpired() bool
 
 	// internal representations

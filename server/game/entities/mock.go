@@ -31,7 +31,7 @@ func (e *MockEntity) GetEntityData() *pb.EntityData {
 	return nil
 }
 
-func (e *MockEntity) GetID() string {
+func (e *MockEntity) GetId() string {
 	return e.Id
 }
 

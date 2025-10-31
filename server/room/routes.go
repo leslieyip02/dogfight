@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"server/utils"
+	"server/id"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -27,7 +27,7 @@ func (m *Manager) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId, err := utils.NewShortId()
+	clientId, err := id.NewShortId()
 	if err != nil {
 		http.Error(w, "unable to assign client", http.StatusInternalServerError)
 		return

@@ -71,7 +71,7 @@ func (p *Projectile) GetEntityData() *pb.EntityData {
 	return p.entityData
 }
 
-func (p *Projectile) GetID() string {
+func (p *Projectile) GetId() string {
 	return p.entityData.Id
 }
 

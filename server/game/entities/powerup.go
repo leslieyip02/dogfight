@@ -60,7 +60,7 @@ func (p *Powerup) GetEntityData() *pb.EntityData {
 	return p.entityData
 }
 
-func (p *Powerup) GetID() string {
+func (p *Powerup) GetId() string {
 	return p.entityData.Id
 }
 

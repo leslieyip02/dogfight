@@ -75,7 +75,7 @@ func (a *Asteroid) GetEntityData() *pb.EntityData {
 	return a.entityData
 }
 
-func (a *Asteroid) GetID() string {
+func (a *Asteroid) GetId() string {
 	return a.entityData.Id
 }
 

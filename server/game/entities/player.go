@@ -3,8 +3,8 @@ package entities
 import (
 	"math"
 	"server/game/geometry"
+	"server/id"
 	"server/pb"
-	"server/utils"
 )
 
 const (
@@ -78,7 +78,7 @@ func (p *Player) GetEntityData() *pb.EntityData {
 	return p.entityData
 }
 
-func (p *Player) GetID() string {
+func (p *Player) GetId() string {
 	return p.entityData.Id
 }
 
@@ -175,7 +175,7 @@ func (p *Player) spawnProjectiles(flags AbilityFlag) []Entity {
 }
 
 func (p *Player) spawnProjectile(offset float64) (*Projectile, error) {
-	id, err := utils.NewShortId()
+	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}
