@@ -4,6 +4,7 @@ import (
 	"math"
 	"server/game/geometry"
 	"server/pb"
+	"server/utils"
 )
 
 const (
@@ -19,28 +20,33 @@ var playerBoundingBoxPoints = geometry.NewRectangleHull(PLAYER_RADIUS*2, PLAYER_
 type Player struct {
 	entityData *pb.EntityData
 
-	// state
-	position    geometry.Vector
-	velocity    geometry.Vector
-	rotation    float64
-	boundingBox *geometry.BoundingBox
+	// internal duplicates of EntityData state
+	position geometry.Vector
+	velocity geometry.Vector
+	rotation float64
 
-	// input
+	boundingBox  *geometry.BoundingBox
 	mouseX       float64
 	mouseY       float64
 	mousePressed bool
 }
 
-func NewPlayer(id string, username string) *Player {
-	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
-	velocity := *geometry.NewVector(0, 0)
-	rotation := 0.0
+func NewPlayer(
+	id string,
+	position geometry.Vector,
+	velocity geometry.Vector,
+	rotation float64,
+	username string,
+) *Player {
+	mouseX := 0.0
+	mouseY := 0.0
+	mousePressed := false
 
-	entity := &pb.EntityData{
+	entityData := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_PLAYER,
 		Id:       id,
-		Position: &pb.Vector{X: position.X, Y: position.Y},
-		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
+		Position: position.ToPb(),
+		Velocity: velocity.ToPb(),
 		Rotation: rotation,
 		Data: &pb.EntityData_PlayerData_{
 			PlayerData: &pb.EntityData_PlayerData{
@@ -52,19 +58,15 @@ func NewPlayer(id string, username string) *Player {
 	}
 
 	p := Player{
-		entityData:   entity,
+		entityData:   entityData,
 		position:     position,
 		velocity:     velocity,
 		rotation:     rotation,
-		mouseX:       0,
-		mouseY:       0,
-		mousePressed: false,
+		mouseX:       mouseX,
+		mouseY:       mouseY,
+		mousePressed: mousePressed,
 	}
-	p.boundingBox = geometry.NewBoundingBox(
-		&p.position,
-		&p.rotation,
-		&playerBoundingBoxPoints,
-	)
+	p.boundingBox = geometry.NewBoundingBox(&p.position, &p.rotation, &playerBoundingBoxPoints)
 	return &p
 }
 
@@ -98,36 +100,17 @@ func (p *Player) GetBoundingBox() *geometry.BoundingBox {
 
 func (p *Player) Update() bool {
 	// TODO: continue iterating on this
-	currentSpeed := p.velocity.Length()
 	targetVelocity := geometry.NewVector(p.mouseX, p.mouseY)
 
-	currentAngle := p.velocity.Angle()
-	targetAngle := targetVelocity.Angle()
-	turnRate := normalizeAngle(targetAngle - currentAngle)
-	maxTurnRate := PLAYER_MAX_TURN_RATE / (1 + PLAYER_TURN_RATE_DECAY*currentSpeed)
-	if math.Abs(turnRate) > maxTurnRate {
-		turnRate = math.Copysign(maxTurnRate, turnRate)
-	}
-	p.rotation = normalizeAngle(currentAngle + turnRate)
-
-	throttle := targetVelocity.Length()
-	targetSpeed := throttle * PLAYER_MAX_SPEED
-	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
-	currentSpeed += (targetSpeed - currentSpeed) * acceleration
-
-	p.velocity.X = math.Cos(p.rotation) * currentSpeed
-	p.velocity.Y = math.Sin(p.rotation) * currentSpeed
+	speed := accelerate(p.velocity, targetVelocity)
+	p.velocity.X = math.Cos(p.rotation) * speed
+	p.velocity.Y = math.Sin(p.rotation) * speed
 
 	p.position.X += p.velocity.X
 	p.position.Y += p.velocity.Y
+	p.rotation = rotate(p.velocity, targetVelocity)
 
-	// copy to entity
-	p.entityData.Position.X = p.position.X
-	p.entityData.Position.Y = p.position.Y
-	p.entityData.Velocity.X = p.velocity.X
-	p.entityData.Velocity.Y = p.velocity.Y
-	p.entityData.Rotation = p.rotation
-
+	p.syncEntityData()
 	return true
 }
 
@@ -137,25 +120,9 @@ func (p *Player) PollNewEntities() []Entity {
 	}
 	p.mousePressed = false
 
-	shots := 1
 	flags := AbilityFlag(p.entityData.GetPlayerData().Flags)
-	if isAbilityActive(flags, MultishotAbilityFlag) {
-		shots = 3
-	}
+	projectiles := p.spawnProjectiles(flags)
 
-	projectiles := []Entity{}
-	velocity := p.velocity.Unit().Multiply(PROJECTILE_SPEED)
-	for i := range shots {
-		offset := float64(i-shots/2) * 32.0
-		translated := p.position.Add(p.velocity.Normal().Multiply(offset))
-		position := translated.Add(p.velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
-
-		projectile, err := NewProjectile(*position, *velocity, p)
-		if err != nil {
-			continue
-		}
-		projectiles = append(projectiles, projectile)
-	}
 	return projectiles
 }
 
@@ -187,6 +154,77 @@ func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	p.mousePressed = p.mousePressed || mousePressed
 }
 
+func (p *Player) spawnProjectiles(flags AbilityFlag) []Entity {
+	shots := 1
+	if isAbilityActive(flags, MultishotAbilityFlag) {
+		shots = 3
+	}
+
+	projectiles := []Entity{}
+	for i := range shots {
+		offset := float64(i-shots/2) * 32.0
+
+		projectile, err := p.spawnProjectile(offset)
+		if err != nil {
+			continue
+		}
+
+		projectiles = append(projectiles, projectile)
+	}
+	return projectiles
+}
+
+func (p *Player) spawnProjectile(offset float64) (*Projectile, error) {
+	id, err := utils.NewShortId()
+	if err != nil {
+		return nil, err
+	}
+
+	translated := p.position.Add(p.velocity.Normal().Multiply(offset))
+	position := translated.Add(p.velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
+	velocity := p.velocity.Unit().Multiply(PROJECTILE_SPEED)
+
+	return NewProjectile(
+		id,
+		*position,
+		*velocity,
+		AbilityFlag(p.entityData.GetPlayerData().Flags),
+		p.projectileOnRemove,
+	), nil
+}
+
+func (p *Player) projectileOnRemove(other *Entity) {
+	if other == nil {
+		return
+	}
+
+	if (*other).GetEntityType() == pb.EntityType_ENTITY_TYPE_PLAYER {
+		p.entityData.GetPlayerData().Score++
+	}
+}
+
+func rotate(currentVelocity geometry.Vector, targetVelocity *geometry.Vector) float64 {
+	currentSpeed := currentVelocity.Length()
+	currentAngle := currentVelocity.Angle()
+	targetAngle := targetVelocity.Angle()
+
+	turnRate := normalizeAngle(targetAngle - currentAngle)
+	maxTurnRate := PLAYER_MAX_TURN_RATE / (1 + PLAYER_TURN_RATE_DECAY*currentSpeed)
+	if math.Abs(turnRate) > maxTurnRate {
+		turnRate = math.Copysign(maxTurnRate, turnRate)
+	}
+
+	return normalizeAngle(currentAngle + turnRate)
+}
+
+func accelerate(currentVelocity geometry.Vector, targetVelocity *geometry.Vector) float64 {
+	currentSpeed := currentVelocity.Length()
+	targetSpeed := targetVelocity.Length() * PLAYER_MAX_SPEED
+
+	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
+	return currentSpeed + (targetSpeed-currentSpeed)*acceleration
+}
+
 func normalizeAngle(angle float64) float64 {
 	angle = math.Mod(angle, 2*math.Pi)
 	if angle > math.Pi {
@@ -195,4 +233,12 @@ func normalizeAngle(angle float64) float64 {
 		angle += 2 * math.Pi
 	}
 	return angle
+}
+
+func (p *Player) syncEntityData() {
+	p.entityData.Position.X = p.position.X
+	p.entityData.Position.Y = p.position.Y
+	p.entityData.Velocity.X = p.velocity.X
+	p.entityData.Velocity.Y = p.velocity.Y
+	p.entityData.Rotation = p.rotation
 }

@@ -48,7 +48,11 @@ func (g *Game) AddPlayer(id string, username string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.entities[id] = entities.NewPlayer(id, username)
+	player, err := g.spawner.SpawnPlayer(id, username)
+	if err != nil {
+		log.Fatalf("could not spawn player")
+	}
+	g.entities[id] = player
 	g.usernames[id] = username
 
 	data := &pb.Event{
@@ -90,7 +94,11 @@ func (g *Game) respawn(id string) {
 		return
 	}
 
-	g.entities[id] = entities.NewPlayer(id, username)
+	player, err := g.spawner.SpawnPlayer(id, username)
+	if err != nil {
+		log.Fatalf("could not spawn player")
+	}
+	g.entities[id] = player
 }
 
 func (g *Game) GetPBEntities() []*pb.EntityData {

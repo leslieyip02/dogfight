@@ -1,12 +1,8 @@
 package entities
 
 import (
-	"fmt"
-	"math"
-	"math/rand"
 	"server/game/geometry"
 	"server/pb"
-	"server/utils"
 )
 
 const (
@@ -24,49 +20,33 @@ const (
 type Asteroid struct {
 	entityData *pb.EntityData
 
-	// state
-	position    geometry.Vector
-	velocity    geometry.Vector
-	rotation    float64
-	boundingBox *geometry.BoundingBox
+	// internal duplicates of EntityData state
+	position geometry.Vector
+	velocity geometry.Vector
+	rotation float64
 
-	spin   float64
-	health int
+	boundingBox *geometry.BoundingBox
+	spin        float64
+	health      int
 }
 
-func newRandomAsteroid() (*Asteroid, error) {
-	id, err := utils.NewShortId()
-	if err != nil {
-		return nil, err
+func NewAsteroid(
+	id string,
+	position geometry.Vector,
+	velocity geometry.Vector,
+	rotation float64,
+	points *[]*geometry.Vector,
+	spin float64,
+) *Asteroid {
+	entityPoints := make([]*pb.Vector, len(*points))
+	for i, point := range *points {
+		entityPoints[i] = point.ToPb()
 	}
-	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
-	velocity := *geometry.NewRandomVector(0, 0, ASTEROID_MAX_SPEED, ASTEROID_MAX_SPEED)
-	rotation := rand.Float64() * math.Pi * 2
-	spin := rand.Float64()*ASTEROID_MAX_SPIN*2 - ASTEROID_MAX_SPIN
-
-	points := geometry.NewRandomConvexHull(
-		ASTEROID_MIN_NUM_POINTS,
-		ASTEROID_MAX_NUM_POINTS,
-		ASTEROID_MIN_RADIUS,
-		ASTEROID_MAX_RADIUS,
-	)
-	if geometry.HullArea(points) < ASTEROID_MIN_AREA {
-		return nil, fmt.Errorf("too small")
-	}
-
-	entityPoints := make([]*pb.Vector, len(points))
-	for i, point := range points {
-		entityPoints[i] = &pb.Vector{
-			X: point.X,
-			Y: point.Y,
-		}
-	}
-
-	entity := &pb.EntityData{
+	entityData := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_ASTEROID,
 		Id:       id,
-		Position: &pb.Vector{X: position.X, Y: position.Y},
-		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
+		Position: position.ToPb(),
+		Velocity: velocity.ToPb(),
 		Rotation: rotation,
 		Data: &pb.EntityData_AsteroidData_{
 			AsteroidData: &pb.EntityData_AsteroidData{
@@ -74,20 +54,17 @@ func newRandomAsteroid() (*Asteroid, error) {
 			},
 		},
 	}
-	a := Asteroid{
-		entityData: entity,
+
+	a := &Asteroid{
+		entityData: entityData,
 		position:   position,
 		velocity:   velocity,
 		rotation:   rotation,
 		spin:       spin,
 		health:     ASTEROID_MAX_HEALTH,
 	}
-	a.boundingBox = geometry.NewBoundingBox(
-		&a.position,
-		&a.rotation,
-		&points,
-	)
-	return &a, nil
+	a.boundingBox = geometry.NewBoundingBox(&a.position, &a.rotation, points)
+	return a
 }
 
 func (a *Asteroid) GetEntityType() pb.EntityType {
@@ -123,11 +100,7 @@ func (a *Asteroid) Update() bool {
 	a.position.Y += a.velocity.Y
 	a.rotation += a.spin
 
-	// copy to entity
-	a.entityData.Position.X = a.position.X
-	a.entityData.Position.Y = a.position.Y
-	a.entityData.Rotation = a.rotation
-
+	a.syncEntityData()
 	return true
 }
 
@@ -149,4 +122,10 @@ func (a *Asteroid) RemoveOnCollision(other Entity) bool {
 	default:
 		return true
 	}
+}
+
+func (a *Asteroid) syncEntityData() {
+	a.entityData.Position.X = a.position.X
+	a.entityData.Position.Y = a.position.Y
+	a.entityData.Rotation = a.rotation
 }

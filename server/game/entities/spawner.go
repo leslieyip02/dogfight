@@ -1,10 +1,22 @@
 package entities
 
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"server/game/geometry"
+	"server/utils"
+)
+
 const (
+	SPAWN_AREA_WIDTH  = 10000.0
+	SPAWN_AREA_HEIGHT = 10000.0
+
+	INITIAL_ASTEROID_COUNT = 32
+	INITIAL_POWERUP_COUNT  = 3
+
 	ASTEROID_SPAWN_INTERVAL = 60 * FPS
 	POWERUP_SPAWN_INTERVAL  = 20 * FPS
-	INITIAL_ASTEROID_COUNT  = 32
-	INITIAL_POWERUP_COUNT   = 3
 	RESET_INTERVAL          = 5 * 60 * FPS
 )
 
@@ -18,17 +30,58 @@ func NewSpawner() Spawner {
 	}
 }
 
+func (s *Spawner) SpawnRandomAsteroid() (*Asteroid, error) {
+	id, err := utils.NewShortId()
+	if err != nil {
+		return nil, err
+	}
+
+	points := geometry.NewRandomConvexHull(
+		ASTEROID_MIN_NUM_POINTS,
+		ASTEROID_MAX_NUM_POINTS,
+		ASTEROID_MIN_RADIUS,
+		ASTEROID_MAX_RADIUS,
+	)
+	if geometry.HullArea(points) < ASTEROID_MIN_AREA {
+		return nil, fmt.Errorf("too small")
+	}
+
+	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
+	velocity := *geometry.NewRandomVector(0, 0, ASTEROID_MAX_SPEED, ASTEROID_MAX_SPEED)
+	rotation := rand.Float64() * math.Pi * 2
+	spin := rand.Float64()*ASTEROID_MAX_SPIN*2 - ASTEROID_MAX_SPIN
+	return NewAsteroid(id, position, velocity, rotation, &points, spin), nil
+}
+
+func (s *Spawner) SpawnPlayer(id string, username string) (*Player, error) {
+	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
+	velocity := *geometry.NewVector(0, 0)
+	rotation := 0.0
+	return NewPlayer(id, position, velocity, rotation, username), nil
+}
+
+func (s *Spawner) SpawnPowerup() (*Powerup, error) {
+	id, err := utils.NewShortId()
+	if err != nil {
+		return nil, err
+	}
+
+	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
+	ability := newRandomAbility()
+	return NewPowerup(id, position, ability), nil
+}
+
 func (s *Spawner) InitEntities() []Entity {
 	entities := []Entity{}
 
 	for range INITIAL_ASTEROID_COUNT {
-		asteroid, err := newRandomAsteroid()
+		asteroid, err := s.SpawnRandomAsteroid()
 		if err == nil {
 			entities = append(entities, asteroid)
 		}
 	}
 	for range INITIAL_POWERUP_COUNT {
-		powerup, err := newRandomPowerup()
+		powerup, err := s.SpawnPowerup()
 		if err == nil {
 			entities = append(entities, powerup)
 		}
@@ -42,13 +95,13 @@ func (s *Spawner) PollNewEntities() []Entity {
 	entities := []Entity{}
 
 	if s.counter%ASTEROID_SPAWN_INTERVAL == 0 {
-		asteroid, err := newRandomAsteroid()
+		asteroid, err := s.SpawnRandomAsteroid()
 		if err == nil {
 			entities = append(entities, asteroid)
 		}
 	}
 	if s.counter%POWERUP_SPAWN_INTERVAL == 0 {
-		powerup, err := newRandomPowerup()
+		powerup, err := s.SpawnPowerup()
 		if err == nil {
 			entities = append(entities, powerup)
 		}

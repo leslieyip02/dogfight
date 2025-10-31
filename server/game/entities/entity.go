@@ -7,9 +7,6 @@ import (
 )
 
 const (
-	SPAWN_AREA_WIDTH  = 10000.0
-	SPAWN_AREA_HEIGHT = 10000.0
-
 	FPS            = 60
 	FRAME_DURATION = time.Second / FPS
 )

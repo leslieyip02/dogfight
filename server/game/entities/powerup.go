@@ -3,7 +3,6 @@ package entities
 import (
 	"server/game/geometry"
 	"server/pb"
-	"server/utils"
 )
 
 const (
@@ -15,28 +14,26 @@ var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
 type Powerup struct {
 	entityData *pb.EntityData
 
-	// state
+	// internal duplicates of EntityData state
 	position    geometry.Vector
 	velocity    geometry.Vector
 	rotation    float64
 	boundingBox *geometry.BoundingBox
 }
 
-func newRandomPowerup() (*Powerup, error) {
-	id, err := utils.NewShortId()
-	if err != nil {
-		return nil, err
-	}
-	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
+func NewPowerup(
+	id string,
+	position geometry.Vector,
+	ability AbilityFlag,
+) *Powerup {
 	velocity := *geometry.NewVector(0, 0)
 	rotation := 0.0
-	ability := newRandomAbility()
 
-	entity := &pb.EntityData{
+	entityData := &pb.EntityData{
 		Type:     pb.EntityType_ENTITY_TYPE_POWERUP,
 		Id:       id,
-		Position: &pb.Vector{X: position.X, Y: position.Y},
-		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
+		Position: position.ToPb(),
+		Velocity: velocity.ToPb(),
 		Rotation: rotation,
 		Data: &pb.EntityData_PowerupData_{
 			PowerupData: &pb.EntityData_PowerupData{
@@ -46,17 +43,13 @@ func newRandomPowerup() (*Powerup, error) {
 	}
 
 	p := Powerup{
-		entityData: entity,
+		entityData: entityData,
 		position:   position,
 		velocity:   velocity,
 		rotation:   rotation,
 	}
-	p.boundingBox = geometry.NewBoundingBox(
-		&p.position,
-		&p.rotation,
-		&powerupBoundingBoxPoints,
-	)
-	return &p, nil
+	p.boundingBox = geometry.NewBoundingBox(&position, &rotation, &powerupBoundingBoxPoints)
+	return &p
 }
 
 func (p *Powerup) GetEntityType() pb.EntityType {

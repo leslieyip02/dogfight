@@ -3,6 +3,7 @@ package geometry
 import (
 	"math"
 	"math/rand"
+	"server/pb"
 )
 
 const EPSILON = 1e-5
@@ -20,6 +21,13 @@ func NewRandomVector(minX float64, minY float64, maxX float64, maxY float64) *Ve
 	return &Vector{
 		X: minX + rand.Float64()*(maxX-minX),
 		Y: minY + rand.Float64()*(maxY-minY),
+	}
+}
+
+func (u *Vector) ToPb() *pb.Vector {
+	return &pb.Vector{
+		X: u.X,
+		Y: u.Y,
 	}
 }
 
