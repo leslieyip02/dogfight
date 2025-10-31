@@ -38,12 +38,12 @@ message Event {
     }
 
     message SnapshotEventData {
-        int32 timestamp = 1;
+        double timestamp = 1;
         repeated EntityData entities = 2;
     }
 
     message DeltaEventData {
-        int32 timestamp = 1;
+        double timestamp = 1;
         repeated EntityData updated = 2;
         repeated string removed = 3;
     }

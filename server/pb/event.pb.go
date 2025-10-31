@@ -446,7 +446,7 @@ func (x *Event_InputEventData) GetMousePressed() bool {
 
 type Event_SnapshotEventData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Timestamp     int32                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Timestamp     float64                `protobuf:"fixed64,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Entities      []*EntityData          `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -482,7 +482,7 @@ func (*Event_SnapshotEventData) Descriptor() ([]byte, []int) {
 	return file_event_proto_rawDescGZIP(), []int{0, 4}
 }
 
-func (x *Event_SnapshotEventData) GetTimestamp() int32 {
+func (x *Event_SnapshotEventData) GetTimestamp() float64 {
 	if x != nil {
 		return x.Timestamp
 	}
@@ -498,7 +498,7 @@ func (x *Event_SnapshotEventData) GetEntities() []*EntityData {
 
 type Event_DeltaEventData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Timestamp     int32                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Timestamp     float64                `protobuf:"fixed64,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Updated       []*EntityData          `protobuf:"bytes,2,rep,name=updated,proto3" json:"updated,omitempty"`
 	Removed       []string               `protobuf:"bytes,3,rep,name=removed,proto3" json:"removed,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -535,7 +535,7 @@ func (*Event_DeltaEventData) Descriptor() ([]byte, []int) {
 	return file_event_proto_rawDescGZIP(), []int{0, 5}
 }
 
-func (x *Event_DeltaEventData) GetTimestamp() int32 {
+func (x *Event_DeltaEventData) GetTimestamp() float64 {
 	if x != nil {
 		return x.Timestamp
 	}
@@ -582,10 +582,10 @@ const file_event_proto_rawDesc = "" +
 	"\x06mouseY\x18\x03 \x01(\x01R\x06mouseY\x12\"\n" +
 	"\fmousePressed\x18\x04 \x01(\bR\fmousePressed\x1ac\n" +
 	"\x11SnapshotEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x120\n" +
+	"\ttimestamp\x18\x01 \x01(\x01R\ttimestamp\x120\n" +
 	"\bentities\x18\x02 \x03(\v2\x14.dogfight.EntityDataR\bentities\x1ax\n" +
 	"\x0eDeltaEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12.\n" +
+	"\ttimestamp\x18\x01 \x01(\x01R\ttimestamp\x12.\n" +
 	"\aupdated\x18\x02 \x03(\v2\x14.dogfight.EntityDataR\aupdated\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\tR\aremovedB\x06\n" +
 	"\x04data*\xaa\x01\n" +

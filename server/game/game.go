@@ -103,10 +103,9 @@ func (g *Game) GetPBEntities() []*pb.EntityData {
 	return entities
 }
 
-func (g *Game) GetTimestamp() int32 {
-	// JavaScript's Number.MAX_SAFE_INTEGER
-	// is less than an int64 so just downcast
-	return int32(time.Now().Unix())
+func (g *Game) GetTimestamp() float64 {
+	// JavaScript's Number.MAX_SAFE_INTEGER can't handle int64
+	return float64(time.Now().UnixMilli())
 }
 
 func (g *Game) GetSnapshot() *pb.Event {

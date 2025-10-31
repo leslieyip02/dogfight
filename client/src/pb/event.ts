@@ -601,7 +601,7 @@ function createBaseEvent_SnapshotEventData(): Event_SnapshotEventData {
 export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
   encode(message: Event_SnapshotEventData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.timestamp !== 0) {
-      writer.uint32(8).int32(message.timestamp);
+      writer.uint32(9).double(message.timestamp);
     }
     for (const v of message.entities) {
       EntityData.encode(v!, writer.uint32(18).fork()).join();
@@ -617,11 +617,11 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 9) {
             break;
           }
 
-          message.timestamp = reader.int32();
+          message.timestamp = reader.double();
           continue;
         }
         case 2: {
@@ -653,7 +653,7 @@ export const Event_SnapshotEventData: MessageFns<Event_SnapshotEventData> = {
   toJSON(message: Event_SnapshotEventData): unknown {
     const obj: any = {};
     if (message.timestamp !== 0) {
-      obj.timestamp = Math.round(message.timestamp);
+      obj.timestamp = message.timestamp;
     }
     if (message.entities?.length) {
       obj.entities = message.entities.map((e) => EntityData.toJSON(e));
@@ -679,7 +679,7 @@ function createBaseEvent_DeltaEventData(): Event_DeltaEventData {
 export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
   encode(message: Event_DeltaEventData, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.timestamp !== 0) {
-      writer.uint32(8).int32(message.timestamp);
+      writer.uint32(9).double(message.timestamp);
     }
     for (const v of message.updated) {
       EntityData.encode(v!, writer.uint32(18).fork()).join();
@@ -698,11 +698,11 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 9) {
             break;
           }
 
-          message.timestamp = reader.int32();
+          message.timestamp = reader.double();
           continue;
         }
         case 2: {
@@ -741,7 +741,7 @@ export const Event_DeltaEventData: MessageFns<Event_DeltaEventData> = {
   toJSON(message: Event_DeltaEventData): unknown {
     const obj: any = {};
     if (message.timestamp !== 0) {
-      obj.timestamp = Math.round(message.timestamp);
+      obj.timestamp = message.timestamp;
     }
     if (message.updated?.length) {
       obj.updated = message.updated.map((e) => EntityData.toJSON(e));
