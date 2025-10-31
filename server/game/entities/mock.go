@@ -1,17 +1,26 @@
-package collision
+package entities
 
 import (
-	"math"
-	"math/rand/v2"
-	"server/game/entities"
 	"server/game/geometry"
 	"server/pb"
 )
 
 type MockEntity struct {
-	id          string
+	Id          string
 	position    geometry.Vector
 	boundingBox *geometry.BoundingBox
+}
+
+func NewMockEntity(
+	id string,
+	x float64,
+	y float64,
+	rotation float64,
+	points []*geometry.Vector,
+) *MockEntity {
+	position := geometry.NewVector(x, y)
+	boundingBox := geometry.NewBoundingBox(position, &rotation, &points)
+	return &MockEntity{Id: id, position: *position, boundingBox: boundingBox}
 }
 
 func (e *MockEntity) GetEntityType() pb.EntityType {
@@ -23,7 +32,7 @@ func (e *MockEntity) GetEntityData() *pb.EntityData {
 }
 
 func (e *MockEntity) GetID() string {
-	return e.id
+	return e.Id
 }
 
 func (e *MockEntity) GetPosition() geometry.Vector {
@@ -46,27 +55,12 @@ func (e *MockEntity) Update() bool {
 	return false
 }
 
-func (e *MockEntity) PollNewEntities() []entities.Entity {
+func (e *MockEntity) PollNewEntities() []Entity {
 	return nil
 }
 
-func (e *MockEntity) UpdateOnCollision(other entities.Entity) {}
+func (e *MockEntity) UpdateOnCollision(other Entity) {}
 
-func (e *MockEntity) RemoveOnCollision(other entities.Entity) bool {
+func (e *MockEntity) RemoveOnCollision(other Entity) bool {
 	return false
 }
-
-func newRandomMockEntity(id string) *MockEntity {
-	position := *geometry.NewRandomVector(-100, 100, -100, 100)
-	rotation := rand.Float64() * math.Pi * 2
-	points := geometry.NewRandomConvexHull(8, 16, 8, 32)
-	boundingBox := geometry.NewBoundingBox(&position, &rotation, &points)
-
-	return &MockEntity{
-		id:          id,
-		position:    position,
-		boundingBox: boundingBox,
-	}
-}
-
-func mockCollisionHandler(id1 *string, id2 *string) {}

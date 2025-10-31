@@ -3,34 +3,38 @@ package collision
 import (
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"server/game/entities"
 	"server/game/geometry"
 	"slices"
 	"testing"
 )
 
-func constructMockEntity(id string, x float64, y float64, rotation float64, points []*geometry.Vector) *MockEntity {
-	position := geometry.NewVector(x, y)
-	boundingBox := geometry.NewBoundingBox(position, &rotation, &points)
-	return &MockEntity{id: id, position: *position, boundingBox: boundingBox}
+func randomEntity(id string) *entities.MockEntity {
+	position := *geometry.NewRandomVector(-100, 100, -100, 100)
+	rotation := rand.Float64() * math.Pi * 2
+	points := geometry.NewRandomConvexHull(8, 16, 8, 32)
+	return entities.NewMockEntity(id, position.X, position.Y, rotation, points)
 }
 
 var square = geometry.NewRectangleHull(2, 2)
 
-var e1 = constructMockEntity("1", 0, 0, 0, square)
-var e2 = constructMockEntity("2", 1, 2, 0, square)
-var e3 = constructMockEntity("3", 0, 0, math.Pi/4, square)
-var e4 = constructMockEntity("4", 1, 2, math.Pi/4, square)
-var e5 = constructMockEntity("5", -1, 10, math.Pi/4, square)
-var e6 = constructMockEntity("6", 2, 2, 0, square)
+var e1 = entities.NewMockEntity("1", 0, 0, 0, square)
+var e2 = entities.NewMockEntity("2", 1, 2, 0, square)
+var e3 = entities.NewMockEntity("3", 0, 0, math.Pi/4, square)
+var e4 = entities.NewMockEntity("4", 1, 2, math.Pi/4, square)
+var e5 = entities.NewMockEntity("5", -1, 10, math.Pi/4, square)
+var e6 = entities.NewMockEntity("6", 2, 2, 0, square)
 
 var benchmarkEntities map[string]entities.Entity
+
+func mockCollisionHandler(id1 *string, id2 *string) {}
 
 func init() {
 	benchmarkEntities = make(map[string]entities.Entity)
 	for i := range 512 {
 		id := fmt.Sprintf("%d", i)
-		benchmarkEntities[id] = newRandomMockEntity(id)
+		benchmarkEntities[id] = randomEntity(id)
 	}
 }
 
@@ -128,10 +132,10 @@ func TestGetSortedEdges(t *testing.T) {
 				"4": e4,
 			},
 			[]Edge{
-				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
-				{id: &e4.id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
-				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
-				{id: &e4.id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e1.Id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e4.Id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e1.Id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e4.Id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
 			},
 		},
 		"getSortedEdges with overlapping edge": {
@@ -140,10 +144,10 @@ func TestGetSortedEdges(t *testing.T) {
 				"6": e6,
 			},
 			[]Edge{
-				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
-				{id: &e6.id, x: 1 - geometry.EPSILON, isLeft: true},
-				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
-				{id: &e6.id, x: 3 + geometry.EPSILON, isLeft: false},
+				{id: &e1.Id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e6.Id, x: 1 - geometry.EPSILON, isLeft: true},
+				{id: &e1.Id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e6.Id, x: 3 + geometry.EPSILON, isLeft: false},
 			},
 		},
 		"getSortedEdges with more entities": {
@@ -156,18 +160,18 @@ func TestGetSortedEdges(t *testing.T) {
 				"6": e6,
 			},
 			[]Edge{
-				{id: &e5.id, x: -1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
-				{id: &e3.id, x: -math.Sqrt2 - geometry.EPSILON, isLeft: true},
-				{id: &e1.id, x: -1 - geometry.EPSILON, isLeft: true},
-				{id: &e4.id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
-				{id: &e2.id, x: -geometry.EPSILON, isLeft: true},
-				{id: &e5.id, x: -1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
-				{id: &e6.id, x: 1 - geometry.EPSILON, isLeft: true},
-				{id: &e1.id, x: 1 + geometry.EPSILON, isLeft: false},
-				{id: &e3.id, x: math.Sqrt2 + geometry.EPSILON, isLeft: false},
-				{id: &e2.id, x: 2 + geometry.EPSILON, isLeft: false},
-				{id: &e4.id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
-				{id: &e6.id, x: 3 + geometry.EPSILON, isLeft: false},
+				{id: &e5.Id, x: -1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e3.Id, x: -math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e1.Id, x: -1 - geometry.EPSILON, isLeft: true},
+				{id: &e4.Id, x: 1 - math.Sqrt2 - geometry.EPSILON, isLeft: true},
+				{id: &e2.Id, x: -geometry.EPSILON, isLeft: true},
+				{id: &e5.Id, x: -1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e6.Id, x: 1 - geometry.EPSILON, isLeft: true},
+				{id: &e1.Id, x: 1 + geometry.EPSILON, isLeft: false},
+				{id: &e3.Id, x: math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e2.Id, x: 2 + geometry.EPSILON, isLeft: false},
+				{id: &e4.Id, x: 1 + math.Sqrt2 + geometry.EPSILON, isLeft: false},
+				{id: &e6.Id, x: 3 + geometry.EPSILON, isLeft: false},
 			},
 		},
 	}
