@@ -8,7 +8,7 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Vector } from "./vector";
 
-export const protobufPackage = "game";
+export const protobufPackage = "dogfight";
 
 export enum EntityType {
   ENTITY_TYPE_UNKNOWN = 0,

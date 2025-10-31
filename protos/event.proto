@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package game;
+package dogfight;
 option go_package = "/pb";
 
 import "entities.proto";

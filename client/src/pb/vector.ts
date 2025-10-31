@@ -7,7 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "game";
+export const protobufPackage = "dogfight";
 
 export interface Vector {
   x: number;

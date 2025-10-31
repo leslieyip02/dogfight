@@ -77,7 +77,7 @@ var File_vector_proto protoreflect.FileDescriptor
 
 const file_vector_proto_rawDesc = "" +
 	"\n" +
-	"\fvector.proto\x12\x04game\"$\n" +
+	"\fvector.proto\x12\bdogfight\"$\n" +
 	"\x06Vector\x12\f\n" +
 	"\x01x\x18\x01 \x01(\x01R\x01x\x12\f\n" +
 	"\x01y\x18\x02 \x01(\x01R\x01yB\x05Z\x03/pbb\x06proto3"
@@ -96,7 +96,7 @@ func file_vector_proto_rawDescGZIP() []byte {
 
 var file_vector_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_vector_proto_goTypes = []any{
-	(*Vector)(nil), // 0: game.Vector
+	(*Vector)(nil), // 0: dogfight.Vector
 }
 var file_vector_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type

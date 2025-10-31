@@ -8,7 +8,7 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Entity } from "./entities";
 
-export const protobufPackage = "game";
+export const protobufPackage = "dogfight";
 
 export enum EventType {
   EVENT_TYPE_UNKNOWN = 0,

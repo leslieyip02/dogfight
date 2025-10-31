@@ -81,7 +81,7 @@ func (EntityType) EnumDescriptor() ([]byte, []int) {
 
 type Entity struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
-	Type     EntityType             `protobuf:"varint,1,opt,name=type,proto3,enum=game.EntityType" json:"type,omitempty"`
+	Type     EntityType             `protobuf:"varint,1,opt,name=type,proto3,enum=dogfight.EntityType" json:"type,omitempty"`
 	Id       string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	Position *Vector                `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
 	Velocity *Vector                `protobuf:"bytes,4,opt,name=velocity,proto3" json:"velocity,omitempty"`
@@ -437,21 +437,21 @@ var File_entities_proto protoreflect.FileDescriptor
 
 const file_entities_proto_rawDesc = "" +
 	"\n" +
-	"\x0eentities.proto\x12\x04game\x1a\fvector.proto\"\xb0\x05\n" +
-	"\x06Entity\x12$\n" +
-	"\x04type\x18\x01 \x01(\x0e2\x10.game.EntityTypeR\x04type\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\x12(\n" +
-	"\bposition\x18\x03 \x01(\v2\f.game.VectorR\bposition\x12(\n" +
-	"\bvelocity\x18\x04 \x01(\v2\f.game.VectorR\bvelocity\x12\x1a\n" +
-	"\brotation\x18\x05 \x01(\x01R\brotation\x12?\n" +
-	"\fasteroidData\x18\x06 \x01(\v2\x19.game.Entity.AsteroidDataH\x00R\fasteroidData\x129\n" +
+	"\x0eentities.proto\x12\bdogfight\x1a\fvector.proto\"\xd0\x05\n" +
+	"\x06Entity\x12(\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x14.dogfight.EntityTypeR\x04type\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12,\n" +
+	"\bposition\x18\x03 \x01(\v2\x10.dogfight.VectorR\bposition\x12,\n" +
+	"\bvelocity\x18\x04 \x01(\v2\x10.dogfight.VectorR\bvelocity\x12\x1a\n" +
+	"\brotation\x18\x05 \x01(\x01R\brotation\x12C\n" +
+	"\fasteroidData\x18\x06 \x01(\v2\x1d.dogfight.Entity.AsteroidDataH\x00R\fasteroidData\x12=\n" +
 	"\n" +
-	"playerData\x18\a \x01(\v2\x17.game.Entity.PlayerDataH\x00R\n" +
-	"playerData\x12<\n" +
-	"\vpowerupData\x18\b \x01(\v2\x18.game.Entity.PowerupDataH\x00R\vpowerupData\x12E\n" +
-	"\x0eprojectileData\x18\t \x01(\v2\x1b.game.Entity.ProjectileDataH\x00R\x0eprojectileData\x1a4\n" +
-	"\fAsteroidData\x12$\n" +
-	"\x06points\x18\x01 \x03(\v2\f.game.VectorR\x06points\x1aT\n" +
+	"playerData\x18\a \x01(\v2\x1b.dogfight.Entity.PlayerDataH\x00R\n" +
+	"playerData\x12@\n" +
+	"\vpowerupData\x18\b \x01(\v2\x1c.dogfight.Entity.PowerupDataH\x00R\vpowerupData\x12I\n" +
+	"\x0eprojectileData\x18\t \x01(\v2\x1f.dogfight.Entity.ProjectileDataH\x00R\x0eprojectileData\x1a8\n" +
+	"\fAsteroidData\x12(\n" +
+	"\x06points\x18\x01 \x03(\v2\x10.dogfight.VectorR\x06points\x1aT\n" +
 	"\n" +
 	"PlayerData\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
@@ -487,23 +487,23 @@ func file_entities_proto_rawDescGZIP() []byte {
 var file_entities_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_entities_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_entities_proto_goTypes = []any{
-	(EntityType)(0),               // 0: game.EntityType
-	(*Entity)(nil),                // 1: game.Entity
-	(*Entity_AsteroidData)(nil),   // 2: game.Entity.AsteroidData
-	(*Entity_PlayerData)(nil),     // 3: game.Entity.PlayerData
-	(*Entity_PowerupData)(nil),    // 4: game.Entity.PowerupData
-	(*Entity_ProjectileData)(nil), // 5: game.Entity.ProjectileData
-	(*Vector)(nil),                // 6: game.Vector
+	(EntityType)(0),               // 0: dogfight.EntityType
+	(*Entity)(nil),                // 1: dogfight.Entity
+	(*Entity_AsteroidData)(nil),   // 2: dogfight.Entity.AsteroidData
+	(*Entity_PlayerData)(nil),     // 3: dogfight.Entity.PlayerData
+	(*Entity_PowerupData)(nil),    // 4: dogfight.Entity.PowerupData
+	(*Entity_ProjectileData)(nil), // 5: dogfight.Entity.ProjectileData
+	(*Vector)(nil),                // 6: dogfight.Vector
 }
 var file_entities_proto_depIdxs = []int32{
-	0, // 0: game.Entity.type:type_name -> game.EntityType
-	6, // 1: game.Entity.position:type_name -> game.Vector
-	6, // 2: game.Entity.velocity:type_name -> game.Vector
-	2, // 3: game.Entity.asteroidData:type_name -> game.Entity.AsteroidData
-	3, // 4: game.Entity.playerData:type_name -> game.Entity.PlayerData
-	4, // 5: game.Entity.powerupData:type_name -> game.Entity.PowerupData
-	5, // 6: game.Entity.projectileData:type_name -> game.Entity.ProjectileData
-	6, // 7: game.Entity.AsteroidData.points:type_name -> game.Vector
+	0, // 0: dogfight.Entity.type:type_name -> dogfight.EntityType
+	6, // 1: dogfight.Entity.position:type_name -> dogfight.Vector
+	6, // 2: dogfight.Entity.velocity:type_name -> dogfight.Vector
+	2, // 3: dogfight.Entity.asteroidData:type_name -> dogfight.Entity.AsteroidData
+	3, // 4: dogfight.Entity.playerData:type_name -> dogfight.Entity.PlayerData
+	4, // 5: dogfight.Entity.powerupData:type_name -> dogfight.Entity.PowerupData
+	5, // 6: dogfight.Entity.projectileData:type_name -> dogfight.Entity.ProjectileData
+	6, // 7: dogfight.Entity.AsteroidData.points:type_name -> dogfight.Vector
 	8, // [8:8] is the sub-list for method output_type
 	8, // [8:8] is the sub-list for method input_type
 	8, // [8:8] is the sub-list for extension type_name

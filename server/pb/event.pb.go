@@ -84,7 +84,7 @@ func (EventType) EnumDescriptor() ([]byte, []int) {
 
 type Event struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	Type  EventType              `protobuf:"varint,1,opt,name=type,proto3,enum=game.EventType" json:"type,omitempty"`
+	Type  EventType              `protobuf:"varint,1,opt,name=type,proto3,enum=dogfight.EventType" json:"type,omitempty"`
 	// Types that are valid to be assigned to Data:
 	//
 	//	*Event_JoinEventData_
@@ -560,15 +560,15 @@ var File_event_proto protoreflect.FileDescriptor
 
 const file_event_proto_rawDesc = "" +
 	"\n" +
-	"\vevent.proto\x12\x04game\x1a\x0eentities.proto\"\xa8\a\n" +
-	"\x05Event\x12#\n" +
-	"\x04type\x18\x01 \x01(\x0e2\x0f.game.EventTypeR\x04type\x12A\n" +
-	"\rjoinEventData\x18\x02 \x01(\v2\x19.game.Event.JoinEventDataH\x00R\rjoinEventData\x12A\n" +
-	"\rquitEventData\x18\x03 \x01(\v2\x19.game.Event.QuitEventDataH\x00R\rquitEventData\x12J\n" +
-	"\x10respawnEventData\x18\x04 \x01(\v2\x1c.game.Event.RespawnEventDataH\x00R\x10respawnEventData\x12D\n" +
-	"\x0einputEventData\x18\x05 \x01(\v2\x1a.game.Event.InputEventDataH\x00R\x0einputEventData\x12M\n" +
-	"\x11snapshotEventData\x18\x06 \x01(\v2\x1d.game.Event.SnapshotEventDataH\x00R\x11snapshotEventData\x12D\n" +
-	"\x0edeltaEventData\x18\a \x01(\v2\x1a.game.Event.DeltaEventDataH\x00R\x0edeltaEventData\x1a;\n" +
+	"\vevent.proto\x12\bdogfight\x1a\x0eentities.proto\"\xcc\a\n" +
+	"\x05Event\x12'\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x13.dogfight.EventTypeR\x04type\x12E\n" +
+	"\rjoinEventData\x18\x02 \x01(\v2\x1d.dogfight.Event.JoinEventDataH\x00R\rjoinEventData\x12E\n" +
+	"\rquitEventData\x18\x03 \x01(\v2\x1d.dogfight.Event.QuitEventDataH\x00R\rquitEventData\x12N\n" +
+	"\x10respawnEventData\x18\x04 \x01(\v2 .dogfight.Event.RespawnEventDataH\x00R\x10respawnEventData\x12H\n" +
+	"\x0einputEventData\x18\x05 \x01(\v2\x1e.dogfight.Event.InputEventDataH\x00R\x0einputEventData\x12Q\n" +
+	"\x11snapshotEventData\x18\x06 \x01(\v2!.dogfight.Event.SnapshotEventDataH\x00R\x11snapshotEventData\x12H\n" +
+	"\x0edeltaEventData\x18\a \x01(\v2\x1e.dogfight.Event.DeltaEventDataH\x00R\x0edeltaEventData\x1a;\n" +
 	"\rJoinEventData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x1a\x1f\n" +
@@ -580,13 +580,13 @@ const file_event_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06mouseX\x18\x02 \x01(\x01R\x06mouseX\x12\x16\n" +
 	"\x06mouseY\x18\x03 \x01(\x01R\x06mouseY\x12\"\n" +
-	"\fmousePressed\x18\x04 \x01(\bR\fmousePressed\x1a[\n" +
+	"\fmousePressed\x18\x04 \x01(\bR\fmousePressed\x1a_\n" +
 	"\x11SnapshotEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12(\n" +
-	"\bentities\x18\x02 \x03(\v2\f.game.EntityR\bentities\x1ap\n" +
+	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12,\n" +
+	"\bentities\x18\x02 \x03(\v2\x10.dogfight.EntityR\bentities\x1at\n" +
 	"\x0eDeltaEventData\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12&\n" +
-	"\aupdated\x18\x02 \x03(\v2\f.game.EntityR\aupdated\x12\x18\n" +
+	"\ttimestamp\x18\x01 \x01(\x05R\ttimestamp\x12*\n" +
+	"\aupdated\x18\x02 \x03(\v2\x10.dogfight.EntityR\aupdated\x12\x18\n" +
 	"\aremoved\x18\x03 \x03(\tR\aremovedB\x06\n" +
 	"\x04data*\xaa\x01\n" +
 	"\tEventType\x12\x16\n" +
@@ -613,26 +613,26 @@ func file_event_proto_rawDescGZIP() []byte {
 var file_event_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_event_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_event_proto_goTypes = []any{
-	(EventType)(0),                  // 0: game.EventType
-	(*Event)(nil),                   // 1: game.Event
-	(*Event_JoinEventData)(nil),     // 2: game.Event.JoinEventData
-	(*Event_QuitEventData)(nil),     // 3: game.Event.QuitEventData
-	(*Event_RespawnEventData)(nil),  // 4: game.Event.RespawnEventData
-	(*Event_InputEventData)(nil),    // 5: game.Event.InputEventData
-	(*Event_SnapshotEventData)(nil), // 6: game.Event.SnapshotEventData
-	(*Event_DeltaEventData)(nil),    // 7: game.Event.DeltaEventData
-	(*Entity)(nil),                  // 8: game.Entity
+	(EventType)(0),                  // 0: dogfight.EventType
+	(*Event)(nil),                   // 1: dogfight.Event
+	(*Event_JoinEventData)(nil),     // 2: dogfight.Event.JoinEventData
+	(*Event_QuitEventData)(nil),     // 3: dogfight.Event.QuitEventData
+	(*Event_RespawnEventData)(nil),  // 4: dogfight.Event.RespawnEventData
+	(*Event_InputEventData)(nil),    // 5: dogfight.Event.InputEventData
+	(*Event_SnapshotEventData)(nil), // 6: dogfight.Event.SnapshotEventData
+	(*Event_DeltaEventData)(nil),    // 7: dogfight.Event.DeltaEventData
+	(*Entity)(nil),                  // 8: dogfight.Entity
 }
 var file_event_proto_depIdxs = []int32{
-	0, // 0: game.Event.type:type_name -> game.EventType
-	2, // 1: game.Event.joinEventData:type_name -> game.Event.JoinEventData
-	3, // 2: game.Event.quitEventData:type_name -> game.Event.QuitEventData
-	4, // 3: game.Event.respawnEventData:type_name -> game.Event.RespawnEventData
-	5, // 4: game.Event.inputEventData:type_name -> game.Event.InputEventData
-	6, // 5: game.Event.snapshotEventData:type_name -> game.Event.SnapshotEventData
-	7, // 6: game.Event.deltaEventData:type_name -> game.Event.DeltaEventData
-	8, // 7: game.Event.SnapshotEventData.entities:type_name -> game.Entity
-	8, // 8: game.Event.DeltaEventData.updated:type_name -> game.Entity
+	0, // 0: dogfight.Event.type:type_name -> dogfight.EventType
+	2, // 1: dogfight.Event.joinEventData:type_name -> dogfight.Event.JoinEventData
+	3, // 2: dogfight.Event.quitEventData:type_name -> dogfight.Event.QuitEventData
+	4, // 3: dogfight.Event.respawnEventData:type_name -> dogfight.Event.RespawnEventData
+	5, // 4: dogfight.Event.inputEventData:type_name -> dogfight.Event.InputEventData
+	6, // 5: dogfight.Event.snapshotEventData:type_name -> dogfight.Event.SnapshotEventData
+	7, // 6: dogfight.Event.deltaEventData:type_name -> dogfight.Event.DeltaEventData
+	8, // 7: dogfight.Event.SnapshotEventData.entities:type_name -> dogfight.Entity
+	8, // 8: dogfight.Event.DeltaEventData.updated:type_name -> dogfight.Entity
 	9, // [9:9] is the sub-list for method output_type
 	9, // [9:9] is the sub-list for method input_type
 	9, // [9:9] is the sub-list for extension type_name
