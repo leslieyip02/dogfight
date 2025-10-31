@@ -3,7 +3,6 @@ package room
 import (
 	"context"
 	"server/game"
-	"server/id"
 	"server/pb"
 
 	"sync"
@@ -22,15 +21,11 @@ type Room struct {
 	cancel  context.CancelFunc
 }
 
-func NewRoom() (*Room, error) {
-	id, err := id.NewShortId()
-	if err != nil {
-		return nil, err
-	}
-
+func NewRoom(id string) *Room {
 	ctx, cancel := context.WithCancel(context.Background())
 	game := game.NewGame()
-	room := Room{
+
+	return &Room{
 		id:      id,
 		game:    game,
 		clients: map[string]*Client{},
@@ -38,11 +33,11 @@ func NewRoom() (*Room, error) {
 		ctx:     ctx,
 		cancel:  cancel,
 	}
+}
 
-	game.Run(ctx)
-	go room.broadcast()
-
-	return &room, nil
+func (r *Room) Init() {
+	r.game.Run(r.ctx)
+	go r.broadcast()
 }
 
 func (r *Room) Add(client *Client) {

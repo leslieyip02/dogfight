@@ -2,6 +2,7 @@ package room
 
 import (
 	"fmt"
+	"server/id"
 	"sync"
 )
 
@@ -45,10 +46,13 @@ func (m *Manager) getVacantRoom() (*Room, error) {
 }
 
 func (m *Manager) makeNewRoom() (*Room, error) {
-	room, err := NewRoom()
+	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}
+
+	room := NewRoom(id)
+	room.Init()
 
 	m.rooms[room.id] = room
 	m.roomIds = append(m.roomIds, room.id)
