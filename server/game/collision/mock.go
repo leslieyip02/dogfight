@@ -5,6 +5,7 @@ import (
 	"math/rand/v2"
 	"server/game/entities"
 	"server/game/geometry"
+	"server/pb"
 )
 
 type MockEntity struct {
@@ -13,8 +14,12 @@ type MockEntity struct {
 	boundingBox *geometry.BoundingBox
 }
 
-func (e *MockEntity) GetType() entities.EntityType {
-	return entities.MockEntityType
+func (e *MockEntity) GetType() pb.EntityType {
+	return pb.EntityType_ENTITY_TYPE_MOCK
+}
+
+func (e *MockEntity) GetEntity() *pb.Entity {
+	return nil
 }
 
 func (e *MockEntity) GetID() string {

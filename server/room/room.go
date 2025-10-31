@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"server/game"
+	"server/pb"
 	"server/utils"
 
 	"sync"
@@ -80,14 +81,13 @@ func (r *Room) broadcast() {
 				client.send <- message
 			}
 
-			var event game.Event
+			var event pb.Event
 			json.Unmarshal(message, &event)
 
 			switch event.Type {
-			case game.QuitEventType:
-				var data game.QuitEventData
-				json.Unmarshal(event.Data, &data)
-				r.Remove(data.ID)
+			case pb.EventType_EVENT_TYPE_QUIT:
+				data := event.GetQuitEventData()
+				r.Remove(data.GetId())
 			}
 		}
 	}

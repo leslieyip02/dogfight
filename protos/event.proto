@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/pb";
+
+import "entities.proto";
+
+message Event {
+    EventType type = 1;
+
+    oneof data {
+        JoinEventData joinEventData = 2;
+        QuitEventData quitEventData = 3;
+        RespawnEventData respawnEventData = 4;
+        InputEventData inputEventData = 5;
+        SnapshotEventData snapshotEventData = 6;
+        DeltaEventData deltaEventData = 7;
+    }
+
+    message JoinEventData {
+        string id = 1;
+        string username = 2;
+    }
+
+    message QuitEventData {
+        string id = 1;
+    }
+
+    message RespawnEventData {
+        string id = 1;
+    }
+
+    message InputEventData {
+        string id = 1;
+        double mouseX = 2;
+        double mouseY = 3;
+        bool mousePressed = 4;
+    }
+
+    message SnapshotEventData {
+        int64 timestamp = 1;
+        repeated Entity entities = 2;
+    }
+
+    message DeltaEventData {
+        int64 timestamp = 1;
+        repeated Entity updated = 2;
+        repeated string removed = 3;
+    }
+}
+
+enum EventType {
+  EVENT_TYPE_UNKNOWN = 0;
+  EVENT_TYPE_JOIN = 1;
+  EVENT_TYPE_QUIT = 2;
+  EVENT_TYPE_RESPAWN = 3;
+  EVENT_TYPE_INPUT = 4;
+  EVENT_TYPE_SNAPSHOT = 5;
+  EVENT_TYPE_DELTA = 6;
+}

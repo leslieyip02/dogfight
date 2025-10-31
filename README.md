@@ -1,11 +1,19 @@
 # Getting Started
 
+
+## Generate Code
 ```
-# build client into /client/dist
+protoc --proto_path=protos --go_out=server protos/*.proto
+```
+
+## Start Client
+```
 cd client
 npm run build
+```
 
-# start server
-cd ../server
+### Start Server
+```
+cd server
 go run main.go
 ```

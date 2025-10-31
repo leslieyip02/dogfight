@@ -3,10 +3,11 @@ package room
 import (
 	"fmt"
 	"net/http"
-	"server/game"
+	"server/pb"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
 )
 
 type Session struct {
@@ -89,9 +90,15 @@ func (s *Session) createConn(w *http.ResponseWriter, r *http.Request, clientId s
 	}
 
 	conn.SetCloseHandler(func(code int, text string) error {
-		message, err := game.CreateMessage(game.QuitEventType, game.QuitEventData{
-			ID: clientId,
-		})
+		event := &pb.Event{
+			Type: pb.EventType_EVENT_TYPE_QUIT,
+			Data: &pb.Event_QuitEventData_{
+				QuitEventData: &pb.Event_QuitEventData{
+					Id: clientId,
+				},
+			},
+		}
+		message, err := proto.Marshal(event)
 		if err != nil {
 			return err
 		}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"server/utils"
+
+	"google.golang.org/protobuf/proto"
 )
 
 type JoinRequest struct {
@@ -83,10 +85,17 @@ func (m *Manager) HandleSnapshot(w http.ResponseWriter, r *http.Request) {
 	room, err := m.getRoom(&claims.roomId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	body := room.game.GetSnapshot()
-	if err := json.NewEncoder(w).Encode(body); err != nil {
+	message, err := proto.Marshal(room.game.GetSnapshot())
+	if err != nil {
+		http.Error(w, "unable to serialize room state", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(message)
+	if err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)
 	}
 }

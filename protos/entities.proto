@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/pb";
+
+import "vector.proto";
+
+message Entity {
+    EntityType type = 1;
+    string id = 2;
+    Vector position = 3;
+    Vector velocity = 4;
+    double rotation = 5;
+
+    oneof data {
+        AsteroidData asteroidData = 6;
+        PlayerData playerData = 7;
+        PowerupData powerupData = 8;
+        ProjectileData projectileData = 9;
+    }
+
+    message AsteroidData {
+        repeated Vector points = 1;
+    }
+
+    message PlayerData {
+        string username = 1;
+        uint32 score = 2;
+        uint32 flags = 3;
+    }
+
+    message PowerupData {
+        uint32 ability = 1;
+    }
+
+    message ProjectileData {
+        uint32 flags = 1;
+        int32 lifetime = 2;
+    }
+}
+
+enum EntityType {
+    ENTITY_TYPE_UNKNOWN = 0;
+    ENTITY_TYPE_ASTEROID = 1;
+    ENTITY_TYPE_PLAYER = 2;
+    ENTITY_TYPE_POWERUP = 3;
+    ENTITY_TYPE_PROJECTILE = 4;
+    ENTITY_TYPE_MOCK = 5;
+}

@@ -9,4 +9,5 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/sqids/sqids-go v0.4.1
+	google.golang.org/protobuf v1.36.10
 )

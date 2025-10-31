@@ -2,6 +2,7 @@ package entities
 
 import (
 	"server/game/geometry"
+	"server/pb"
 	"time"
 )
 
@@ -13,10 +14,10 @@ const (
 	FRAME_DURATION = time.Second / FPS
 )
 
-type EntityType string
-
 type Entity interface {
-	GetType() EntityType
+	GetType() pb.EntityType
+	GetEntity() *pb.Entity
+
 	GetID() string
 	GetPosition() geometry.Vector
 	GetVelocity() geometry.Vector
@@ -28,11 +29,3 @@ type Entity interface {
 	UpdateOnCollision(other Entity)
 	RemoveOnCollision(other Entity) bool
 }
-
-const (
-	AsteroidEntityType   EntityType = "asteroid"
-	PlayerEntityType     EntityType = "player"
-	ProjectileEntityType EntityType = "projectile"
-	PowerupEntityType    EntityType = "powerup"
-	MockEntityType       EntityType = "mock"
-)

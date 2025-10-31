@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-type AbilityFlag int
+type AbilityFlag uint32
 
 const (
 	MultishotAbilityFlag AbilityFlag = 1 << 1

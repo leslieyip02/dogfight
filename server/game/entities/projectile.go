@@ -2,6 +2,7 @@ package entities
 
 import (
 	"server/game/geometry"
+	"server/pb"
 	"server/utils"
 )
 
@@ -15,15 +16,13 @@ var basicProjectileBoundingBoxPoints = geometry.NewRectangleHull(10, 10)
 var wideBeamProjectileBoundingBoxPoints = geometry.NewRectangleHull(20, 80)
 
 type Projectile struct {
-	Type     EntityType      `json:"type"`
-	ID       string          `json:"id"`
-	Position geometry.Vector `json:"position"`
-	Velocity geometry.Vector `json:"velocity"`
-	Rotation float64         `json:"rotation"`
-	Flags    AbilityFlag     `json:"flags"`
-	Lifetime int             `json:"lifetime"`
+	entity *pb.Entity
 
+	// state
 	shooter     *Player
+	position    geometry.Vector
+	velocity    geometry.Vector
+	rotation    float64
 	boundingBox *geometry.BoundingBox
 }
 
@@ -32,43 +31,60 @@ func NewProjectile(position geometry.Vector, velocity geometry.Vector, shooter *
 	if err != nil {
 		return nil, err
 	}
-
 	rotation := velocity.Angle()
-	flags := shooter.Flags
-	points := chooseBoundingBoxPoints(flags)
+	flags := shooter.entity.GetPlayerData().GetFlags()
+
+	entity := &pb.Entity{
+		Type:     pb.EntityType_ENTITY_TYPE_PROJECTILE,
+		Id:       id,
+		Position: &pb.Vector{X: position.X, Y: position.Y},
+		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
+		Rotation: rotation,
+		Data: &pb.Entity_ProjectileData_{
+			ProjectileData: &pb.Entity_ProjectileData{
+				Flags:    shooter.entity.GetPlayerData().GetFlags(),
+				Lifetime: PROJECTILE_LIFETIME,
+			},
+		},
+	}
 
 	p := Projectile{
-		Type:     ProjectileEntityType,
-		ID:       id,
-		Position: position,
-		Velocity: velocity,
-		Rotation: rotation,
-		Flags:    flags,
-		Lifetime: PROJECTILE_LIFETIME,
+		entity:   entity,
+		position: position,
+		velocity: velocity,
+		rotation: rotation,
 		shooter:  shooter,
 	}
-	p.boundingBox = geometry.NewBoundingBox(&p.Position, &p.Rotation, points)
+	p.boundingBox = geometry.NewBoundingBox(
+		&p.position,
+		&p.rotation,
+		chooseBoundingBoxPoints(AbilityFlag(flags)),
+	)
 	return &p, nil
 }
 
-func (p *Projectile) GetType() EntityType {
-	return ProjectileEntityType
+func (p *Projectile) GetType() pb.EntityType {
+	return pb.EntityType_ENTITY_TYPE_PROJECTILE
+}
+
+func (p *Projectile) GetEntity() *pb.Entity {
+	return p.entity
 }
 
 func (p *Projectile) GetID() string {
-	return p.ID
+	return p.entity.Id
 }
 
 func (p *Projectile) GetPosition() geometry.Vector {
-	return p.Position
+	return p.position
 }
 
 func (p *Projectile) GetVelocity() geometry.Vector {
-	return p.Velocity
+	return p.velocity
 }
 
 func (p *Projectile) GetIsExpired() bool {
-	return p.Lifetime < 0
+	return p.entity.GetProjectileData().Lifetime < 0
 }
 
 func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
@@ -76,9 +92,14 @@ func (p *Projectile) GetBoundingBox() *geometry.BoundingBox {
 }
 
 func (p *Projectile) Update() bool {
-	p.Position.X += p.Velocity.X
-	p.Position.Y += p.Velocity.Y
-	p.Lifetime--
+	p.position.X += p.velocity.X
+	p.position.Y += p.velocity.Y
+	p.entity.GetProjectileData().Lifetime--
+
+	// copy to entity
+	p.entity.Position.X = p.position.X
+	p.entity.Position.Y = p.position.Y
+
 	return true
 }
 
@@ -90,11 +111,11 @@ func (p *Projectile) UpdateOnCollision(other Entity) {}
 
 func (p *Projectile) RemoveOnCollision(other Entity) bool {
 	switch other.GetType() {
-	case PlayerEntityType:
-		p.shooter.Score++
+	case pb.EntityType_ENTITY_TYPE_PLAYER:
+		p.shooter.entity.GetPlayerData().Score++
 		return true
 
-	case PowerupEntityType, ProjectileEntityType:
+	case pb.EntityType_ENTITY_TYPE_POWERUP, pb.EntityType_ENTITY_TYPE_PROJECTILE:
 		return false
 
 	default:

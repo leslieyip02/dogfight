@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package game;
+option go_package = "/pb";
+
+message Vector {
+    double x = 1;
+    double y = 2;
+}

@@ -2,11 +2,14 @@ package game
 
 import (
 	"context"
-	"encoding/json"
+	"log"
 	"server/game/collision"
 	"server/game/entities"
+	"server/pb"
 	"sync"
 	"time"
+
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -48,10 +51,16 @@ func (g *Game) AddPlayer(id string, username string) error {
 	g.entities[id] = entities.NewPlayer(id, username)
 	g.usernames[id] = username
 
-	message, err := CreateMessage(JoinEventType, JoinEventData{
-		ID:       id,
-		Username: username,
-	})
+	data := &pb.Event{
+		Type: pb.EventType_EVENT_TYPE_JOIN,
+		Data: &pb.Event_JoinEventData_{
+			JoinEventData: &pb.Event_JoinEventData{
+				Id:       id,
+				Username: username,
+			},
+		},
+	}
+	message, err := proto.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -84,18 +93,37 @@ func (g *Game) respawn(id string) {
 	g.entities[id] = entities.NewPlayer(id, username)
 }
 
-func (g *Game) GetSnapshot() SnapshotEventData {
-	return SnapshotEventData{
-		Timestamp: time.Now().UnixNano(),
-		Entities:  g.entities,
+func (g *Game) GetPBEntities() []*pb.Entity {
+	entities := make([]*pb.Entity, len(g.entities))
+	i := 0
+	for _, entity := range g.entities {
+		entities[i] = entity.GetEntity()
+	}
+	return entities
+}
+
+func (g *Game) GetSnapshot() *pb.Event {
+	return &pb.Event{
+		Type: pb.EventType_EVENT_TYPE_SNAPSHOT,
+		Data: &pb.Event_SnapshotEventData_{
+			SnapshotEventData: &pb.Event_SnapshotEventData{
+				Timestamp: time.Now().UnixNano(),
+				Entities:  g.GetPBEntities(),
+			},
+		},
 	}
 }
 
-func (g *Game) GetDelta() DeltaEventData {
-	return DeltaEventData{
-		Timestamp: time.Now().UnixNano(),
-		Updated:   g.updated,
-		Removed:   g.removed,
+func (g *Game) GetDelta() *pb.Event {
+	return &pb.Event{
+		Type: pb.EventType_EVENT_TYPE_DELTA,
+		Data: &pb.Event_DeltaEventData_{
+			DeltaEventData: &pb.Event_DeltaEventData{
+				Timestamp: time.Now().UnixNano(),
+				Updated:   g.GetPBEntities(),
+				Removed:   g.removed,
+			},
+		},
 	}
 }
 
@@ -121,18 +149,16 @@ func (g *Game) Run(ctx context.Context) {
 			case message := <-g.Incoming:
 				g.Outgoing <- message
 
-				var event Event
-				json.Unmarshal(message, &event)
+				var event pb.Event
+				proto.Unmarshal(message, &event)
 
 				switch event.Type {
-				case RespawnEventType:
-					var data RespawnEventData
-					json.Unmarshal(event.Data, &data)
-					g.respawn(data.ID)
+				case pb.EventType_EVENT_TYPE_RESPAWN:
+					data := event.GetRespawnEventData()
+					g.respawn(data.GetId())
 
-				case InputEventType:
-					var data InputEventData
-					json.Unmarshal(event.Data, &data)
+				case pb.EventType_EVENT_TYPE_INPUT:
+					data := event.GetInputEventData()
 					g.input(data)
 				}
 			}
@@ -140,14 +166,14 @@ func (g *Game) Run(ctx context.Context) {
 	}()
 }
 
-func (g *Game) input(data InputEventData) {
-	entity, found := g.entities[data.ID]
+func (g *Game) input(data *pb.Event_InputEventData) {
+	entity, found := g.entities[data.GetId()]
 	if !found {
 		return
 	}
 
 	if player, ok := entity.(*entities.Player); ok {
-		player.Input(data.MouseX, data.MouseY, data.MousePressed)
+		player.Input(data.GetMouseX(), data.GetMouseY(), data.MousePressed)
 	}
 }
 
@@ -220,8 +246,9 @@ func (g *Game) pollNewEntities() {
 }
 
 func (g *Game) broadcast() {
-	message, err := CreateMessage(DeltaEventType, g.GetDelta())
+	message, err := proto.Marshal(g.GetDelta())
 	if err != nil {
+		log.Printf("broadcast failed: %v", err)
 		return
 	}
 	g.Outgoing <- message

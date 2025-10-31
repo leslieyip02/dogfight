@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"server/game/geometry"
+	"server/pb"
 	"server/utils"
 )
 
@@ -21,16 +22,16 @@ const (
 )
 
 type Asteroid struct {
-	Type     EntityType          `json:"type"`
-	ID       string              `json:"id"`
-	Position geometry.Vector     `json:"position"`
-	Velocity geometry.Vector     `json:"velocity"`
-	Rotation float64             `json:"rotation"`
-	Points   *[]*geometry.Vector `json:"points"`
+	entity *pb.Entity
 
-	spin        float64
-	health      int
+	// state
+	position    geometry.Vector
+	velocity    geometry.Vector
+	rotation    float64
 	boundingBox *geometry.BoundingBox
+
+	spin   float64
+	health int
 }
 
 func newRandomAsteroid() (*Asteroid, error) {
@@ -38,7 +39,6 @@ func newRandomAsteroid() (*Asteroid, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
 	velocity := *geometry.NewRandomVector(0, 0, ASTEROID_MAX_SPEED, ASTEROID_MAX_SPEED)
 	rotation := rand.Float64() * math.Pi * 2
@@ -54,38 +54,60 @@ func newRandomAsteroid() (*Asteroid, error) {
 		return nil, fmt.Errorf("too small")
 	}
 
-	a := Asteroid{
-		Type:     AsteroidEntityType,
-		ID:       id,
-		Position: position,
-		Velocity: velocity,
+	entityPoints := make([]*pb.Vector, len(points))
+	for i, point := range points {
+		entityPoints[i] = &pb.Vector{
+			X: point.X,
+			Y: point.Y,
+		}
+	}
+
+	entity := &pb.Entity{
+		Type:     pb.EntityType_ENTITY_TYPE_ASTEROID,
+		Id:       id,
+		Position: &pb.Vector{X: position.X, Y: position.Y},
+		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Points:   &points,
+		Data: &pb.Entity_AsteroidData_{
+			AsteroidData: &pb.Entity_AsteroidData{
+				Points: entityPoints,
+			},
+		},
+	}
+	a := Asteroid{
+		entity:   entity,
+		position: position,
+		velocity: velocity,
+		rotation: rotation,
 		spin:     spin,
 		health:   ASTEROID_MAX_HEALTH,
 	}
 	a.boundingBox = geometry.NewBoundingBox(
-		&a.Position,
-		&a.Rotation,
+		&a.position,
+		&a.rotation,
 		&points,
 	)
 	return &a, nil
 }
 
-func (a *Asteroid) GetType() EntityType {
-	return AsteroidEntityType
+func (a *Asteroid) GetType() pb.EntityType {
+	return a.entity.GetType()
+}
+
+func (a *Asteroid) GetEntity() *pb.Entity {
+	return a.entity
 }
 
 func (a *Asteroid) GetID() string {
-	return a.ID
+	return a.entity.Id
 }
 
 func (a *Asteroid) GetPosition() geometry.Vector {
-	return a.Position
+	return a.position
 }
 
 func (a *Asteroid) GetVelocity() geometry.Vector {
-	return a.Velocity
+	return a.velocity
 }
 
 func (a *Asteroid) GetIsExpired() bool {
@@ -97,9 +119,15 @@ func (a *Asteroid) GetBoundingBox() *geometry.BoundingBox {
 }
 
 func (a *Asteroid) Update() bool {
-	a.Position.X += a.Velocity.X
-	a.Position.Y += a.Velocity.Y
-	a.Rotation += a.spin
+	a.position.X += a.velocity.X
+	a.position.Y += a.velocity.Y
+	a.rotation += a.spin
+
+	// copy to entity
+	a.entity.Position.X = a.position.X
+	a.entity.Position.Y = a.position.Y
+	a.entity.Rotation = a.rotation
+
 	return true
 }
 
@@ -111,11 +139,11 @@ func (a *Asteroid) UpdateOnCollision(other Entity) {}
 
 func (a *Asteroid) RemoveOnCollision(other Entity) bool {
 	switch other.GetType() {
-	case ProjectileEntityType:
+	case pb.EntityType_ENTITY_TYPE_PROJECTILE:
 		a.health--
 		return a.health <= 0
 
-	case PowerupEntityType:
+	case pb.EntityType_ENTITY_TYPE_POWERUP:
 		return false
 
 	default:

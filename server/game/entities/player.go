@@ -3,6 +3,7 @@ package entities
 import (
 	"math"
 	"server/game/geometry"
+	"server/pb"
 )
 
 const (
@@ -10,24 +11,21 @@ const (
 	PLAYER_ACCELERATION_DECAY = 8.0
 	PLAYER_MAX_TURN_RATE      = 0.8
 	PLAYER_TURN_RATE_DECAY    = 4.0
-
-	PLAYER_RADIUS = 40.0
+	PLAYER_RADIUS             = 40.0
 )
 
-var playerBoundingBoxPoints = geometry.NewRectangleHull(80, 80)
+var playerBoundingBoxPoints = geometry.NewRectangleHull(PLAYER_RADIUS*2, PLAYER_RADIUS*2)
 
 type Player struct {
-	Type     EntityType      `json:"type"`
-	ID       string          `json:"id"`
-	Username string          `json:"username"`
-	Position geometry.Vector `json:"position"`
-	Velocity geometry.Vector `json:"velocity"`
-	Rotation float64         `json:"rotation"`
-	Score    int             `json:"score"`
-	Flags    AbilityFlag     `json:"flags"`
+	entity *pb.Entity
 
+	// state
+	position    geometry.Vector
+	velocity    geometry.Vector
+	rotation    float64
 	boundingBox *geometry.BoundingBox
 
+	// input
 	mouseX       float64
 	mouseY       float64
 	mousePressed bool
@@ -38,41 +36,56 @@ func NewPlayer(id string, username string) *Player {
 	velocity := *geometry.NewVector(0, 0)
 	rotation := 0.0
 
+	entity := &pb.Entity{
+		Type:     pb.EntityType_ENTITY_TYPE_PLAYER,
+		Id:       id,
+		Position: &pb.Vector{X: position.X, Y: position.Y},
+		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
+		Rotation: rotation,
+		Data: &pb.Entity_PlayerData_{
+			PlayerData: &pb.Entity_PlayerData{
+				Username: username,
+				Score:    0,
+				Flags:    0,
+			},
+		},
+	}
+
 	p := Player{
-		Type:         PlayerEntityType,
-		ID:           id,
-		Username:     username,
-		Position:     position,
-		Velocity:     velocity,
-		Rotation:     rotation,
-		Score:        0,
-		Flags:        0,
+		entity:       entity,
+		position:     position,
+		velocity:     velocity,
+		rotation:     rotation,
 		mouseX:       0,
 		mouseY:       0,
 		mousePressed: false,
 	}
 	p.boundingBox = geometry.NewBoundingBox(
-		&p.Position,
-		&p.Rotation,
+		&p.position,
+		&p.rotation,
 		&playerBoundingBoxPoints,
 	)
 	return &p
 }
 
-func (p *Player) GetType() EntityType {
-	return PlayerEntityType
+func (p *Player) GetType() pb.EntityType {
+	return pb.EntityType_ENTITY_TYPE_PLAYER
+}
+
+func (p *Player) GetEntity() *pb.Entity {
+	return p.entity
 }
 
 func (p *Player) GetID() string {
-	return p.ID
+	return p.entity.Id
 }
 
 func (p *Player) GetPosition() geometry.Vector {
-	return p.Position
+	return p.position
 }
 
 func (p *Player) GetVelocity() geometry.Vector {
-	return p.Velocity
+	return p.velocity
 }
 
 func (p *Player) GetIsExpired() bool {
@@ -85,28 +98,36 @@ func (p *Player) GetBoundingBox() *geometry.BoundingBox {
 
 func (p *Player) Update() bool {
 	// TODO: continue iterating on this
-	currentSpeed := p.Velocity.Length()
+	currentSpeed := p.velocity.Length()
 	targetVelocity := geometry.NewVector(p.mouseX, p.mouseY)
 
-	currentAngle := p.Velocity.Angle()
+	currentAngle := p.velocity.Angle()
 	targetAngle := targetVelocity.Angle()
 	turnRate := normalizeAngle(targetAngle - currentAngle)
 	maxTurnRate := PLAYER_MAX_TURN_RATE / (1 + PLAYER_TURN_RATE_DECAY*currentSpeed)
 	if math.Abs(turnRate) > maxTurnRate {
 		turnRate = math.Copysign(maxTurnRate, turnRate)
 	}
-	p.Rotation = normalizeAngle(currentAngle + turnRate)
+	p.rotation = normalizeAngle(currentAngle + turnRate)
 
 	throttle := targetVelocity.Length()
 	targetSpeed := throttle * PLAYER_MAX_SPEED
 	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
 	currentSpeed += (targetSpeed - currentSpeed) * acceleration
 
-	p.Velocity.X = math.Cos(p.Rotation) * currentSpeed
-	p.Velocity.Y = math.Sin(p.Rotation) * currentSpeed
+	p.velocity.X = math.Cos(p.rotation) * currentSpeed
+	p.velocity.Y = math.Sin(p.rotation) * currentSpeed
 
-	p.Position.X += p.Velocity.X
-	p.Position.Y += p.Velocity.Y
+	p.position.X += p.velocity.X
+	p.position.Y += p.velocity.Y
+
+	// copy to entity
+	p.entity.Position.X = p.position.X
+	p.entity.Position.Y = p.position.Y
+	p.entity.Velocity.X = p.velocity.X
+	p.entity.Velocity.Y = p.velocity.Y
+	p.entity.Rotation = p.rotation
+
 	return true
 }
 
@@ -117,16 +138,17 @@ func (p *Player) PollNewEntities() []Entity {
 	p.mousePressed = false
 
 	shots := 1
-	if isAbilityActive(p.Flags, MultishotAbilityFlag) {
+	flags := AbilityFlag(p.entity.GetPlayerData().Flags)
+	if isAbilityActive(flags, MultishotAbilityFlag) {
 		shots = 3
 	}
 
 	projectiles := []Entity{}
-	velocity := p.Velocity.Unit().Multiply(PROJECTILE_SPEED)
+	velocity := p.velocity.Unit().Multiply(PROJECTILE_SPEED)
 	for i := range shots {
 		offset := float64(i-shots/2) * 32.0
-		translated := p.Position.Add(p.Velocity.Normal().Multiply(offset))
-		position := translated.Add(p.Velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
+		translated := p.position.Add(p.velocity.Normal().Multiply(offset))
+		position := translated.Add(p.velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
 
 		projectile, err := NewProjectile(*position, *velocity, p)
 		if err != nil {
@@ -138,19 +160,20 @@ func (p *Player) PollNewEntities() []Entity {
 }
 
 func (p *Player) UpdateOnCollision(other Entity) {
-	if other.GetType() == PowerupEntityType {
+	if other.GetType() == pb.EntityType_ENTITY_TYPE_POWERUP {
 		powerup := other.(*Powerup)
-		p.Flags |= powerup.Ability
+		p.entity.GetPlayerData().Flags |= powerup.entity.GetPowerupData().Ability
 	}
 }
 
 func (p *Player) RemoveOnCollision(other Entity) bool {
-	if other.GetType() == PowerupEntityType {
+	if other.GetType() == pb.EntityType_ENTITY_TYPE_POWERUP {
 		return false
 	}
 
-	if isAbilityActive(p.Flags, ShieldAbilityFlag) {
-		p.Flags ^= ShieldAbilityFlag
+	flags := AbilityFlag(p.entity.GetPlayerData().Flags)
+	if isAbilityActive(flags, ShieldAbilityFlag) {
+		p.entity.GetPlayerData().Flags ^= uint32(ShieldAbilityFlag)
 		return false
 	}
 

@@ -2,6 +2,7 @@ package entities
 
 import (
 	"server/game/geometry"
+	"server/pb"
 	"server/utils"
 )
 
@@ -12,13 +13,12 @@ const (
 var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
 
 type Powerup struct {
-	Type     EntityType      `json:"type"`
-	ID       string          `json:"id"`
-	Position geometry.Vector `json:"position"`
-	Velocity geometry.Vector `json:"velocity"`
-	Rotation float64         `json:"rotation"`
-	Ability  AbilityFlag     `json:"ability"`
+	entity *pb.Entity
 
+	// state
+	position    geometry.Vector
+	velocity    geometry.Vector
+	rotation    float64
 	boundingBox *geometry.BoundingBox
 }
 
@@ -27,42 +27,56 @@ func newRandomPowerup() (*Powerup, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	position := *geometry.NewRandomVector(0, 0, SPAWN_AREA_WIDTH, SPAWN_AREA_HEIGHT)
 	velocity := *geometry.NewVector(0, 0)
 	rotation := 0.0
 	ability := newRandomAbility()
 
-	p := Powerup{
-		Type:     PowerupEntityType,
-		ID:       id,
-		Position: position,
-		Velocity: velocity,
+	entity := &pb.Entity{
+		Type:     pb.EntityType_ENTITY_TYPE_POWERUP,
+		Id:       id,
+		Position: &pb.Vector{X: position.X, Y: position.Y},
+		Velocity: &pb.Vector{X: velocity.X, Y: velocity.Y},
 		Rotation: rotation,
-		Ability:  ability,
+		Data: &pb.Entity_PowerupData_{
+			PowerupData: &pb.Entity_PowerupData{
+				Ability: uint32(ability),
+			},
+		},
+	}
+
+	p := Powerup{
+		entity:   entity,
+		position: position,
+		velocity: velocity,
+		rotation: rotation,
 	}
 	p.boundingBox = geometry.NewBoundingBox(
-		&p.Position,
-		&p.Rotation,
+		&p.position,
+		&p.rotation,
 		&powerupBoundingBoxPoints,
 	)
 	return &p, nil
 }
 
-func (p *Powerup) GetType() EntityType {
-	return PowerupEntityType
+func (p *Powerup) GetType() pb.EntityType {
+	return pb.EntityType_ENTITY_TYPE_POWERUP
+}
+
+func (p *Powerup) GetEntity() *pb.Entity {
+	return p.entity
 }
 
 func (p *Powerup) GetID() string {
-	return p.ID
+	return p.entity.Id
 }
 
 func (p *Powerup) GetPosition() geometry.Vector {
-	return p.Position
+	return p.position
 }
 
 func (p *Powerup) GetVelocity() geometry.Vector {
-	return p.Velocity
+	return p.velocity
 }
 
 func (p *Powerup) GetIsExpired() bool {
@@ -84,5 +98,5 @@ func (p *Powerup) PollNewEntities() []Entity {
 func (p *Powerup) UpdateOnCollision(other Entity) {}
 
 func (p *Powerup) RemoveOnCollision(other Entity) bool {
-	return other.GetType() == PlayerEntityType
+	return other.GetType() == pb.EntityType_ENTITY_TYPE_PLAYER
 }
