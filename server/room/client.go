@@ -51,5 +51,5 @@ func (c *Client) writeMessage(data []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	return c.conn.WriteMessage(websocket.TextMessage, data)
+	return c.conn.WriteMessage(websocket.BinaryMessage, data)
 }

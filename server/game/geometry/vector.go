@@ -8,8 +8,8 @@ import (
 const EPSILON = 1e-5
 
 type Vector struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
+	X float64
+	Y float64
 }
 
 func NewVector(x float64, y float64) *Vector {

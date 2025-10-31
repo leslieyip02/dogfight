@@ -98,6 +98,7 @@ func (g *Game) GetPBEntities() []*pb.Entity {
 	i := 0
 	for _, entity := range g.entities {
 		entities[i] = entity.GetEntity()
+		i++
 	}
 	return entities
 }
@@ -205,7 +206,6 @@ func (g *Game) updateEntities() {
 		if entity.Update() {
 			g.updated[id] = entity
 		}
-
 		if entity.GetIsExpired() {
 			g.removed = append(g.removed, id)
 		}

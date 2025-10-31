@@ -13,7 +13,7 @@ class Powerup implements BaseEntity {
   ability: AbilityFlag;
 
   constructor(data: EntityData) {
-    if (!data.position || !data.rotation) {
+    if (!data.position) {
       throw new Error(`expected entity data but got ${data}`);
     }
     this.position = data.position;
@@ -27,7 +27,7 @@ class Powerup implements BaseEntity {
   }
 
   update = (data: EntityData) => {
-    if (!data.position || !data.rotation) {
+    if (!data.position) {
       return;
     }
     this.position = data.position;

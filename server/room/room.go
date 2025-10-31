@@ -2,12 +2,13 @@ package room
 
 import (
 	"context"
-	"encoding/json"
 	"server/game"
 	"server/pb"
 	"server/utils"
 
 	"sync"
+
+	"google.golang.org/protobuf/proto"
 )
 
 const ROOM_CAPACITY = 32
@@ -82,7 +83,7 @@ func (r *Room) broadcast() {
 			}
 
 			var event pb.Event
-			json.Unmarshal(message, &event)
+			proto.Unmarshal(message, &event)
 
 			switch event.Type {
 			case pb.EventType_EVENT_TYPE_QUIT:

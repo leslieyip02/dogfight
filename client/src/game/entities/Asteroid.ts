@@ -11,7 +11,7 @@ class Asteroid implements BaseEntity {
   points: Vector[];
 
   constructor(data: EntityData) {
-    if (!data.position || !data.rotation) {
+    if (!data.position) {
       throw new Error(`expected entity data but got ${data}`);
     }
     this.position = data.position;

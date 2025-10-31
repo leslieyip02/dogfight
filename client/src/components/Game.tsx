@@ -34,7 +34,6 @@ const Game: React.FC<Props> = ({ clientId }) => {
       await gameEngineRef.current?.init();
     };
     ws.onmessage = (event: MessageEvent) => {
-      console.log(event, event.data);
       const message = new Uint8Array(event.data);
       gameEngineRef.current?.receive(Event.decode(message));
     };

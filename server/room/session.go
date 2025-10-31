@@ -104,7 +104,7 @@ func (s *Session) createConn(w *http.ResponseWriter, r *http.Request, clientId s
 		}
 
 		room.Remove(clientId)
-		return conn.WriteMessage(websocket.TextMessage, message)
+		return conn.WriteMessage(websocket.BinaryMessage, message)
 	})
 
 	return conn, nil

@@ -67,13 +67,16 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
     break;
   }
 
+  case EntityType.ENTITY_TYPE_POWERUP:
+    entities[id] = new Powerup(data);
+    break;
+
   case EntityType.ENTITY_TYPE_PROJECTILE:
     entities[id] = new Projectile(data);
     break;
 
-  case EntityType.ENTITY_TYPE_POWERUP:
-    entities[id] = new Powerup(data);
-    break;
+  default:
+    throw new Error(`unexpected entity ${data}`);
   }
 }
 

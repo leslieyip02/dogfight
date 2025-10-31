@@ -94,8 +94,9 @@ func (m *Manager) HandleSnapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = w.Write(message)
-	if err != nil {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	if _, err = w.Write(message); err != nil {
 		http.Error(w, "unable to get room state", http.StatusInternalServerError)
+		return
 	}
 }
