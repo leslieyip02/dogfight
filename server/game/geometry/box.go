@@ -4,13 +4,11 @@ import (
 	"math"
 )
 
+// A BoundingBox is a group of closed, convex points in 2D space.
 type BoundingBox struct {
-	position *Vector
-	rotation *float64
-
-	// points take position as (0, 0)
-	// points are stored in anticlockwise order
-	points *[]*Vector
+	position *Vector    // origin
+	rotation *float64   // rotation of the points about position
+	points   *[]*Vector // points stored in anticlockwise order
 }
 
 func NewBoundingBox(position *Vector, rotation *float64, points *[]*Vector) *BoundingBox {
@@ -21,16 +19,15 @@ func NewBoundingBox(position *Vector, rotation *float64, points *[]*Vector) *Bou
 	}
 }
 
+// DidCollide uses the Separating Axis Theorem (SAT) to determine if b1 is
+// colliding with b2.
 func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
-	// separatable axis theorem
-
-	// for each line segment,
-	// get a perpendicular vector
+	// Get perpendicular vectors for each line segment.
 	p := make(map[float64]bool)
 	for _, normal := range b1.normals() {
 		r := normal.Rotate(*b1.rotation)
 
-		// take gradients to deduplicate parallel lines
+		// Deduplicate parallel lines by using their gradients.
 		m := r.gradient()
 		p[m] = true
 	}
@@ -40,15 +37,14 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 		p[m] = true
 	}
 
-	// for each perpendicular vector,
-	// calculate the projection
+	// Calculate the projection range of each perpendicular vector and check
+	// for overlaps.
 	for m := range p {
 		perpendicular := Vector{
 			X: 1,
 			Y: m,
 		}
 
-		// check overlaps
 		min1, max1 := b1.projectionRange(&perpendicular)
 		min2, max2 := b2.projectionRange(&perpendicular)
 		if min1 > max2 || min2 > max1 {
@@ -59,6 +55,8 @@ func (b1 *BoundingBox) DidCollide(b2 *BoundingBox) bool {
 	return true
 }
 
+// HorizontalBounds returns a pair of x-coordinates (in world space) which
+// bounds b.
 func (b *BoundingBox) HorizontalBounds() (float64, float64) {
 	min := math.Inf(1)
 	max := math.Inf(-1)
@@ -70,6 +68,7 @@ func (b *BoundingBox) HorizontalBounds() (float64, float64) {
 	return min, max
 }
 
+// normals returns the normal vectors of each line segment in b.
 func (b *BoundingBox) normals() []*Vector {
 	normals := []*Vector{}
 	for i := range len(*b.points) {
@@ -80,6 +79,7 @@ func (b *BoundingBox) normals() []*Vector {
 	return normals
 }
 
+// convertToWorldSpace converts a vector to world space with respect to b.
 func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
 	// transform to world space
 	u := v.Rotate(*b.rotation)
@@ -89,6 +89,9 @@ func (b *BoundingBox) convertToWorldSpace(v *Vector) *Vector {
 	}
 }
 
+// projectionRange returns a pair of coordinates which represent the bounds of
+// the projection of b onto v. Each point in b is projected on to v, and the
+// minimimum and maximum values along v are returned.
 func (b *BoundingBox) projectionRange(v *Vector) (float64, float64) {
 	min := math.Inf(1)
 	max := math.Inf(-1)

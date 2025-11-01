@@ -29,25 +29,32 @@ func NewRandomConvexHull(
 	points := make([]*Vector, numPoints)
 	for i := range numPoints {
 		points[i] = &Vector{
-			X: math.Copysign(minRadius+rand.Float64()*maxRadius, rand.Float64()-0.5),
-			Y: math.Copysign(minRadius+rand.Float64()*maxRadius, rand.Float64()-0.5),
+			X: math.Copysign(
+				minRadius+rand.Float64()*maxRadius,
+				rand.Float64()-0.5,
+			),
+			Y: math.Copysign(
+				minRadius+rand.Float64()*maxRadius,
+				rand.Float64()-0.5,
+			),
 		}
 	}
 	return ConvexHull(points)
 }
 
+// ConvexHull uses Graham scan to choose a subset of points to form a convex
+// hull.
 func ConvexHull(points []*Vector) []*Vector {
-	// graham scan
-
-	// start at the point with the smallest y (ties broken by x)
+	// Find the bottom-left corner.
 	origin := points[0]
 	for i := 1; i < len(points); i++ {
-		if points[i].Y < origin.Y || (points[i].Y == origin.Y && points[i].X < origin.X) {
+		if points[i].Y < origin.Y ||
+			(points[i].Y == origin.Y && points[i].X < origin.X) {
 			origin = points[i]
 		}
 	}
 
-	// sort remaining points by angle to origin
+	// Sort remaining points by angle to origin.
 	remainingPoints := []*Vector{}
 	for _, point := range points {
 		if point == origin {
@@ -57,9 +64,11 @@ func ConvexHull(points []*Vector) []*Vector {
 	}
 	sortPointsAbout(origin, remainingPoints)
 
+	// Keep adding points to hull as long as they are left turns.
 	hull := []*Vector{origin}
 	for _, point := range remainingPoints {
-		for len(hull) > 1 && !isLeftTurn(hull[len(hull)-2], hull[len(hull)-1], point) {
+		for len(hull) > 1 &&
+			!isLeftTurn(hull[len(hull)-2], hull[len(hull)-1], point) {
 			hull = hull[:len(hull)-1]
 		}
 		hull = append(hull, point)
@@ -67,6 +76,8 @@ func ConvexHull(points []*Vector) []*Vector {
 	return hull
 }
 
+// HullArea gets the area of the polygon formed by points using the shoelace
+// method.
 func HullArea(points []*Vector) float64 {
 	area := 0.0
 	for i := range len(points) {
@@ -76,6 +87,7 @@ func HullArea(points []*Vector) float64 {
 	return math.Abs(area) / 2.0
 }
 
+// sortPointsAbout orders points based on their angle to origin.
 func sortPointsAbout(origin *Vector, points []*Vector) {
 	slices.SortFunc(points, func(a *Vector, b *Vector) int {
 		if a.Sub(origin).Angle() < b.Sub(origin).Angle() {
@@ -86,6 +98,7 @@ func sortPointsAbout(origin *Vector, points []*Vector) {
 	})
 }
 
+// isLeftTurn reports whether vector bc is a left turn from vector ac.
 func isLeftTurn(a *Vector, b *Vector, c *Vector) bool {
 	u := b.Sub(a)
 	v := c.Sub(b)
