@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// A Client manages the interaction between the user and the server.
 type Client struct {
 	id       string
 	username string
@@ -14,7 +15,7 @@ type Client struct {
 	mu       sync.Mutex
 }
 
-func NewClient(id string, username string, conn *websocket.Conn) *Client {
+func newClient(id string, username string, conn *websocket.Conn) *Client {
 	return &Client{
 		id:       id,
 		username: username,
@@ -24,6 +25,7 @@ func NewClient(id string, username string, conn *websocket.Conn) *Client {
 	}
 }
 
+// readPump relays messages from the client to the incoming channel.
 func (c *Client) readPump(incoming chan<- []byte) {
 	defer c.conn.Close()
 
@@ -36,6 +38,7 @@ func (c *Client) readPump(incoming chan<- []byte) {
 	}
 }
 
+// writePump relays messages from the room to the client.
 func (c *Client) writePump() {
 	defer c.conn.Close()
 
@@ -47,6 +50,7 @@ func (c *Client) writePump() {
 	}
 }
 
+// writeMessage writes binary messages to the client's conn.
 func (c *Client) writeMessage(data []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()

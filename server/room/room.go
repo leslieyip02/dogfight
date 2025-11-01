@@ -12,6 +12,7 @@ import (
 
 const ROOM_CAPACITY = 32
 
+// A Room allows multiple clients to connect, and runs a single game instance.
 type Room struct {
 	id      string
 	game    *game.Game
@@ -21,7 +22,7 @@ type Room struct {
 	cancel  context.CancelFunc
 }
 
-func NewRoom(id string) *Room {
+func newRoom(id string) *Room {
 	ctx, cancel := context.WithCancel(context.Background())
 	game := game.NewGame()
 
@@ -35,19 +36,19 @@ func NewRoom(id string) *Room {
 	}
 }
 
-func (r *Room) Init() {
+func (r *Room) init() {
 	r.game.Run(r.ctx)
 	go r.broadcast()
 }
 
-func (r *Room) Add(client *Client) {
+func (r *Room) add(client *Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.clients[client.id] = client
 }
 
-func (r *Room) Remove(clientId string) {
+func (r *Room) remove(clientId string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -55,17 +56,24 @@ func (r *Room) Remove(clientId string) {
 	delete(r.clients, clientId)
 }
 
-func (r *Room) Stop() {
+func (r *Room) stop() {
 	r.cancel()
 }
 
+// connect allows clients to connect to the room, and sends a join event
+// message to other clients.
 func (r *Room) connect(client *Client) error {
 	go client.readPump(r.game.Incoming)
 	go client.writePump()
 
-	return r.game.AddPlayer(client.id, client.username)
+	err := r.game.AddPlayer(client.id, client.username)
+	if err != nil {
+		return err
+	}
+	return r.sendJoinEvent(client.id, client.username)
 }
 
+// broadcast relays messages from the game to all clients.
 func (r *Room) broadcast() {
 	for {
 		select {
@@ -83,12 +91,32 @@ func (r *Room) broadcast() {
 			switch event.Type {
 			case pb.EventType_EVENT_TYPE_QUIT:
 				data := event.GetQuitEventData()
-				r.Remove(data.GetId())
+				r.remove(data.GetId())
 			}
 		}
 	}
 }
 
+func (r *Room) sendJoinEvent(id string, username string) error {
+	data := &pb.Event{
+		Type: pb.EventType_EVENT_TYPE_JOIN,
+		Data: &pb.Event_JoinEventData_{
+			JoinEventData: &pb.Event_JoinEventData{
+				Id:       id,
+				Username: username,
+			},
+		},
+	}
+
+	message, err := proto.Marshal(data)
+	if err != nil {
+		return err
+	}
+	r.game.Outgoing <- message
+	return nil
+}
+
+// hasCapacity reports if more players could be added to the room.
 func (r *Room) hasCapacity() bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()

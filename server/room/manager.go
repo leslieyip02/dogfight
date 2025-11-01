@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// A Manager manages REST API requests and room assignments.
 type Manager struct {
 	session *Session
 	rooms   map[string]*Room
@@ -22,6 +23,8 @@ func NewManager(session *Session) *Manager {
 	}
 }
 
+// getRoom returns a room. If a roomId is not specified, the first vacant room
+// is picked.
 func (m *Manager) getRoom(roomId *string) (*Room, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -36,23 +39,26 @@ func (m *Manager) getRoom(roomId *string) (*Room, error) {
 	return m.getVacantRoom()
 }
 
+// getVacantRoom returns the first room that has capacity for more players. If
+// all existing rooms are full, a new room is created.
 func (m *Manager) getVacantRoom() (*Room, error) {
 	for _, room := range m.rooms {
 		if room.hasCapacity() {
 			return room, nil
 		}
 	}
-	return m.makeNewRoom()
+	return m.initNewRoom()
 }
 
-func (m *Manager) makeNewRoom() (*Room, error) {
+// initNewRoom initializes a new room.
+func (m *Manager) initNewRoom() (*Room, error) {
 	id, err := id.NewShortId()
 	if err != nil {
 		return nil, err
 	}
 
-	room := NewRoom(id)
-	room.Init()
+	room := newRoom(id)
+	room.init()
 
 	m.rooms[room.id] = room
 	m.roomIds = append(m.roomIds, room.id)
