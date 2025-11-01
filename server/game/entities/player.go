@@ -8,19 +8,29 @@ import (
 )
 
 const (
-	PLAYER_MAX_SPEED          = 20.0
-	PLAYER_ACCELERATION_DECAY = 8.0
-	PLAYER_MAX_TURN_RATE      = 0.8
-	PLAYER_TURN_RATE_DECAY    = 4.0
-	PLAYER_RADIUS             = 40.0
+	PLAYER_MAX_SPEED              = 20.0
+	PLAYER_ACCELERATION_DECAY     = 8.0
+	PLAYER_MAX_TURN_RATE          = 0.8
+	PLAYER_TURN_RATE_DECAY_FACTOR = 4.0
+	PLAYER_RADIUS                 = 40.0
 )
 
-var playerBoundingBoxPoints = geometry.NewRectangleHull(PLAYER_RADIUS*2, PLAYER_RADIUS*2)
+var playerBoundingBoxPoints = geometry.NewRectangleHull(
+	PLAYER_RADIUS*2,
+	PLAYER_RADIUS*2,
+)
 
+// A Player is the spaceship which players control.
+//
+// Behaviors:
+//   - destroyed on impact with an asteroid, projectile or another player
+//   - can shoot projectiles
+//   - can collect powerups
+//   - takes 1 shot to destroy
 type Player struct {
 	entityData *pb.EntityData
 
-	// internal duplicates of EntityData state
+	// Internal duplicates of EntityData state.
 	position geometry.Vector
 	velocity geometry.Vector
 	rotation float64
@@ -31,7 +41,7 @@ type Player struct {
 	mousePressed bool
 }
 
-func NewPlayer(
+func newPlayer(
 	id string,
 	position geometry.Vector,
 	velocity geometry.Vector,
@@ -66,7 +76,11 @@ func NewPlayer(
 		mouseY:       mouseY,
 		mousePressed: mousePressed,
 	}
-	p.boundingBox = geometry.NewBoundingBox(&p.position, &p.rotation, &playerBoundingBoxPoints)
+	p.boundingBox = geometry.NewBoundingBox(
+		&p.position,
+		&p.rotation,
+		&playerBoundingBoxPoints,
+	)
 	return &p
 }
 
@@ -110,7 +124,7 @@ func (p *Player) Update() bool {
 	p.position.Y += p.velocity.Y
 	p.rotation = rotate(p.velocity, targetVelocity)
 
-	p.syncEntityData()
+	p.SyncEntityData()
 	return true
 }
 
@@ -120,16 +134,14 @@ func (p *Player) PollNewEntities() []Entity {
 	}
 	p.mousePressed = false
 
-	flags := AbilityFlag(p.entityData.GetPlayerData().Flags)
-	projectiles := p.spawnProjectiles(flags)
-
-	return projectiles
+	return p.spawnProjectiles()
 }
 
 func (p *Player) UpdateOnCollision(other Entity) {
 	if other.GetEntityType() == pb.EntityType_ENTITY_TYPE_POWERUP {
 		powerup := other.(*Powerup)
-		p.entityData.GetPlayerData().Flags |= powerup.entityData.GetPowerupData().Ability
+		ability := powerup.entityData.GetPowerupData().Ability
+		p.entityData.GetPlayerData().Flags |= ability
 	}
 }
 
@@ -154,7 +166,10 @@ func (p *Player) Input(mouseX float64, mouseY float64, mousePressed bool) {
 	p.mousePressed = p.mousePressed || mousePressed
 }
 
-func (p *Player) spawnProjectiles(flags AbilityFlag) []Entity {
+// spawnProjectiles creates a volley of projectiles based on the player's
+// active abilities.
+func (p *Player) spawnProjectiles() []Entity {
+	flags := AbilityFlag(p.entityData.GetPlayerData().Flags)
 	shots := 1
 	if isAbilityActive(flags, MultishotAbilityFlag) {
 		shots = 3
@@ -174,6 +189,9 @@ func (p *Player) spawnProjectiles(flags AbilityFlag) []Entity {
 	return projectiles
 }
 
+// spawnProjectile creates a single projectile with a given offset. Offset is
+// the perpendicular distance between the player's velocity and position of the
+// projectile.
 func (p *Player) spawnProjectile(offset float64) (*Projectile, error) {
 	id, err := id.NewShortId()
 	if err != nil {
@@ -181,10 +199,12 @@ func (p *Player) spawnProjectile(offset float64) (*Projectile, error) {
 	}
 
 	translated := p.position.Add(p.velocity.Normal().Multiply(offset))
-	position := translated.Add(p.velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS))
+	position := translated.Add(
+		p.velocity.Unit().Multiply(PLAYER_RADIUS*1.1 + PROJECTILE_RADIUS),
+	)
 	velocity := p.velocity.Unit().Multiply(PROJECTILE_SPEED)
 
-	return NewProjectile(
+	return newProjectile(
 		id,
 		*position,
 		*velocity,
@@ -193,6 +213,8 @@ func (p *Player) spawnProjectile(offset float64) (*Projectile, error) {
 	), nil
 }
 
+// projectileOnRemove is a callback when the projectile is destroyed. It
+// increments the player's score if the shot hit another player.
 func (p *Player) projectileOnRemove(other *Entity) {
 	if other == nil {
 		return
@@ -203,28 +225,35 @@ func (p *Player) projectileOnRemove(other *Entity) {
 	}
 }
 
-func rotate(currentVelocity geometry.Vector, targetVelocity *geometry.Vector) float64 {
+// rotate computes a new rotation angle based on the current and target
+// velocities. The angle is between velocity and the positive x-axis.
+func rotate(
+	currentVelocity geometry.Vector,
+	targetVelocity *geometry.Vector,
+) float64 {
 	currentSpeed := currentVelocity.Length()
 	currentAngle := currentVelocity.Angle()
 	targetAngle := targetVelocity.Angle()
 
-	turnRate := normalizeAngle(targetAngle - currentAngle)
-	maxTurnRate := PLAYER_MAX_TURN_RATE / (1 + PLAYER_TURN_RATE_DECAY*currentSpeed)
-	if math.Abs(turnRate) > maxTurnRate {
-		turnRate = math.Copysign(maxTurnRate, turnRate)
-	}
-
-	return normalizeAngle(currentAngle + turnRate)
+	rotation := normalizeAngle(targetAngle - currentAngle)
+	decay := 1 / (1 + PLAYER_TURN_RATE_DECAY_FACTOR*currentSpeed)
+	return normalizeAngle(currentAngle + rotation*decay)
 }
 
-func accelerate(currentVelocity geometry.Vector, targetVelocity *geometry.Vector) float64 {
+// accelerate computes a speed based on the current and target velocities.
+func accelerate(
+	currentVelocity geometry.Vector,
+	targetVelocity *geometry.Vector,
+) float64 {
 	currentSpeed := currentVelocity.Length()
 	targetSpeed := targetVelocity.Length() * PLAYER_MAX_SPEED
 
-	acceleration := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
-	return currentSpeed + (targetSpeed-currentSpeed)*acceleration
+	acceleration := targetSpeed - currentSpeed
+	decay := 1 / (1 + PLAYER_ACCELERATION_DECAY*currentSpeed)
+	return currentSpeed + acceleration*decay
 }
 
+// normalizeAngle clamps angle to the range [-π, π].
 func normalizeAngle(angle float64) float64 {
 	angle = math.Mod(angle, 2*math.Pi)
 	if angle > math.Pi {
@@ -235,7 +264,7 @@ func normalizeAngle(angle float64) float64 {
 	return angle
 }
 
-func (p *Player) syncEntityData() {
+func (p *Player) SyncEntityData() {
 	p.entityData.Position.X = p.position.X
 	p.entityData.Position.Y = p.position.Y
 	p.entityData.Velocity.X = p.velocity.X

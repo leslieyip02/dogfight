@@ -5,23 +5,25 @@ import (
 	"server/pb"
 )
 
-const (
-	MAX_POWERUP_COUNT = 16
-)
-
 var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
 
+// A Powerup is a pickup that players can collect.
+//
+// Behaviors:
+//   - activates an ability on pickup
+//   - no movement
 type Powerup struct {
 	entityData *pb.EntityData
 
-	// internal duplicates of EntityData state
-	position    geometry.Vector
-	velocity    geometry.Vector
-	rotation    float64
+	// Internal duplicates of EntityData state.
+	position geometry.Vector
+	velocity geometry.Vector
+	rotation float64
+
 	boundingBox *geometry.BoundingBox
 }
 
-func NewPowerup(
+func newPowerup(
 	id string,
 	position geometry.Vector,
 	ability AbilityFlag,
@@ -48,7 +50,11 @@ func NewPowerup(
 		velocity:   velocity,
 		rotation:   rotation,
 	}
-	p.boundingBox = geometry.NewBoundingBox(&position, &rotation, &powerupBoundingBoxPoints)
+	p.boundingBox = geometry.NewBoundingBox(
+		&position,
+		&rotation,
+		&powerupBoundingBoxPoints,
+	)
 	return &p
 }
 
@@ -93,3 +99,5 @@ func (p *Powerup) UpdateOnCollision(other Entity) {}
 func (p *Powerup) RemoveOnCollision(other Entity) bool {
 	return other.GetEntityType() == pb.EntityType_ENTITY_TYPE_PLAYER
 }
+
+func (p *Powerup) SyncEntityData() {}

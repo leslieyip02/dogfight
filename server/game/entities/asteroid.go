@@ -6,21 +6,26 @@ import (
 )
 
 const (
-	ASTEROID_MAX_SPEED  = 0.5
-	ASTEROID_MAX_SPIN   = 0.001
-	ASTEROID_MAX_HEALTH = 3
-
+	ASTEROID_MAX_SPEED      = 0.5
+	ASTEROID_MAX_SPIN       = 0.001
 	ASTEROID_MIN_NUM_POINTS = 8
 	ASTEROID_MAX_NUM_POINTS = 16
 	ASTEROID_MIN_RADIUS     = 20
 	ASTEROID_MAX_RADIUS     = 100
 	ASTEROID_MIN_AREA       = 200
+	ASTEROID_MAX_HEALTH     = 3
 )
 
+// An Asteroid is an obstacle. Its shape is a randomly generated convex hull.
+//
+// Behaviors:
+//   - drifts slowly
+//   - rotates
+//   - takes 3 shots to destroy
 type Asteroid struct {
 	entityData *pb.EntityData
 
-	// internal duplicates of EntityData state
+	// Internal duplicates of EntityData state.
 	position geometry.Vector
 	velocity geometry.Vector
 	rotation float64
@@ -100,7 +105,7 @@ func (a *Asteroid) Update() bool {
 	a.position.Y += a.velocity.Y
 	a.rotation += a.spin
 
-	a.syncEntityData()
+	a.SyncEntityData()
 	return true
 }
 
@@ -124,9 +129,7 @@ func (a *Asteroid) RemoveOnCollision(other Entity) bool {
 	}
 }
 
-/* Helpers */
-
-func (a *Asteroid) syncEntityData() {
+func (a *Asteroid) SyncEntityData() {
 	a.entityData.Position.X = a.position.X
 	a.entityData.Position.Y = a.position.Y
 	a.entityData.Rotation = a.rotation

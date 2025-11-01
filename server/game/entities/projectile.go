@@ -15,10 +15,15 @@ const (
 var basicProjectileBoundingBoxPoints = geometry.NewRectangleHull(10, 10)
 var wideBeamProjectileBoundingBoxPoints = geometry.NewRectangleHull(20, 80)
 
+// A Projectile is a bullet.
+//
+// Behaviors:
+//   - destroyed on impact with an asteroid or another player
+//   - can move, but with a constant trajectory
 type Projectile struct {
 	entityData *pb.EntityData
 
-	// internal duplicates of EntityData state
+	// Internal duplicates of EntityData state.
 	position geometry.Vector
 	velocity geometry.Vector
 	rotation float64
@@ -27,9 +32,10 @@ type Projectile struct {
 	onRemove    ProjectileOnRemoveCallback
 }
 
+// A ProjectileOnRemoveCallback is a callback to handle a collision with other.
 type ProjectileOnRemoveCallback func(other *Entity)
 
-func NewProjectile(
+func newProjectile(
 	id string,
 	position geometry.Vector,
 	velocity geometry.Vector,
@@ -101,7 +107,7 @@ func (p *Projectile) Update() bool {
 	p.position.Y += p.velocity.Y
 	p.entityData.GetProjectileData().Lifetime--
 
-	p.syncEntityData()
+	p.SyncEntityData()
 	return true
 }
 
@@ -118,7 +124,10 @@ func (p *Projectile) RemoveOnCollision(other Entity) bool {
 	case pb.EntityType_ENTITY_TYPE_PLAYER:
 		return true
 
-	case pb.EntityType_ENTITY_TYPE_POWERUP, pb.EntityType_ENTITY_TYPE_PROJECTILE:
+	case pb.EntityType_ENTITY_TYPE_POWERUP:
+		return false
+
+	case pb.EntityType_ENTITY_TYPE_PROJECTILE:
 		return false
 
 	default:
@@ -133,7 +142,7 @@ func chooseBoundingBoxPoints(flags AbilityFlag) *[]*geometry.Vector {
 	return &basicProjectileBoundingBoxPoints
 }
 
-func (p *Projectile) syncEntityData() {
+func (p *Projectile) SyncEntityData() {
 	p.entityData.Position.X = p.position.X
 	p.entityData.Position.Y = p.position.Y
 }

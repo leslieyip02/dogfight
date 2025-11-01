@@ -5,6 +5,7 @@ import (
 	"server/pb"
 )
 
+// A MockEntity is a mock used for tests.
 type MockEntity struct {
 	Id          string
 	position    geometry.Vector
@@ -64,3 +65,5 @@ func (e *MockEntity) UpdateOnCollision(other Entity) {}
 func (e *MockEntity) RemoveOnCollision(other Entity) bool {
 	return false
 }
+
+func (e *MockEntity) SyncEntityData() {}
