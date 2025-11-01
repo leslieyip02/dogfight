@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"server/game/constants"
 	"server/game/geometry"
 	"server/pb"
 )
@@ -8,7 +9,7 @@ import (
 const (
 	PROJECTILE_RADIUS   = 10.0
 	PROJECTILE_SPEED    = 24.0
-	PROJECTILE_LIFETIME = 2.4 * FPS
+	PROJECTILE_LIFETIME = 2.4 * constants.FPS
 )
 
 var basicProjectileBoundingBoxPoints = geometry.NewRectangleHull(10, 10)

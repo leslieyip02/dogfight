@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"server/game/collision"
+	"server/game/constants"
 	"server/game/entities"
 	"server/pb"
 	"sync"
@@ -55,21 +56,7 @@ func (g *Game) AddPlayer(id string, username string) error {
 	g.entities[id] = player
 	g.usernames[id] = username
 
-	data := &pb.Event{
-		Type: pb.EventType_EVENT_TYPE_JOIN,
-		Data: &pb.Event_JoinEventData_{
-			JoinEventData: &pb.Event_JoinEventData{
-				Id:       id,
-				Username: username,
-			},
-		},
-	}
-	message, err := proto.Marshal(data)
-	if err != nil {
-		return err
-	}
-	g.Outgoing <- message
-	return nil
+	return g.sendJoinEvent(*player)
 }
 
 func (g *Game) RemovePlayer(id string) {
@@ -101,7 +88,7 @@ func (g *Game) respawn(id string) {
 	g.entities[id] = player
 }
 
-func (g *Game) GetPBEntities() []*pb.EntityData {
+func (g *Game) GetPbEntities() []*pb.EntityData {
 	entities := make([]*pb.EntityData, len(g.entities))
 	i := 0
 	for _, entity := range g.entities {
@@ -122,7 +109,7 @@ func (g *Game) GetSnapshot() *pb.Event {
 		Data: &pb.Event_SnapshotEventData_{
 			SnapshotEventData: &pb.Event_SnapshotEventData{
 				Timestamp: g.GetTimestamp(),
-				Entities:  g.GetPBEntities(),
+				Entities:  g.GetPbEntities(),
 			},
 		},
 	}
@@ -134,7 +121,7 @@ func (g *Game) GetDelta() *pb.Event {
 		Data: &pb.Event_DeltaEventData_{
 			DeltaEventData: &pb.Event_DeltaEventData{
 				Timestamp: g.GetTimestamp(),
-				Updated:   g.GetPBEntities(),
+				Updated:   g.GetPbEntities(),
 				Removed:   g.removed,
 			},
 		},
@@ -142,7 +129,7 @@ func (g *Game) GetDelta() *pb.Event {
 }
 
 func (g *Game) Run(ctx context.Context) {
-	ticker := time.NewTicker(time.Second / entities.FPS)
+	ticker := time.NewTicker(time.Second / constants.FPS)
 
 	for _, entity := range g.spawner.InitEntities() {
 		g.entities[entity.GetId()] = entity
@@ -202,7 +189,7 @@ func (g *Game) update() {
 		delete(g.entities, id)
 		delete(g.updated, id)
 	}
-	g.broadcast()
+	g.sendDeltaEvent()
 
 	clear(g.updated)
 	g.removed = g.removed[:0]
@@ -258,11 +245,30 @@ func (g *Game) pollNewEntities() {
 	}
 }
 
-func (g *Game) broadcast() {
-	message, err := proto.Marshal(g.GetDelta())
-	if err != nil {
-		log.Printf("broadcast failed: %v", err)
-		return
+func (g *Game) sendJoinEvent(player entities.Player) error {
+	data := &pb.Event{
+		Type: pb.EventType_EVENT_TYPE_JOIN,
+		Data: &pb.Event_JoinEventData_{
+			JoinEventData: &pb.Event_JoinEventData{
+				Id:       player.GetId(),
+				Username: player.GetEntityData().GetPlayerData().Username,
+			},
+		},
 	}
+	return g.sendEvent(data)
+}
+
+func (g *Game) sendDeltaEvent() error {
+	data := g.GetDelta()
+	return g.sendEvent(data)
+}
+
+func (g *Game) sendEvent(data *pb.Event) error {
+	message, err := proto.Marshal(data)
+	if err != nil {
+		return err
+	}
+
 	g.Outgoing <- message
+	return nil
 }

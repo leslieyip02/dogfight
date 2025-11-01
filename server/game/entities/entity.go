@@ -3,12 +3,6 @@ package entities
 import (
 	"server/game/geometry"
 	"server/pb"
-	"time"
-)
-
-const (
-	FPS            = 60
-	FRAME_DURATION = time.Second / FPS
 )
 
 type Entity interface {

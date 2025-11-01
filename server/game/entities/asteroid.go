@@ -30,7 +30,7 @@ type Asteroid struct {
 	health      int
 }
 
-func NewAsteroid(
+func newAsteroid(
 	id string,
 	position geometry.Vector,
 	velocity geometry.Vector,
@@ -123,6 +123,8 @@ func (a *Asteroid) RemoveOnCollision(other Entity) bool {
 		return true
 	}
 }
+
+/* Helpers */
 
 func (a *Asteroid) syncEntityData() {
 	a.entityData.Position.X = a.position.X

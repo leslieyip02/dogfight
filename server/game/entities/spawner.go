@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"server/game/constants"
 	"server/game/geometry"
 	"server/id"
 )
@@ -15,9 +16,9 @@ const (
 	INITIAL_ASTEROID_COUNT = 32
 	INITIAL_POWERUP_COUNT  = 3
 
-	ASTEROID_SPAWN_INTERVAL = 60 * FPS
-	POWERUP_SPAWN_INTERVAL  = 20 * FPS
-	RESET_INTERVAL          = 5 * 60 * FPS
+	ASTEROID_SPAWN_INTERVAL = 60 * constants.FPS
+	POWERUP_SPAWN_INTERVAL  = 20 * constants.FPS
+	RESET_INTERVAL          = 5 * 60 * constants.FPS
 )
 
 type Spawner struct {
@@ -50,7 +51,7 @@ func (s *Spawner) SpawnRandomAsteroid() (*Asteroid, error) {
 	velocity := *geometry.NewRandomVector(0, 0, ASTEROID_MAX_SPEED, ASTEROID_MAX_SPEED)
 	rotation := rand.Float64() * math.Pi * 2
 	spin := rand.Float64()*ASTEROID_MAX_SPIN*2 - ASTEROID_MAX_SPIN
-	return NewAsteroid(id, position, velocity, rotation, &points, spin), nil
+	return newAsteroid(id, position, velocity, rotation, &points, spin), nil
 }
 
 func (s *Spawner) SpawnPlayer(id string, username string) (*Player, error) {
