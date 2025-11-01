@@ -17,17 +17,18 @@ const (
 	MAX_ENTITY_COUNT = 256
 )
 
+// A Game stores the game's state and handles its logic.
 type Game struct {
 	Incoming chan []byte
 	Outgoing chan []byte
 	mu       sync.Mutex
 
-	// state
+	// Game tate.
 	entities  map[string]entities.Entity
 	usernames map[string]string
 	spawner   entities.Spawner
 
-	// state delta
+	// Game state deltas.
 	updated map[string]entities.Entity
 	removed []string
 }
@@ -45,20 +46,22 @@ func NewGame() *Game {
 	}
 }
 
+// AddPlayer spawns a new Player into the game.
 func (g *Game) AddPlayer(id string, username string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	player, err := g.spawner.SpawnPlayer(id, username)
 	if err != nil {
-		log.Fatalf("could not spawn player")
+		return err
 	}
+
 	g.entities[id] = player
 	g.usernames[id] = username
-
-	return g.sendJoinEvent(*player)
+	return nil
 }
 
+// RemovePlayer removes a Player from the game.
 func (g *Game) RemovePlayer(id string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -67,7 +70,9 @@ func (g *Game) RemovePlayer(id string) {
 	delete(g.usernames, id)
 }
 
-func (g *Game) respawn(id string) {
+// respawnPlayer adds a new Player into the game, checking if id is already
+// being used and looks up a username based on id.
+func (g *Game) respawnPlayer(id string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -83,11 +88,14 @@ func (g *Game) respawn(id string) {
 
 	player, err := g.spawner.SpawnPlayer(id, username)
 	if err != nil {
+		// TODO: handle error
 		log.Fatalf("could not spawn player")
 	}
 	g.entities[id] = player
 }
 
+// GetPbEntities unwraps the game's entities into their underlying EntityData
+// for serialization.
 func (g *Game) GetPbEntities() []*pb.EntityData {
 	entities := make([]*pb.EntityData, len(g.entities))
 	i := 0
@@ -98,11 +106,13 @@ func (g *Game) GetPbEntities() []*pb.EntityData {
 	return entities
 }
 
+// GetTimestamp returns the timestamp as a float. The cast is necessary because
+// JavaScript's Number.MAX_SAFE_INTEGER can't handle int64.
 func (g *Game) GetTimestamp() float64 {
-	// JavaScript's Number.MAX_SAFE_INTEGER can't handle int64
 	return float64(time.Now().UnixMilli())
 }
 
+// GetSnapshot serializes the game state.
 func (g *Game) GetSnapshot() *pb.Event {
 	return &pb.Event{
 		Type: pb.EventType_EVENT_TYPE_SNAPSHOT,
@@ -115,6 +125,8 @@ func (g *Game) GetSnapshot() *pb.Event {
 	}
 }
 
+// GetDelta serializes the changes in the game state between each call to
+// GetDelta.
 func (g *Game) GetDelta() *pb.Event {
 	return &pb.Event{
 		Type: pb.EventType_EVENT_TYPE_DELTA,
@@ -128,6 +140,7 @@ func (g *Game) GetDelta() *pb.Event {
 	}
 }
 
+// Run starts the game loop.
 func (g *Game) Run(ctx context.Context) {
 	ticker := time.NewTicker(time.Second / constants.FPS)
 
@@ -156,7 +169,7 @@ func (g *Game) Run(ctx context.Context) {
 				switch event.Type {
 				case pb.EventType_EVENT_TYPE_RESPAWN:
 					data := event.GetRespawnEventData()
-					g.respawn(data.GetId())
+					g.respawnPlayer(data.GetId())
 
 				case pb.EventType_EVENT_TYPE_INPUT:
 					data := event.GetInputEventData()
@@ -167,6 +180,7 @@ func (g *Game) Run(ctx context.Context) {
 	}()
 }
 
+// input passes input event data to the corresponding Player.
 func (g *Game) input(data *pb.Event_InputEventData) {
 	entity, found := g.entities[data.GetId()]
 	if !found {
@@ -178,6 +192,14 @@ func (g *Game) input(data *pb.Event_InputEventData) {
 	}
 }
 
+// update is called once per tick and computes all updates.
+//
+// More specifically, it
+//   - updates positions
+//   - resolves collisions
+//   - adds new entities
+//   - removes expired entities
+//   - broacasts the updated delta
 func (g *Game) update() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -189,12 +211,15 @@ func (g *Game) update() {
 		delete(g.entities, id)
 		delete(g.updated, id)
 	}
-	g.sendDeltaEvent()
+
+	data := g.GetDelta()
+	g.broadcast(data)
 
 	clear(g.updated)
 	g.removed = g.removed[:0]
 }
 
+// updateEntities updates entities, and marks expired entities for deletion.
 func (g *Game) updateEntities() {
 	for id, entity := range g.entities {
 		if entity.Update() {
@@ -206,10 +231,13 @@ func (g *Game) updateEntities() {
 	}
 }
 
+// resolveCollisions checks and handles collisions for all entities.
 func (g *Game) resolveCollisions() {
 	collision.ResolveCollisionsLineSweep(&g.entities, g.handleCollision)
 }
 
+// handleCollision updates the entities with id1 and id2 and marks them for
+// removal if needed.
 func (g *Game) handleCollision(id1 *string, id2 *string) {
 	if id1 == id2 {
 		return
@@ -228,6 +256,8 @@ func (g *Game) handleCollision(id1 *string, id2 *string) {
 	}
 }
 
+// pollNewEntities polls all new entities that have been created and adds them
+// into the game.
 func (g *Game) pollNewEntities() {
 	for _, entity := range g.entities {
 		for _, newEntity := range entity.PollNewEntities() {
@@ -245,25 +275,10 @@ func (g *Game) pollNewEntities() {
 	}
 }
 
-func (g *Game) sendJoinEvent(player entities.Player) error {
-	data := &pb.Event{
-		Type: pb.EventType_EVENT_TYPE_JOIN,
-		Data: &pb.Event_JoinEventData_{
-			JoinEventData: &pb.Event_JoinEventData{
-				Id:       player.GetId(),
-				Username: player.GetEntityData().GetPlayerData().Username,
-			},
-		},
-	}
-	return g.sendEvent(data)
-}
-
-func (g *Game) sendDeltaEvent() error {
-	data := g.GetDelta()
-	return g.sendEvent(data)
-}
-
-func (g *Game) sendEvent(data *pb.Event) error {
+// broadcast sends a message to the room.
+//
+// TODO: maybe this shouldn't be here
+func (g *Game) broadcast(data *pb.Event) error {
 	message, err := proto.Marshal(data)
 	if err != nil {
 		return err
