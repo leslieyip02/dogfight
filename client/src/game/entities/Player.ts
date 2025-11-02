@@ -20,8 +20,9 @@ class Player implements BaseEntity {
 
   username: string;
   score: number;
-  sprite: p5.Image;
   previousPositions: Vector[];
+
+  sprite: p5.Image | null;
 
   constructor(data: EntityData) {
     if (!data.position || !data.velocity) {
@@ -39,13 +40,9 @@ class Player implements BaseEntity {
     this.score = playerData.score;
     this.flags = playerData.flags;
 
-    const sprite = Spritesheet.getPlayerSprite(this.username);
-    if (!sprite) {
-      throw new Error("unable to load player sprite");
-    }
-    this.sprite = sprite;
-
     this.previousPositions = [];
+
+    this.sprite = Spritesheet.getPlayerSprite(this.username);
   }
 
   update = (data: EntityData) => {
@@ -85,6 +82,13 @@ class Player implements BaseEntity {
   };
 
   drawModel = (instance: p5, debug?: boolean) => {
+    if (!this.sprite) {
+      this.sprite = Spritesheet.getPlayerSprite(this.username);
+    }
+    if (!this.sprite) {
+      return;
+    }
+
     instance.push();
     instance.translate(this.position.x, this.position.y);
     instance.rotate(this.rotation);

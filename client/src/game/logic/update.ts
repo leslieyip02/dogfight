@@ -57,14 +57,9 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
     entities[id] = new Asteroid(data);
     break;
 
-  case EntityType.ENTITY_TYPE_PLAYER: {
-    if (!Spritesheet.isLoaded) {
-      return;
-    }
-
+  case EntityType.ENTITY_TYPE_PLAYER:
     entities[id] = new Player(data);
     break;
-  }
 
   case EntityType.ENTITY_TYPE_POWERUP:
     entities[id] = new Powerup(data);
