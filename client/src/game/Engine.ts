@@ -14,10 +14,9 @@ import {
   type CanvasConfig,
   drawBackground,
   drawEntities,
-  drawRespawnPrompt,
   updateCanvasConfig,
 } from "./utils/graphics";
-import { drawHUD, drawMinimap } from "./utils/gui";
+import { drawHUD, drawMinimap, drawRespawnPrompt } from "./utils/gui";
 import Input from "./utils/input";
 import { loadSpritesheet, type Spritesheet } from "./utils/sprites";
 import {

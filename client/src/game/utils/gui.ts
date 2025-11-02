@@ -109,3 +109,27 @@ export function drawScore(clientPlayer: Player | null, instance: p5) {
   instance.text(`score: ${score}`, 0, 0);
   instance.pop();
 }
+
+export function drawRespawnPrompt(instance: p5) {
+  instance.fill("#11111155");
+  instance.rect(0, 0, window.innerWidth, window.innerHeight);
+
+  instance.push();
+  instance.textFont("Courier New");
+  instance.textAlign(instance.CENTER);
+  instance.translate(window.innerWidth / 2, window.innerHeight / 2);
+
+  instance.stroke("#ffffff");
+  instance.fill("#ffffff");
+  instance.push();
+  instance.textSize(32);
+  instance.text("splashed!", 0, -32);
+  instance.pop();
+
+  instance.push();
+  instance.textSize(16);
+  instance.text("click to respawn", 0, 8);
+  instance.pop();
+
+  instance.pop();
+}

@@ -67,27 +67,6 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   instance.pop();
 }
 
-export function drawRespawnPrompt(instance: p5) {
-  instance.push();
-  instance.textFont("Courier New");
-  instance.textAlign(instance.CENTER);
-  instance.stroke("#ffffff");
-  instance.fill("#ffffff");
-  instance.translate(window.innerWidth / 2, window.innerHeight / 2);
-
-  instance.push();
-  instance.textSize(32);
-  instance.text("splashed!", 0, -32);
-  instance.pop();
-
-  instance.push();
-  instance.textSize(16);
-  instance.text("click to respawn", 0, 8);
-  instance.pop();
-
-  instance.pop();
-}
-
 function centerCanvas(config: CanvasConfig, instance: p5) {
   instance.scale(config.zoom);
   instance.translate(
