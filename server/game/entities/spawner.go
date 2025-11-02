@@ -12,6 +12,7 @@ import (
 const (
 	SPAWN_AREA_WIDTH  = 10000.0
 	SPAWN_AREA_HEIGHT = 10000.0
+	GRID_SIZE         = 96
 
 	INITIAL_ASTEROID_COUNT = 32
 	INITIAL_POWERUP_COUNT  = 3
@@ -90,6 +91,8 @@ func (s *Spawner) spawnPowerup() (*Powerup, error) {
 		SPAWN_AREA_WIDTH,
 		SPAWN_AREA_HEIGHT,
 	)
+	position.X = math.Round(position.X/GRID_SIZE) * GRID_SIZE
+	position.Y = math.Round(position.Y/GRID_SIZE) * GRID_SIZE
 	ability := newRandomAbility()
 	return newPowerup(id, position, ability), nil
 }

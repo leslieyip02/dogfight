@@ -2,15 +2,18 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
-import { type AbilityFlag, MULTISHOT_ABILITY_FLAG, SHIELD_ABILITY_FLAG, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
+import Spritesheet from "../graphics/sprites";
+import { type AbilityFlag, MULTISHOT_ABILITY_FLAG, SHIELD_ABILITY_FLAG, toAbilityName, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
 import type { BaseEntity } from "./Entity";
 
-const POWERUP_WIDTH = 20;
+const POWERUP_WIDTH = 80;
 
 class Powerup implements BaseEntity {
   position: Vector;
   rotation: number;
   ability: AbilityFlag;
+
+  sprite: p5.Image | null;
 
   constructor(data: EntityData) {
     if (!data.position) {
@@ -24,6 +27,8 @@ class Powerup implements BaseEntity {
       throw new Error(`expected powerup data but got ${data}`);
     }
     this.ability = powerupData.ability;
+
+    this.sprite = Spritesheet.get(this.spriteName());
   }
 
   update = (data: EntityData) => {
@@ -39,11 +44,20 @@ class Powerup implements BaseEntity {
   };
 
   draw = (instance: p5, debug?: boolean) => {
+    if (!this.sprite) {
+      this.sprite = Spritesheet.get(this.spriteName());
+    }
+    if (!this.sprite) {
+      return;
+    }
+
     instance.push();
     instance.translate(this.position.x, this.position.y);
-    instance.noStroke();
-    instance.fill(this.fill());
-    instance.circle(0, 0, 10);
+
+    instance.push();
+    instance.translate(-this.sprite.width/2, -this.sprite.height/2);
+    instance.image(this.sprite, 0, 0);
+    instance.pop();
 
     if (debug) {
       instance.push();
@@ -58,19 +72,27 @@ class Powerup implements BaseEntity {
 
   drawIcon = (instance: p5) => {
     instance.push();
-    instance.fill(this.fill());
+    instance.fill(this.iconFill());
     instance.circle(0, 0, 8);
     instance.pop();
   };
 
-  fill = () => {
+  private spriteName = () => {
+    const spriteName = toAbilityName(this.ability);
+    if (!spriteName) {
+      throw new Error(`unexpected ability ${this.ability}`);
+    }
+    return spriteName;
+  };
+
+  private iconFill = () => {
     switch (this.ability) {
     case MULTISHOT_ABILITY_FLAG:
-      return "#00ffff";
+      return "#fac811";
     case WIDE_BEAM_ABILITY_FLAG:
-      return "#ff00ff";
+      return "#f073ff";
     case SHIELD_ABILITY_FLAG:
-      return "#ffff00";
+      return "#36d9b0";
     default:
       throw new TypeError("invalid flags");
     }

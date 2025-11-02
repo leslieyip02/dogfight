@@ -5,7 +5,15 @@ import (
 	"server/pb"
 )
 
-var powerupBoundingBoxPoints = geometry.NewRectangleHull(20, 20)
+const (
+	POWERUP_WIDTH  = 80
+	POWERUP_HEIGHT = 80
+)
+
+var powerupBoundingBoxPoints = geometry.NewRectangleHull(
+	POWERUP_WIDTH,
+	POWERUP_HEIGHT,
+)
 
 // A Powerup is a pickup that players can collect.
 //
