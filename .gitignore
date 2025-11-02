@@ -1,6 +1,6 @@
 client/.env
 client/dist
-client/public/*.pxo
+client/public/**/*.pxo
 client/node_modules
 
 server/.env

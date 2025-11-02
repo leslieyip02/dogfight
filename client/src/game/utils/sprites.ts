@@ -2,32 +2,32 @@ import type p5 from "p5";
 
 const SPRITESHEET_CONFIGS = {
   alpha: {
-    path: "alpha.png",
+    path: "sprites/player/alpha.png",
     width: 96,
     height: 96,
   },
   bravo: {
-    path: "bravo.png",
+    path: "sprites/player/bravo.png",
     width: 96,
     height: 96,
   },
   charlie: {
-    path: "charlie.png",
+    path: "sprites/player/charlie.png",
     width: 96,
     height: 96,
   },
   delta: {
-    path: "delta.png",
+    path: "sprites/player/delta.png",
     width: 96,
     height: 96,
   },
   explosionBig: {
-    path: "explosion-big.png",
+    path: "sprites/explosion/big.png",
     width: 192,
     height: 192,
   },
   explosionSmall: {
-    path: "explosion-small.png",
+    path: "sprites/explosion/small.png",
     width: 96,
     height: 96,
   },
