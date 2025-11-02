@@ -10,9 +10,9 @@ import { chooseSpriteName } from "../game/utils/sprites";
 
 type Props = {
   setClientId: (clientId: string) => void;
-  setToken: (token: string) => void;
 };
-const Form: React.FC<Props> = ({ setClientId, setToken }) => {
+
+const Form: React.FC<Props> = ({ setClientId }) => {
   const [username, setUsername] = useState<string>(generateUsername("-"));
   const [roomId, setRoomId] = useState<string>("");
 
@@ -28,7 +28,6 @@ const Form: React.FC<Props> = ({ setClientId, setToken }) => {
     await joinRoom(username, roomId)
       .then(response => {
         setClientId(response.clientId);
-        setToken(response.token);
       })
       .catch((error: Error) => {
         // TODO: feels a bit hacky

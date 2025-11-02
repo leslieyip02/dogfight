@@ -10,7 +10,6 @@ const WS_URL = import.meta.env.VITE_WS_URL;
 
 type Props = {
   clientId: string,
-  token: string,
 }
 
 const Game: React.FC<Props> = ({ clientId }) => {

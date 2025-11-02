@@ -7,13 +7,12 @@ import Game from "./components/Game";
 
 const App = () => {
   const [clientId, setClientId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
-  if (!clientId || !token) {
-    return <Form setClientId={setClientId} setToken={setToken} />;
+  if (!clientId) {
+    return <Form setClientId={setClientId} />;
   }
 
-  return <Game clientId={clientId} token={token} />;
+  return <Game clientId={clientId} />;
 };
 
 export default App;
