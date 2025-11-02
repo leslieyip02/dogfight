@@ -4,15 +4,15 @@ import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
 import Audiosheet from "../audio/audio";
 import Spritesheet from "../graphics/sprites";
-import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../logic/abilities";
-import type { BaseEntity } from "./Entity";
+import { type AbilityFlag, isAbilityActive, SHIELD_ABILITY_FLAG } from "../logic/abilities";
+import type { Entity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
 
 const PLAYER_WIDTH = 80;
 const PLAYER_MAX_TRAIL_POINTS = 24;
 
-class Player implements BaseEntity {
+class Player implements Entity {
   position: Vector;
   velocity: Vector;
   rotation: number;

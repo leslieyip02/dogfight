@@ -139,7 +139,7 @@ class Engine {
   private handleUpdates = () => {
     addAnimations(this.delta, this.entities);
     removeEntities(this.delta, this.entities);
-    updateEntities(this.delta, this.entities);
+    updateEntities(this.delta, this.entities, this.canvasConfig);
 
     this.delta.updated = [];
     this.delta.removed = [];
@@ -153,7 +153,7 @@ class Engine {
   private syncGameState = async () => {
     await fetchGameSnapshotData()
       .then((snapshot) => {
-        syncEntities(snapshot, this.entities);
+        syncEntities(snapshot, this.entities, this.canvasConfig);
       });
   };
 };

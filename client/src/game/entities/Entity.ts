@@ -3,7 +3,7 @@ import p5 from "p5";
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
 
-export interface BaseEntity {
+export interface Entity {
     position: Vector;
 
     update: (data: EntityData) => void;
@@ -13,6 +13,4 @@ export interface BaseEntity {
     drawIcon?: (instance: p5) => void;
 };
 
-export type EntityMap = {
-    [id: string]: BaseEntity,
-}
+export type EntityMap = Record<string, Entity>;

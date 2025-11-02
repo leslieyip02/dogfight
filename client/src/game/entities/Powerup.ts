@@ -4,11 +4,11 @@ import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
 import Spritesheet from "../graphics/sprites";
 import { type AbilityFlag, MULTISHOT_ABILITY_FLAG, SHIELD_ABILITY_FLAG, toAbilityName, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
-import type { BaseEntity } from "./Entity";
+import type { Entity } from "./Entity";
 
 const POWERUP_WIDTH = 80;
 
-class Powerup implements BaseEntity {
+class Powerup implements Entity {
   position: Vector;
   rotation: number;
   ability: AbilityFlag;

@@ -3,19 +3,20 @@ import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/eve
 import Audiosheet from "../audio/audio";
 import Animation from "../entities/Animation";
 import Asteroid from "../entities/Asteroid";
-import type { EntityMap } from "../entities/Entity";
+import type { Entity, EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
+import type { CanvasConfig } from "../graphics/game";
 import Spritesheet from "../graphics/sprites";
 
-export function syncEntities(snapshot: Event_SnapshotEventData | null, entities: EntityMap) {
+export function syncEntities(snapshot: Event_SnapshotEventData | null, entities: EntityMap, canvasConfig: CanvasConfig) {
   if (!snapshot) {
     return;
   }
 
   Object.values(snapshot.entities)
-    .forEach(data => handleEntityData(data, entities));
+    .forEach(data => handleEntityData(data, entities, canvasConfig));
 }
 
 export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEventData): Event_DeltaEventData {
@@ -39,16 +40,19 @@ export function removeEntities(delta: Event_DeltaEventData, entities: EntityMap)
     .forEach(id => delete entities[id]);
 }
 
-export function updateEntities(delta: Event_DeltaEventData, entities: EntityMap) {
+export function updateEntities(delta: Event_DeltaEventData, entities: EntityMap, canvasConfig: CanvasConfig) {
   delta.updated
-    .filter(({ id }) => !delta.removed.includes(id))
-    .forEach((entity) => handleEntityData(entity, entities));
+    .filter(entity => !delta.removed.includes(entity.id))
+    .forEach(entity => handleEntityData(entity, entities, canvasConfig));
 }
 
-export function handleEntityData(data: EntityData, entities: EntityMap) {
+export function handleEntityData(data: EntityData, entities: EntityMap, canvasConfig: CanvasConfig) {
   const { id, type } = data;
+
   if (entities[id]) {
-    entities[id].update(data);
+    if (shouldUpdate(entities[id], canvasConfig)) {
+      entities[id].update(data);
+    }
     return;
   }
 
@@ -103,4 +107,9 @@ export function addAnimations(
       );
       entities[animationId] = animation;
     });
+}
+
+function shouldUpdate(entity: Entity, canvasConfig: CanvasConfig) {
+  return Math.abs(canvasConfig.x - entity.position.x) <= window.innerWidth
+    && Math.abs(canvasConfig.y - entity.position.y) <= window.innerHeight;
 }

@@ -2,9 +2,9 @@ import type p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
-import type { BaseEntity } from "./Entity";
+import type { Entity } from "./Entity";
 
-class Animation implements BaseEntity {
+class Animation implements Entity {
   position: Vector;
 
   frames: p5.Image[];
