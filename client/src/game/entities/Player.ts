@@ -2,7 +2,7 @@ import type p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
-import { SOUNDS } from "../audio/sounds";
+import Audiosheet from "../audio/audio";
 import Spritesheet from "../graphics/sprites";
 import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../logic/abilities";
 import type { BaseEntity } from "./Entity";
@@ -57,12 +57,12 @@ class Player implements BaseEntity {
     if (playerData) {
       if (this.score < playerData.score) {
         this.score = playerData.score;
-        SOUNDS["score"].play();
+        Audiosheet.get("pickup")?.play();
       }
 
       if (this.flags != playerData.flags) {
         this.flags = playerData.flags;
-        SOUNDS["pickup"].play();
+        Audiosheet.get("pickup")?.play();
       }
     }
   };

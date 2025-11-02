@@ -2,7 +2,7 @@ import type p5 from "p5";
 
 import { sendInputMessage, sendRespawnMessage } from "../../api/game";
 import type { Event_InputEventData, Event_RespawnEventData } from "../../pb/event";
-import { SOUNDS } from "../audio/sounds";
+import Audiosheet from "../audio/audio";
 
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
@@ -46,7 +46,7 @@ class Input {
     sendInputMessage(this.socket, data);
 
     if (this.mousePressed) {
-      SOUNDS["shoot"].play();
+      Audiosheet.get("shoot")?.play();
     }
     this.mousePressed = false;
   };

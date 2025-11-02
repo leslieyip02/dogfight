@@ -10,7 +10,7 @@ type SpriteConfig = {
 };
 
 class Spritesheet {
-  private static sprites: Record<string, p5.Image[]>;
+  private static sprites: Record<string, p5.Image[]> = {};
   static isLoaded: boolean = false;
 
   private static playerSpriteNames: string[] = Object.entries(configs)

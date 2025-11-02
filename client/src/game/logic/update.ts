@@ -1,6 +1,6 @@
 import { type EntityData, EntityType } from "../../pb/entities";
 import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
-import { SOUNDS } from "../audio/sounds";
+import Audiosheet from "../audio/audio";
 import Animation from "../entities/Animation";
 import Asteroid from "../entities/Asteroid";
 import type { EntityMap } from "../entities/Entity";
@@ -86,9 +86,7 @@ export function addAnimations(
         return;
       }
 
-      if (animationName in SOUNDS) {
-        SOUNDS[animationName].play();
-      }
+      Audiosheet.get(animationName)?.play();
 
       const animationId = `${id}-animation`;
       const frames = Spritesheet.getAnimationFrames(animationName);

@@ -8,6 +8,7 @@ import {
   Event_QuitEventData,
   EventType,
 } from "../pb/event";
+import Audiosheet from "./audio/audio";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
 import {
@@ -64,6 +65,7 @@ class Engine {
   setup = async () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
+    await Audiosheet.loadAll();
     await Spritesheet.loadAll(this.instance);
   };
 

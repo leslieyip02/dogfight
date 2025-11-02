@@ -1,0 +1,17 @@
+{
+  "explosionBig": {
+    "path": "audio/explosion/big.wav"
+  },
+  "explosionSmall": {
+    "path": "audio/explosion/small.wav"
+  },
+  "pickup": {
+    "path": "audio/player/pickup.wav"
+  },
+  "shoot": {
+    "path": "audio/player/shoot.wav"
+  },
+  "score": {
+    "path": "audio/player/score.wav"
+  }
+}
