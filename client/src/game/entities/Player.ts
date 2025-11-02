@@ -9,7 +9,7 @@ import type { BaseEntity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
 
-const PLAYER_WIDTH = 96;
+const PLAYER_WIDTH = 80;
 const PLAYER_MAX_TRAIL_POINTS = 24;
 
 class Player implements BaseEntity {
@@ -97,9 +97,9 @@ class Player implements BaseEntity {
 
     if (isAbilityActive(this.flags, SHIELD_ABILITY_FLAG)) {
       instance.push();
-      instance.stroke("#ffff0088");
+      instance.stroke("#36d9b0");
+      instance.fill("#36d9b033");
       instance.strokeWeight(4);
-      instance.noFill();
       instance.circle(this.sprite.width / 2, this.sprite.height / 2, this.sprite.width * 1.2);
       instance.pop();
     }
@@ -124,7 +124,7 @@ class Player implements BaseEntity {
     instance.rectMode(instance.CENTER);
     instance.textAlign(instance.CENTER);
     instance.textFont("Courier New");
-    instance.text(this.username, 0, -65);
+    instance.text(this.username, 0, -80);
 
     if (debug) {
       instance.push();
