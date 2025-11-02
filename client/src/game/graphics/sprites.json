@@ -1,0 +1,36 @@
+{
+  "explosionBig": {
+    "path": "sprites/explosion/big.png",
+    "width": 192,
+    "height": 192
+  },
+  "explosionSmall": {
+    "path": "sprites/explosion/small.png",
+    "width": 96,
+    "height": 96
+  },
+  "alpha": {
+    "path": "sprites/player/alpha.png",
+    "width": 96,
+    "height": 96,
+    "isPlayerSprite": true
+  },
+  "bravo": {
+    "path": "sprites/player/bravo.png",
+    "width": 96,
+    "height": 96,
+    "isPlayerSprite": true
+  },
+  "charlie": {
+    "path": "sprites/player/charlie.png",
+    "width": 96,
+    "height": 96,
+    "isPlayerSprite": true
+  },
+  "delta": {
+    "path": "sprites/player/delta.png",
+    "width": 96,
+    "height": 96,
+    "isPlayerSprite": true
+  }
+}

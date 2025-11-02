@@ -15,17 +15,17 @@ import {
   drawBackground,
   drawEntities,
   updateCanvasConfig,
-} from "./utils/graphics";
-import { drawHUD, drawMinimap, drawRespawnPrompt } from "./utils/gui";
-import Input from "./utils/input";
-import { loadSpritesheet, type Spritesheet } from "./utils/sprites";
+} from "./graphics/game";
+import { drawHUD, drawMinimap, drawRespawnPrompt } from "./graphics/gui";
+import Spritesheet from "./graphics/sprites";
+import Input from "./logic/input";
 import {
   addAnimations,
   mergeDeltas,
   removeEntities,
   syncEntities,
   updateEntities,
-} from "./utils/update";
+} from "./logic/update";
 
 const FPS = 60;
 
@@ -35,7 +35,6 @@ class Engine {
   clientId: string;
   entities: EntityMap;
   canvasConfig: CanvasConfig;
-  spritesheet: Spritesheet;
 
   input: Input;
   delta: Event_DeltaEventData;
@@ -53,7 +52,6 @@ class Engine {
     this.clientId = clientId;
     this.entities = {};
     this.canvasConfig = { x: 0.0, y: 0.0, zoom: 1.0 };
-    this.spritesheet = {};
 
     this.input = new Input(clientId, socket);
     this.delta = {
@@ -66,8 +64,7 @@ class Engine {
   setup = async () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
-    this.spritesheet = await loadSpritesheet(this.instance);
-    Player.spritesheet = this.spritesheet;
+    await Spritesheet.loadAll(this.instance);
   };
 
   draw = () => {
@@ -138,7 +135,7 @@ class Engine {
   };
 
   private handleUpdates = () => {
-    addAnimations(this.delta, this.entities, this.spritesheet);
+    addAnimations(this.delta, this.entities);
     removeEntities(this.delta, this.entities);
     updateEntities(this.delta, this.entities);
 

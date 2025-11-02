@@ -2,8 +2,8 @@ import type p5 from "p5";
 
 import type { EntityMap } from "../entities/Entity";
 import Player, { PLAYER_MAX_SPEED } from "../entities/Player";
-import type Input from "./input";
-import type { CanvasConfig } from "./sprites";
+import type Input from "../logic/input";
+import type { CanvasConfig } from "./game";
 
 const MINIMAP_RADIUS = 100;
 const MINIMAP_OFFSET = 128;

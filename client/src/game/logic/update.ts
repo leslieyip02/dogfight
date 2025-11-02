@@ -1,13 +1,13 @@
 import { type EntityData, EntityType } from "../../pb/entities";
 import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
+import { SOUNDS } from "../audio/sounds";
 import Animation from "../entities/Animation";
 import Asteroid from "../entities/Asteroid";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import { SOUNDS } from "./sounds";
-import type { Spritesheet } from "./sprites";
+import Spritesheet from "../graphics/sprites";
 
 export function syncEntities(snapshot: Event_SnapshotEventData | null, entities: EntityMap) {
   if (!snapshot) {
@@ -58,9 +58,8 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
     break;
 
   case EntityType.ENTITY_TYPE_PLAYER: {
-    if (!Player.spritesheet) {
-      // spritesheet hasn't loaded
-      break;
+    if (!Spritesheet.isLoaded) {
+      return;
     }
 
     entities[id] = new Player(data);
@@ -83,13 +82,12 @@ export function handleEntityData(data: EntityData, entities: EntityMap) {
 export function addAnimations(
   delta: Event_DeltaEventData,
   entities: EntityMap,
-  spritesheet: Spritesheet,
 ) {
   // TODO: refactor
   delta.removed
     .forEach(id => {
       const animationName = entities[id]?.removalAnimationName();
-      if (!animationName || !(animationName in spritesheet)) {
+      if (!animationName) {
         return;
       }
 
@@ -98,9 +96,14 @@ export function addAnimations(
       }
 
       const animationId = `${id}-animation`;
+      const frames = Spritesheet.getAnimationFrames(animationName);
+      if (!frames) {
+        return;
+      }
+
       const animation = new Animation(
         entities[id].position,
-        spritesheet[animationName],
+        frames,
         () => {
           delete entities[animationId];
         },

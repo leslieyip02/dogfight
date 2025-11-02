@@ -6,7 +6,7 @@ import { TiArrowShuffle } from "react-icons/ti";
 import { generateUsername } from "unique-username-generator";
 
 import { joinRoom } from "../api/room";
-import { chooseSpriteName } from "../game/utils/sprites";
+import Spritesheet from "../game/graphics/sprites";
 
 type Props = {
   setClientId: (clientId: string) => void;
@@ -42,8 +42,7 @@ const Form: React.FC<Props> = ({ setClientId }) => {
   };
 
   const spriteSrc = useMemo(() => {
-    const spriteName = chooseSpriteName(username);
-    return `${spriteName}.png`;
+    return Spritesheet.getPlayerSpritePath(username);
   }, [username]);
 
   return (

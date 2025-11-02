@@ -2,9 +2,9 @@ import type p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
-import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../utils/abilities";
-import { SOUNDS } from "../utils/sounds";
-import { chooseSpriteName, type Spritesheet } from "../utils/sprites";
+import { SOUNDS } from "../audio/sounds";
+import Spritesheet from "../graphics/sprites";
+import { type AbilityFlag,isAbilityActive, SHIELD_ABILITY_FLAG } from "../logic/abilities";
 import type { BaseEntity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
@@ -13,8 +13,6 @@ const PLAYER_WIDTH = 96;
 const PLAYER_MAX_TRAIL_POINTS = 24;
 
 class Player implements BaseEntity {
-  static spritesheet: Spritesheet;
-
   position: Vector;
   velocity: Vector;
   rotation: number;
@@ -41,8 +39,12 @@ class Player implements BaseEntity {
     this.score = playerData.score;
     this.flags = playerData.flags;
 
-    const spriteName = chooseSpriteName(this.username);
-    this.sprite = Player.spritesheet[spriteName][0];
+    const sprite = Spritesheet.getPlayerSprite(this.username);
+    if (!sprite) {
+      throw new Error("unable to load player sprite");
+    }
+    this.sprite = sprite;
+
     this.previousPositions = [];
   }
 

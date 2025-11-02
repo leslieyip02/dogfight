@@ -2,7 +2,7 @@ import type p5 from "p5";
 
 import { sendInputMessage, sendRespawnMessage } from "../../api/game";
 import type { Event_InputEventData, Event_RespawnEventData } from "../../pb/event";
-import { SOUNDS } from "./sounds";
+import { SOUNDS } from "../audio/sounds";
 
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
