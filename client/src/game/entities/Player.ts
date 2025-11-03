@@ -3,14 +3,13 @@ import type p5 from "p5";
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
 import Audiosheet from "../audio/audio";
+import { generateExplosionAnimation } from "../graphics/animation";
 import Spritesheet from "../graphics/sprites";
 import { type AbilityFlag, isAbilityActive, SHIELD_ABILITY_FLAG } from "../logic/abilities";
 import type { Entity } from "./Entity";
 
 export const PLAYER_MAX_SPEED = 20.0;
-
 const PLAYER_WIDTH = 80;
-const PLAYER_MAX_TRAIL_POINTS = 24;
 
 class Player implements Entity {
   position: Vector;
@@ -67,14 +66,13 @@ class Player implements Entity {
     }
   };
 
-  removalAnimationName = () => {
-    return "explosionBig";
+  remove = () => {
+    return generateExplosionAnimation("explosionBig", this.position);
   };
 
   draw = (instance: p5, debug?: boolean) => {
     this.drawModel(instance);
     this.drawUsername(instance);
-
     if (debug) {
       this.drawDebug(instance);
     }
@@ -120,31 +118,6 @@ class Player implements Entity {
     instance.textAlign(instance.CENTER);
     instance.textFont("Courier New");
     instance.text(this.username, 0, -80);
-    instance.pop();
-  };
-
-  drawTrail = (instance: p5) => {
-    const previousPosition: Vector = {
-      x: this.position.x - Math.cos(this.rotation) * PLAYER_WIDTH / 2,
-      y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
-    };
-    this.previousPositions.push(previousPosition);
-    if (this.previousPositions.length > PLAYER_MAX_TRAIL_POINTS) {
-      this.previousPositions.shift();
-    }
-
-    instance.push();
-    instance.strokeWeight(4);
-    const color = instance.color("#ffa320");
-    for (let i = 0; i < this.previousPositions.length - 1; i++) {
-      color.setAlpha(Math.min(i/(PLAYER_MAX_TRAIL_POINTS / 4), 1) * 255);
-      instance.stroke(color);
-      instance.line(
-        this.previousPositions[i].x, this.previousPositions[i].y,
-        this.previousPositions[i + 1].x, this.previousPositions[i + 1].y,
-      );
-    }
-
     instance.pop();
   };
 

@@ -1,20 +1,13 @@
-import p5 from "p5";
-
-import type { EntityMap } from "../entities/Entity";
 import Player, { PLAYER_MAX_SPEED } from "../entities/Player";
+import { shouldCullEntity } from "../logic/update";
 import type { AnimationStep } from "./animation";
+import type { CanvasConfig, GraphicsGameContext } from "./context";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
 const GRID_SIZE = 96;
 const MINIMUM_ZOOM = 0.6;
 const MAXIMUM_ZOOM = 1.0;
-
-export type CanvasConfig = {
-  x: number;
-  y: number;
-  zoom: number;
-};
 
 export function updateCanvasConfig(config: CanvasConfig, clientPlayer: Player) {
   const speed = Math.hypot(clientPlayer.velocity.x, clientPlayer.velocity.y);
@@ -23,22 +16,29 @@ export function updateCanvasConfig(config: CanvasConfig, clientPlayer: Player) {
   config.zoom = MAXIMUM_ZOOM - (speed / PLAYER_MAX_SPEED) * (MAXIMUM_ZOOM - MINIMUM_ZOOM);
 }
 
-export function drawBackground(config: CanvasConfig, instance: p5) {
+export function centerCanvas(context: GraphicsGameContext) {
+  const { instance, canvasConfig } = context;
+  instance.scale(canvasConfig.zoom);
+  instance.translate(
+    -canvasConfig.x + (window.innerWidth / 2) / canvasConfig.zoom,
+    -canvasConfig.y + (window.innerHeight / 2) / canvasConfig.zoom,
+  );
+}
+
+export function drawBackground(context: GraphicsGameContext) {
+  const { instance, canvasConfig } = context;
   instance.background("#111111");
 
-  instance.push();
-  centerCanvas(config, instance);
-
-  const worldLeft = config.x - (window.innerWidth / 2) / config.zoom;
-  const worldRight = config.x + (window.innerWidth / 2) / config.zoom;
-  const worldTop = config.y - (window.innerHeight / 2) / config.zoom;
-  const worldBottom = config.y + (window.innerHeight / 2) / config.zoom;
-
+  const worldLeft = canvasConfig.x - (window.innerWidth / 2) / canvasConfig.zoom;
+  const worldRight = canvasConfig.x + (window.innerWidth / 2) / canvasConfig.zoom;
+  const worldTop = canvasConfig.y - (window.innerHeight / 2) / canvasConfig.zoom;
+  const worldBottom = canvasConfig.y + (window.innerHeight / 2) / canvasConfig.zoom;
   const startCol = Math.floor(worldLeft / GRID_SIZE) * GRID_SIZE;
   const endCol = Math.ceil(worldRight / GRID_SIZE) * GRID_SIZE;
   const startRow = Math.floor(worldTop / GRID_SIZE) * GRID_SIZE;
   const endRow = Math.ceil(worldBottom / GRID_SIZE) * GRID_SIZE;
 
+  instance.push();
   instance.stroke("#ffffff33");
   instance.strokeWeight(2);
   for (let x = startCol; x <= endCol; x += GRID_SIZE) {
@@ -50,42 +50,18 @@ export function drawBackground(config: CanvasConfig, instance: p5) {
   instance.pop();
 }
 
-export function drawEntities(config: CanvasConfig, entities: EntityMap, instance: p5) {
-  instance.push();
-  centerCanvas(config, instance);
-
-  // called separately so that all entities render above their trails
-  // Object.values(entities)
-  //   .filter(entity => entity instanceof Player)
-  //   .forEach(player => player.drawTrail(instance));
-
-  Object.values(entities)
-    .filter(entity => {
-      return Math.abs(config.x - entity.position.x) <= window.innerWidth
-        && Math.abs(config.y - entity.position.y) <= window.innerHeight;
-    })
-    .forEach(entity => entity.draw(instance, DEBUG));
-  instance.pop();
+export function drawEntities(context: GraphicsGameContext) {
+  Object.values(context.entities)
+    .filter(entity => !shouldCullEntity(entity.position, context.canvasConfig))
+    .forEach(entity => entity.draw(context.instance, DEBUG));
 }
 
 export function drawAnimations(
+  context: GraphicsGameContext,
   animations: AnimationStep[],
-  config: CanvasConfig,
-  instance: p5,
 ): AnimationStep[] {
-  instance.push();
-  centerCanvas(config, instance);
   animations = animations
-    .map(animation => animation(instance))
+    .map(animation => animation(context.instance))
     .filter(animation => animation !== null);
-  instance.pop();
   return animations;
-}
-
-export function centerCanvas(config: CanvasConfig, instance: p5) {
-  instance.scale(config.zoom);
-  instance.translate(
-    -config.x + (window.innerWidth / 2) / config.zoom,
-    -config.y + (window.innerHeight / 2) / config.zoom,
-  );
 }

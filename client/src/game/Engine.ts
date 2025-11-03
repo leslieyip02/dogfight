@@ -11,38 +11,44 @@ import {
 import Audiosheet from "./audio/audio";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
-import { type AnimationStep, generateExplosionAnimation } from "./graphics/animation";
+import { type AnimationStep } from "./graphics/animation";
+import type { CanvasConfig, GraphicsGameContext, GraphicsGUIContext } from "./graphics/context";
 import {
-  type CanvasConfig,
+  centerCanvas,
   drawAnimations,
   drawBackground,
   drawEntities,
   updateCanvasConfig,
 } from "./graphics/game";
-import { drawHUD, drawMinimap, drawRespawnPrompt } from "./graphics/gui";
+import {
+  drawHUD,
+  drawMinimap,
+  drawRespawnPrompt,
+} from "./graphics/gui";
 import Spritesheet from "./graphics/sprites";
 import Input from "./logic/input";
 import {
   mergeDeltas,
   removeEntities,
   syncEntities,
+  type UpdateContext,
   updateEntities,
 } from "./logic/update";
 
 const FPS = 60;
 
-class Engine {
+class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   instance: p5;
 
   clientId: string;
   entities: EntityMap;
 
+  input: Input;
+  delta: Event_DeltaEventData;
+
   canvasConfig: CanvasConfig;
   foregroundAnimations: AnimationStep[];
   backgroundAnimations: AnimationStep[];
-
-  input: Input;
-  delta: Event_DeltaEventData;
 
   constructor(
     instance: p5,
@@ -80,18 +86,17 @@ class Engine {
     this.handleUpdates();
     this.handleInput();
 
-    drawBackground(this.canvasConfig, this.instance);
-    drawAnimations(this.backgroundAnimations, this.canvasConfig, this.instance);
-    drawEntities(this.canvasConfig, this.entities, this.instance);
-    drawAnimations(this.foregroundAnimations, this.canvasConfig, this.instance);
+    this.instance.push();
+    centerCanvas(this);
+    drawBackground(this);
+    drawAnimations(this, this.backgroundAnimations);
+    drawEntities(this);
+    drawAnimations(this, this.foregroundAnimations);
+    this.instance.pop();
 
-    const clientPlayer = this.entities[this.clientId] as Player;
-    drawMinimap(this.canvasConfig, clientPlayer, this.entities, this.instance);
-    drawHUD(clientPlayer, this.input, this.instance);
-
-    if (!clientPlayer) {
-      drawRespawnPrompt(this.instance);
-    }
+    drawMinimap(this);
+    drawHUD(this);
+    drawRespawnPrompt(this);
   };
 
   mousePressed = () => {
@@ -121,6 +126,19 @@ class Engine {
     }
   };
 
+  getClientPlayer = () => {
+    return this.entities[this.clientId] as Player;
+  };
+
+  getInput = () => {
+    return this.input;
+  };
+
+  addAnimation = (animation: AnimationStep, isForeground: boolean) => {
+    const target = isForeground ? this.foregroundAnimations : this.backgroundAnimations;
+    target.push(animation);
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   private handleJoin = (_data: Event_JoinEventData) => {
     // TODO: maybe log a chat message
@@ -146,25 +164,7 @@ class Engine {
   };
 
   private handleUpdates = () => {
-    this.delta.removed.forEach(id => {
-      const entity = this.entities[id];
-      if (!entity) {
-        return;
-      }
-
-      const animationName = entity.removalAnimationName();
-      if (!animationName) {
-        return;
-      }
-
-      const animation = generateExplosionAnimation(animationName, entity.position);
-      if (!animation) {
-        return;
-      }
-      this.foregroundAnimations.push(animation);
-    });
-
-    removeEntities(this.delta, this.entities);
+    removeEntities(this);
     updateEntities(this);
 
     this.delta.updated = [];

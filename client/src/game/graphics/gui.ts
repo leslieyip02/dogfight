@@ -1,15 +1,15 @@
-import type p5 from "p5";
 
-import type { EntityMap } from "../entities/Entity";
-import Player, { PLAYER_MAX_SPEED } from "../entities/Player";
-import type Input from "../logic/input";
-import type { CanvasConfig } from "./game";
+import { PLAYER_MAX_SPEED } from "../entities/Player";
+import type { GraphicsGUIContext } from "./context";
 
 const MINIMAP_RADIUS = 100;
 const MINIMAP_OFFSET = 128;
 const MINIMAP_SCALE = 1 / 800;
 
-export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, entities: EntityMap, instance: p5) {
+export function drawMinimap(context: GraphicsGUIContext) {
+  const { instance, entities, canvasConfig, getClientPlayer } = context;
+  const clientPlayer = getClientPlayer();
+
   instance.push();
   instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
   instance.stroke("#ffffff");
@@ -18,19 +18,18 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
 
   Object.values(entities)
     .forEach(entity => {
-      const drawIcon = entity.drawIcon;
-      if (!drawIcon || entity === clientPlayer) {
+      if (!entity.drawIcon || entity === clientPlayer) {
         return;
       }
 
-      const dx = entity.position.x - origin.x;
-      const dy = entity.position.y - origin.y;
+      const dx = entity.position.x - canvasConfig.x;
+      const dy = entity.position.y - canvasConfig.y;
       const theta = Math.atan2(dy, dx);
       const clamped = Math.min(Math.hypot(dx, dy) * MINIMAP_SCALE, 1.0) * MINIMAP_RADIUS;
 
       instance.push();
       instance.translate(Math.cos(theta) * clamped, Math.sin(theta) * clamped);
-      drawIcon(instance);
+      entity.drawIcon(instance);
       instance.pop();
     });
 
@@ -39,23 +38,23 @@ export function drawMinimap(origin: CanvasConfig, clientPlayer: Player | null, e
     instance.rotate(clientPlayer.rotation);
     instance.noStroke();
     instance.fill("#ffffff");
-    instance.triangle(
-      8, 0,
-      -8, 8,
-      -8, -8,
-    );
+    instance.triangle(8, 0, -8, 8, -8, -8);
     instance.pop();
   }
 
   instance.pop();
 }
 
-export function drawHUD(clientPlayer: Player | null, input: Input, instance: p5) {
-  drawSpeedometer(clientPlayer, input, instance);
-  drawScore(clientPlayer, instance);
+export function drawHUD(context: GraphicsGUIContext) {
+  drawSpeedometer(context);
+  drawScore(context);
 }
 
-export function drawSpeedometer(clientPlayer: Player | null, input: Input, instance: p5) {
+export function drawSpeedometer(context: GraphicsGUIContext) {
+  const { instance, getClientPlayer, getInput } = context;
+  const clientPlayer = getClientPlayer();
+  const input = getInput();
+
   instance.push();
   instance.translate(window.innerWidth - MINIMAP_OFFSET, window.innerHeight - MINIMAP_OFFSET);
 
@@ -96,7 +95,10 @@ export function drawSpeedometer(clientPlayer: Player | null, input: Input, insta
   instance.pop();
 }
 
-export function drawScore(clientPlayer: Player | null, instance: p5) {
+export function drawScore(context: GraphicsGUIContext) {
+  const { instance, getClientPlayer } = context;
+  const clientPlayer = getClientPlayer();
+
   const score = `${clientPlayer?.score ?? "?"}`;
   instance.push();
   instance.translate(window.innerWidth - 280, window.innerHeight - 40);
@@ -110,7 +112,13 @@ export function drawScore(clientPlayer: Player | null, instance: p5) {
   instance.pop();
 }
 
-export function drawRespawnPrompt(instance: p5) {
+export function drawRespawnPrompt(context: GraphicsGUIContext) {
+  const { instance, getClientPlayer } = context;
+  const clientPlayer = getClientPlayer();
+  if (clientPlayer) {
+    return;
+  }
+
   instance.fill("#11111155");
   instance.rect(0, 0, window.innerWidth, window.innerHeight);
 

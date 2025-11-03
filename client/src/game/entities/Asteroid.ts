@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
+import { generateExplosionAnimation } from "../graphics/animation";
 import type { Entity } from "./Entity";
 
 class Asteroid implements Entity {
@@ -32,8 +33,8 @@ class Asteroid implements Entity {
     this.rotation = data.rotation;
   };
 
-  removalAnimationName = () => {
-    return "explosionBig";
+  remove = () => {
+    return generateExplosionAnimation("explosionBig", this.position);
   };
 
   draw = (instance: p5, debug?: boolean) => {

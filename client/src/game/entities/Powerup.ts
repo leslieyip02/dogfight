@@ -39,7 +39,7 @@ class Powerup implements Entity {
     this.rotation = data.rotation;
   };
 
-  removalAnimationName = () => {
+  remove = () => {
     return null;
   };
 

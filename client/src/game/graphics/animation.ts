@@ -4,6 +4,8 @@ import { Vector } from "../../pb/vector";
 import type Player from "../entities/Player";
 import Spritesheet from "./sprites";
 
+const PLAYER_TRAIL_LENGTH = 24;
+
 export type AnimationStep = (instance: p5) => AnimationStep | null;
 
 export function generateAnimation(
@@ -27,17 +29,15 @@ export function generateExplosionAnimation(
   }
 
   let index = 0;
+  const x = position.x - frames[index].width / 2;
+  const y = position.y - frames[index].height / 2;
   const body = (instance: p5): AnimationStep | null => {
     if (index >= frames.length) {
       return null;
     }
 
-    console.log(`drawing frame ${index} at (${position.x}, ${position.y})`);
     instance.push();
-    instance.translate(
-      position.x - frames[index].width / 2,
-      position.y - frames[index].height / 2,
-    );
+    instance.translate(x, y);
     instance.image(frames[index], 0, 0);
     instance.pop();
     index++;
@@ -47,13 +47,11 @@ export function generateExplosionAnimation(
   return generateAnimation(body);
 }
 
-const TRAIL_LENGTH = 24;
-
 export function generatePlayerTrailAnimation(
   playerRef: WeakRef<Player>,
 ): AnimationStep | null {
   let index = 0;
-  const positions: Vector[] = new Array<Vector>(TRAIL_LENGTH);
+  const positions: Vector[] = new Array<Vector>(PLAYER_TRAIL_LENGTH);
 
   const body = (instance: p5): AnimationStep | null => {
     const player = playerRef.deref();
@@ -65,25 +63,21 @@ export function generatePlayerTrailAnimation(
       x: player.position.x,
       y: player.position.y,
     };
-    index = (index + 1) % TRAIL_LENGTH;
+    index = (index + 1) % PLAYER_TRAIL_LENGTH;
 
     const color = instance.color("#ffa320");
     instance.push();
     instance.strokeWeight(4);
-    for (let i = 0; i < TRAIL_LENGTH - 1; i++) {
-      const current = (index + i) % TRAIL_LENGTH;
-      const next = (current + 1) % TRAIL_LENGTH;
-      if (!positions[current] || !positions[next]) {
+    for (let i = 0; i < PLAYER_TRAIL_LENGTH - 1; i++) {
+      const current = positions[(index + i) % PLAYER_TRAIL_LENGTH];
+      const next = positions[(index + i + 1) % PLAYER_TRAIL_LENGTH];
+      if (!current || !next) {
         continue;
       }
 
-      color.setAlpha(Math.min(i/(TRAIL_LENGTH / 4), 1) * 255);
+      color.setAlpha(Math.min(i/(PLAYER_TRAIL_LENGTH / 4), 1) * 255);
       instance.stroke(color);
-
-      instance.line(
-        positions[current].x, positions[current].y,
-        positions[next].x, positions[next].y,
-      );
+      instance.line(current.x, current.y, next.x, next.y);
     }
     instance.pop();
 

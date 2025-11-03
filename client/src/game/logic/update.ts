@@ -1,15 +1,26 @@
-import { type EntityData, EntityType } from "../../pb/entities";
+import { EntityData, EntityType } from "../../pb/entities";
 import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
+import type { Vector } from "../../pb/vector";
 import type Engine from "../Engine";
 import Asteroid from "../entities/Asteroid";
-import type { Entity, EntityMap } from "../entities/Entity";
+import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import { generatePlayerTrailAnimation } from "../graphics/animation";
-import type { CanvasConfig } from "../graphics/game";
+import { type AnimationStep, generatePlayerTrailAnimation } from "../graphics/animation";
+import type { CanvasConfig } from "../graphics/context";
 
-export function syncEntities(snapshot: Event_SnapshotEventData | null, game: Engine) {
+export interface UpdateContext {
+  delta: Event_DeltaEventData;
+  entities: EntityMap;
+  canvasConfig: CanvasConfig;
+  addAnimation: (animation: AnimationStep, isForeground: boolean) => void;
+}
+
+export function syncEntities(
+  snapshot: Event_SnapshotEventData | null,
+  game: Engine,
+) {
   if (!snapshot) {
     return;
   }
@@ -34,26 +45,39 @@ export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEven
   return current;
 }
 
-export function removeEntities(delta: Event_DeltaEventData, entities: EntityMap) {
+export function removeEntities(context: UpdateContext) {
+  const { delta, entities, addAnimation } = context;
   delta.removed
-    .forEach(id => delete entities[id]);
+    .forEach(id => {
+      const entity = entities[id];
+      if (!entity) {
+        return;
+      }
+
+      const animation = entity.remove();
+      if (animation) {
+        addAnimation(animation, true);
+      }
+      delete entities[id];
+    });
 }
 
-export function updateEntities(game: Engine) {
-  const { delta } = game;
+export function updateEntities(context: UpdateContext) {
+  const { delta } = context;
   delta.updated
-    .filter(entity => !delta.removed.includes(entity.id))
-    .forEach(entity => handleEntityData(entity, game));
+    .filter(entityData => !delta.removed.includes(entityData.id))
+    .forEach(entityData => handleEntityData(entityData, context));
 }
 
-export function handleEntityData(data: EntityData, game: Engine) {
+export function handleEntityData(data: EntityData, context: UpdateContext) {
   const { id, type } = data;
-  const { entities, canvasConfig } = game;
+  const { entities, canvasConfig, addAnimation } = context;
 
   if (entities[id]) {
-    if (shouldUpdate(entities[id], canvasConfig)) {
-      entities[id].update(data);
+    if (shouldCullEntity(entities[id].position, canvasConfig)) {
+      return;
     }
+    entities[id].update(data);
     return;
   }
 
@@ -65,9 +89,11 @@ export function handleEntityData(data: EntityData, game: Engine) {
   case EntityType.ENTITY_TYPE_PLAYER: {
     const player = new Player(data);
     entities[id] = player;
+
+    // TODO: move this somewhere else?
     const trailAnimation = generatePlayerTrailAnimation(new WeakRef(player));
     if (trailAnimation) {
-      game.backgroundAnimations.push(trailAnimation);
+      addAnimation(trailAnimation, false);
     }
     break;
   }
@@ -85,7 +111,7 @@ export function handleEntityData(data: EntityData, game: Engine) {
   }
 }
 
-function shouldUpdate(entity: Entity, canvasConfig: CanvasConfig) {
-  return Math.abs(canvasConfig.x - entity.position.x) <= window.innerWidth
-    && Math.abs(canvasConfig.y - entity.position.y) <= window.innerHeight;
+export function shouldCullEntity(position: Vector, canvasConfig: CanvasConfig): boolean {
+  return Math.abs(canvasConfig.x - position.x) > window.innerWidth
+    || Math.abs(canvasConfig.y - position.y) > window.innerHeight;
 }

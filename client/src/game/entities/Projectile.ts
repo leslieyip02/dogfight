@@ -2,7 +2,8 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
-import { type AbilityFlag,isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
+import { generateExplosionAnimation } from "../graphics/animation";
+import { type AbilityFlag, isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
 import type { Entity } from "./Entity";
 
 const PROJECTILE_WIDTH = 20;
@@ -41,9 +42,8 @@ class Projectile implements Entity {
     }
   };
 
-  removalAnimationName = (): string => {
-    // only explode on hit
-    return this.lifetime > 1 ? "explosionSmall" : "";
+  remove = () => {
+    return generateExplosionAnimation("explosionSmall", this.position);
   };
 
   draw = (instance: p5, debug?: boolean) => {
