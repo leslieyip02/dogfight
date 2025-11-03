@@ -29,6 +29,14 @@ export function syncEntities(
     .forEach(data => handleEntityData(data, game));
 }
 
+export function initDelta(): Event_DeltaEventData {
+  return {
+    timestamp: 0,
+    updated: [],
+    removed: [],
+  };
+}
+
 export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEventData): Event_DeltaEventData {
   const shouldOverwrite = current.timestamp < next.timestamp;
   next.updated

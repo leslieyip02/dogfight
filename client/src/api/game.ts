@@ -1,9 +1,6 @@
 import {
   Event,
-  type Event_InputEventData,
-  Event_RespawnEventData,
   Event_SnapshotEventData,
-  EventType,
 } from "../pb/event";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -21,32 +18,14 @@ export async function fetchSnapshot(): Promise<Event_SnapshotEventData | null> {
     });
 }
 
-export function sendInputMessage(
+export function sendEvent(
   socket: WebSocket,
-  data: Event_InputEventData,
+  event: Event,
 ) {
   if (socket.readyState !== socket.OPEN) {
     return;
   }
 
-  const message = Event.encode({
-    type: EventType.EVENT_TYPE_INPUT,
-    inputEventData: data,
-  }).finish();
-  socket.send(message);
-}
-
-export function sendRespawnMessage(
-  socket: WebSocket,
-  data: Event_RespawnEventData,
-) {
-  if (socket.readyState !== socket.OPEN) {
-    return;
-  }
-
-  const message = Event.encode({
-    type: EventType.EVENT_TYPE_RESPAWN,
-    respawnEventData: data,
-  }).finish();
+  const message = Event.encode(event).finish();
   socket.send(message);
 }

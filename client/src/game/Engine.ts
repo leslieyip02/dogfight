@@ -1,6 +1,6 @@
 import p5 from "p5";
 
-import { fetchSnapshot as fetchGameSnapshotData } from "../api/game";
+import { fetchSnapshot as fetchGameSnapshotData, sendEvent } from "../api/game";
 import {
   type Event,
   type Event_DeltaEventData,
@@ -12,7 +12,7 @@ import Audiosheet from "./audio/audio";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
 import { type AnimationStep } from "./graphics/animation";
-import type { CanvasConfig, GraphicsGameContext, GraphicsGUIContext } from "./graphics/context";
+import { type CanvasConfig, type GraphicsGameContext, type GraphicsGUIContext, initCanvasConfig } from "./graphics/context";
 import {
   centerCanvas,
   drawAnimations,
@@ -26,8 +26,9 @@ import {
   drawRespawnPrompt,
 } from "./graphics/gui";
 import Spritesheet from "./graphics/sprites";
-import Input from "./logic/input";
+import { convertInputToEvent, handleMouseMove, handleMousePress, initInput, type Input } from "./logic/input";
 import {
+  initDelta,
   mergeDeltas,
   removeEntities,
   syncEntities,
@@ -39,12 +40,12 @@ const FPS = 60;
 
 class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   instance: p5;
-
   clientId: string;
-  entities: EntityMap;
+  socket: WebSocket;
 
-  input: Input;
+  entities: EntityMap;
   delta: Event_DeltaEventData;
+  input: Input;
 
   canvasConfig: CanvasConfig;
   foregroundAnimations: AnimationStep[];
@@ -61,18 +62,15 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     this.instance.mousePressed = this.mousePressed;
 
     this.clientId = clientId;
-    this.entities = {};
+    this.socket = socket;
 
-    this.canvasConfig = { x: 0.0, y: 0.0, zoom: 1.0 };
+    this.entities = {};
+    this.delta = initDelta();
+    this.input = initInput();
+
+    this.canvasConfig = initCanvasConfig();
     this.foregroundAnimations = [];
     this.backgroundAnimations = [];
-
-    this.input = new Input(clientId, socket);
-    this.delta = {
-      timestamp: 0,
-      updated: [],
-      removed: [],
-    };
   }
 
   setup = async () => {
@@ -100,7 +98,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   };
 
   mousePressed = () => {
-    this.input.handleMousePress();
+    this.input = handleMousePress(this.input, true);
   };
 
   init = async () => {
@@ -155,12 +153,14 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   };
 
   private handleInput = () => {
+    this.input = handleMouseMove(this.input, this.instance);
+
     const clientPlayer = this.entities[this.clientId] as Player;
-    if (!clientPlayer) {
-      this.input.handleRespawn();
-      return;
+    const [input, event] = convertInputToEvent(this.input, this.clientId, !clientPlayer);
+    if (event) {
+      sendEvent(this.socket, event);
     }
-    this.input.handleInput(this.instance);
+    this.input = input;
   };
 
   private handleUpdates = () => {

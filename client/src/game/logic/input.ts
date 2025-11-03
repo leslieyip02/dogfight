@@ -1,68 +1,64 @@
 import type p5 from "p5";
 
-import { sendInputMessage, sendRespawnMessage } from "../../api/game";
-import type { Event_InputEventData, Event_RespawnEventData } from "../../pb/event";
-import Audiosheet from "../audio/audio";
+import { type Event, EventType } from "../../pb/event";
 
 const MOUSE_INPUT_RADIUS = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.8;
 
-function normalizeMouseValues(mouseX: number, mouseY: number): [number, number] {
-  const dx = mouseX - window.innerWidth / 2;
-  const dy = mouseY - window.innerHeight / 2;
-  const theta = Math.atan2(dy, dx);
-  const clamped = Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS;
-  return [Math.cos(theta) * clamped, Math.sin(theta) * clamped];
-}
-
-class Input {
-  clientId: string;
-  socket: WebSocket;
-
+export type Input = {
   mouseX: number;
   mouseY: number;
   mousePressed: boolean;
+};
 
-  constructor(clientId: string, socket: WebSocket) {
-    this.clientId = clientId;
-    this.socket = socket;
-
-    this.mouseX = 0;
-    this.mouseY = 0;
-    this.mousePressed = false;
-  }
-
-  handleMousePress = () => {
-    this.mousePressed = true;
-  };
-
-  handleInput = (instance: p5) => {
-    [this.mouseX, this.mouseY] = normalizeMouseValues(instance.mouseX, instance.mouseY);
-    const data: Event_InputEventData = {
-      id: this.clientId,
-      mouseX: this.mouseX,
-      mouseY: this.mouseY,
-      mousePressed: this.mousePressed,
-    };
-    sendInputMessage(this.socket, data);
-
-    if (this.mousePressed) {
-      Audiosheet.get("shoot")?.play();
-    }
-    this.mousePressed = false;
-  };
-
-  handleRespawn = () => {
-    if (!this.mousePressed) {
-      return;
-    }
-
-    const data: Event_RespawnEventData = {
-      id: this.clientId,
-    };
-    sendRespawnMessage(this.socket, data);
-
-    this.mousePressed = false;
+export function initInput(): Input {
+  return {
+    mouseX: 0,
+    mouseY: 0,
+    mousePressed: false,
   };
 }
 
-export default Input;
+export function handleMousePress(current: Input, mousePressed: boolean): Input {
+  return {
+    ...current,
+    mousePressed: current.mousePressed || mousePressed,
+  };
+}
+
+export function handleMouseMove(current: Input, instance: p5): Input {
+  const dx = instance.mouseX - window.innerWidth / 2;
+  const dy = instance.mouseY - window.innerHeight / 2;
+  const theta = Math.atan2(dy, dx);
+  const clamped = Math.min(Math.hypot(dx, dy), MOUSE_INPUT_RADIUS) / MOUSE_INPUT_RADIUS;
+
+  return {
+    ...current,
+    mouseX: Math.cos(theta) * clamped,
+    mouseY: Math.sin(theta) * clamped,
+  };
+}
+
+export function convertInputToEvent(current: Input, clientId: string, isRespawn: boolean): [Input, Event | null] {
+  if (isRespawn) {
+    return [
+      initInput(),
+      current.mousePressed ? {
+        type: EventType.EVENT_TYPE_RESPAWN,
+        respawnEventData: {
+          id: clientId,
+        },
+      } : null,
+    ];
+  };
+
+  return [
+    initInput(),
+    {
+      type: EventType.EVENT_TYPE_INPUT,
+      inputEventData: {
+        id: clientId,
+        ...current,
+      },
+    },
+  ];
+}
