@@ -47,10 +47,15 @@ class Projectile implements Entity {
   };
 
   draw = (instance: p5, debug?: boolean) => {
+    this.drawModel(instance);
+    if (debug) {
+      this.drawDebug(instance);
+    }
+  };
+
+  private drawModel = (instance: p5) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
-
-    instance.push();
     instance.rotate(this.rotation);
 
     if (isAbilityActive(this.flags, WIDE_BEAM_ABILITY_FLAG)) {
@@ -67,21 +72,26 @@ class Projectile implements Entity {
     }
 
     instance.pop();
+  };
 
-    if (debug) {
-      instance.push();
-      instance.stroke("#ff0000");
-      instance.noFill();
+  private drawDebug = (instance: p5) => {
+    instance.push();
+    instance.translate(this.position.x, this.position.y);
+    instance.noFill();
+    instance.stroke("#ff0000");
+    instance.strokeWeight(1);
 
-      instance.push();
-      instance.rotate(this.rotation);
-      instance.rect(-PROJECTILE_WIDTH / 2, -PROJECTILE_WIDTH / 2, PROJECTILE_WIDTH, PROJECTILE_WIDTH);
-      instance.pop();
+    instance.push();
+    instance.rotate(this.rotation);
+    instance.line(0, 0, 120, 0);
+    instance.rect(-PROJECTILE_WIDTH / 2, -PROJECTILE_WIDTH / 2, PROJECTILE_WIDTH, PROJECTILE_WIDTH);
+    instance.pop();
 
-      instance.line(0, 0, Math.cos(this.rotation) * 120, Math.sin(this.rotation) * 120);
-      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -85);
-      instance.pop();
-    }
+    instance.push();
+    instance.textAlign(instance.CENTER);
+    instance.textSize(16);
+    instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -40);
+    instance.pop();
 
     instance.pop();
   };

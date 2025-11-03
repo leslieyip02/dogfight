@@ -37,9 +37,24 @@ class Asteroid implements Entity {
   };
 
   draw = (instance: p5, debug?: boolean) => {
+    this.drawModel(instance);
+    if (debug) {
+      this.drawDebug(instance);
+    }
+  };
+
+  drawIcon = (instance: p5) => {
+    instance.push();
+    instance.fill("#0000ff");
+    instance.circle(0, 0, 8);
+    instance.pop();
+  };
+
+  private drawModel = (instance: p5) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
     instance.rotate(this.rotation);
+
     instance.fill("#ffffff88");
     instance.stroke("#ffffff");
     instance.strokeWeight(4);
@@ -57,22 +72,15 @@ class Asteroid implements Entity {
       instance.vertex(this.points[i].x, this.points[i].y);
     }
     instance.endShape();
-
-    if (debug) {
-      instance.push();
-      instance.stroke("#ff0000");
-      instance.fill("#ffffff");
-      instance.circle(0, 0, 10);
-      instance.pop();
-    }
-
     instance.pop();
   };
 
-  drawIcon = (instance: p5) => {
+  private drawDebug = (instance: p5) => {
     instance.push();
-    instance.fill("#0000ff");
-    instance.circle(0, 0, 8);
+    instance.translate(this.position.x, this.position.y);
+    instance.fill("#ffffff");
+    instance.stroke("#ff0000");
+    instance.circle(0, 0, 10);
     instance.pop();
   };
 }

@@ -72,8 +72,12 @@ class Player implements Entity {
   };
 
   draw = (instance: p5, debug?: boolean) => {
-    this.drawModel(instance, debug);
-    this.drawUsername(instance, debug);
+    this.drawModel(instance);
+    this.drawUsername(instance);
+
+    if (debug) {
+      this.drawDebug(instance);
+    }
   };
 
   drawIcon = (instance: p5) => {
@@ -81,7 +85,7 @@ class Player implements Entity {
     instance.circle(0, 0, 8);
   };
 
-  drawModel = (instance: p5, debug?: boolean) => {
+  private drawModel = (instance: p5) => {
     if (!this.sprite) {
       this.sprite = Spritesheet.getPlayerSprite(this.username);
     }
@@ -104,40 +108,22 @@ class Player implements Entity {
       instance.pop();
     }
 
-    if (debug) {
-      instance.push();
-      instance.stroke("#ff0000");
-      instance.noFill();
-      instance.rect(0, 0, this.sprite.width, this.sprite.height);
-      instance.pop();
-    }
-
     instance.pop();
   };
 
-  drawUsername = (instance: p5, debug?: boolean) => {
+  private drawUsername = (instance: p5) => {
     instance.push();
     instance.translate(this.position.x, this.position.y);
     instance.noFill();
     instance.stroke("#ffffff");
     instance.strokeWeight(1);
-    instance.rectMode(instance.CENTER);
     instance.textAlign(instance.CENTER);
     instance.textFont("Courier New");
     instance.text(this.username, 0, -80);
-
-    if (debug) {
-      instance.push();
-      instance.stroke("#ff0000");
-      instance.line(0, 0, Math.cos(this.rotation) * 120, Math.sin(this.rotation) * 120);
-      instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -85);
-      instance.pop();
-    }
-
     instance.pop();
   };
 
-  drawTrail = (instance: p5, debug?: boolean) => {
+  drawTrail = (instance: p5) => {
     const previousPosition: Vector = {
       x: this.position.x - Math.cos(this.rotation) * PLAYER_WIDTH / 2,
       y: this.position.y - Math.sin(this.rotation) * PLAYER_WIDTH / 2,
@@ -159,13 +145,28 @@ class Player implements Entity {
       );
     }
 
-    if (debug && this.previousPositions.length > 0) {
-      instance.push();
-      instance.stroke("#ff0000");
-      instance.strokeWeight(1);
-      instance.circle(this.previousPositions[0].x, this.previousPositions[0].y, 10);
-      instance.pop();
-    }
+    instance.pop();
+  };
+
+  private drawDebug = (instance: p5) => {
+    instance.push();
+    instance.translate(this.position.x, this.position.y);
+    instance.noFill();
+    instance.stroke("#ff0000");
+    instance.strokeWeight(1);
+
+    instance.push();
+    instance.rotate(this.rotation);
+    instance.line(0, 0, 120, 0);
+    instance.translate(-PLAYER_WIDTH / 2, -PLAYER_WIDTH / 2);
+    instance.rect(0, 0, PLAYER_WIDTH);
+    instance.pop();
+
+    instance.push();
+    instance.textAlign(instance.CENTER);
+    instance.textSize(16);
+    instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -100);
+    instance.pop();
 
     instance.pop();
   };

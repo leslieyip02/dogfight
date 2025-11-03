@@ -44,6 +44,20 @@ class Powerup implements Entity {
   };
 
   draw = (instance: p5, debug?: boolean) => {
+    this.drawModel(instance);
+    if (debug) {
+      this.drawDebug(instance);
+    }
+  };
+
+  drawIcon = (instance: p5) => {
+    instance.push();
+    instance.fill(this.iconFill());
+    instance.circle(0, 0, 8);
+    instance.pop();
+  };
+
+  private drawModel = (instance: p5) => {
     if (!this.sprite) {
       this.sprite = Spritesheet.get(this.spriteName());
     }
@@ -53,27 +67,17 @@ class Powerup implements Entity {
 
     instance.push();
     instance.translate(this.position.x, this.position.y);
-
-    instance.push();
     instance.translate(-this.sprite.width/2, -this.sprite.height/2);
     instance.image(this.sprite, 0, 0);
     instance.pop();
-
-    if (debug) {
-      instance.push();
-      instance.noFill();
-      instance.stroke("#ff0000");
-      instance.rect(-POWERUP_WIDTH / 2, -POWERUP_WIDTH / 2, POWERUP_WIDTH, POWERUP_WIDTH);
-      instance.pop();
-    }
-
-    instance.pop();
   };
 
-  drawIcon = (instance: p5) => {
+  private drawDebug = (instance: p5) => {
     instance.push();
-    instance.fill(this.iconFill());
-    instance.circle(0, 0, 8);
+    instance.translate(this.position.x, this.position.y);
+    instance.noFill();
+    instance.stroke("#ff0000");
+    instance.rect(-POWERUP_WIDTH / 2, -POWERUP_WIDTH / 2, POWERUP_WIDTH, POWERUP_WIDTH);
     instance.pop();
   };
 
