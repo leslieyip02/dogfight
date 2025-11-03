@@ -11,8 +11,10 @@ import {
 import Audiosheet from "./audio/audio";
 import type { EntityMap } from "./entities/Entity";
 import Player from "./entities/Player";
+import { type AnimationStep, generateExplosionAnimation } from "./graphics/animation";
 import {
   type CanvasConfig,
+  drawAnimations,
   drawBackground,
   drawEntities,
   updateCanvasConfig,
@@ -21,7 +23,6 @@ import { drawHUD, drawMinimap, drawRespawnPrompt } from "./graphics/gui";
 import Spritesheet from "./graphics/sprites";
 import Input from "./logic/input";
 import {
-  addAnimations,
   mergeDeltas,
   removeEntities,
   syncEntities,
@@ -35,7 +36,10 @@ class Engine {
 
   clientId: string;
   entities: EntityMap;
+
   canvasConfig: CanvasConfig;
+  foregroundAnimations: AnimationStep[];
+  backgroundAnimations: AnimationStep[];
 
   input: Input;
   delta: Event_DeltaEventData;
@@ -52,7 +56,10 @@ class Engine {
 
     this.clientId = clientId;
     this.entities = {};
+
     this.canvasConfig = { x: 0.0, y: 0.0, zoom: 1.0 };
+    this.foregroundAnimations = [];
+    this.backgroundAnimations = [];
 
     this.input = new Input(clientId, socket);
     this.delta = {
@@ -74,9 +81,11 @@ class Engine {
     this.handleInput();
 
     drawBackground(this.canvasConfig, this.instance);
+    drawAnimations(this.backgroundAnimations, this.canvasConfig, this.instance);
+    drawEntities(this.canvasConfig, this.entities, this.instance);
+    drawAnimations(this.foregroundAnimations, this.canvasConfig, this.instance);
 
     const clientPlayer = this.entities[this.clientId] as Player;
-    drawEntities(this.canvasConfig, this.entities, this.instance);
     drawMinimap(this.canvasConfig, clientPlayer, this.entities, this.instance);
     drawHUD(clientPlayer, this.input, this.instance);
 
@@ -137,9 +146,26 @@ class Engine {
   };
 
   private handleUpdates = () => {
-    addAnimations(this.delta, this.entities);
+    this.delta.removed.forEach(id => {
+      const entity = this.entities[id];
+      if (!entity) {
+        return;
+      }
+
+      const animationName = entity.removalAnimationName();
+      if (!animationName) {
+        return;
+      }
+
+      const animation = generateExplosionAnimation(animationName, entity.position);
+      if (!animation) {
+        return;
+      }
+      this.foregroundAnimations.push(animation);
+    });
+
     removeEntities(this.delta, this.entities);
-    updateEntities(this.delta, this.entities, this.canvasConfig);
+    updateEntities(this);
 
     this.delta.updated = [];
     this.delta.removed = [];
@@ -153,7 +179,7 @@ class Engine {
   private syncGameState = async () => {
     await fetchGameSnapshotData()
       .then((snapshot) => {
-        syncEntities(snapshot, this.entities, this.canvasConfig);
+        syncEntities(snapshot, this);
       });
   };
 };

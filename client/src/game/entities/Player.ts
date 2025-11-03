@@ -163,6 +163,7 @@ class Player implements Entity {
     instance.pop();
 
     instance.push();
+    instance.fill("#ff0000");
     instance.textAlign(instance.CENTER);
     instance.textSize(16);
     instance.text(`position: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}), rotation: ${this.rotation.toFixed(2)}`, 0, -100);

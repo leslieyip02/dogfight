@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import type { EntityMap } from "../entities/Entity";
 import Player, { PLAYER_MAX_SPEED } from "../entities/Player";
+import type { AnimationStep } from "./animation";
 
 const DEBUG = import.meta.env.VITE_DEBUG;
 
@@ -54,9 +55,9 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   centerCanvas(config, instance);
 
   // called separately so that all entities render above their trails
-  Object.values(entities)
-    .filter(entity => entity instanceof Player)
-    .forEach(player => player.drawTrail(instance));
+  // Object.values(entities)
+  //   .filter(entity => entity instanceof Player)
+  //   .forEach(player => player.drawTrail(instance));
 
   Object.values(entities)
     .filter(entity => {
@@ -67,7 +68,21 @@ export function drawEntities(config: CanvasConfig, entities: EntityMap, instance
   instance.pop();
 }
 
-function centerCanvas(config: CanvasConfig, instance: p5) {
+export function drawAnimations(
+  animations: AnimationStep[],
+  config: CanvasConfig,
+  instance: p5,
+): AnimationStep[] {
+  instance.push();
+  centerCanvas(config, instance);
+  animations = animations
+    .map(animation => animation(instance))
+    .filter(animation => animation !== null);
+  instance.pop();
+  return animations;
+}
+
+export function centerCanvas(config: CanvasConfig, instance: p5) {
   instance.scale(config.zoom);
   instance.translate(
     -config.x + (window.innerWidth / 2) / config.zoom,
