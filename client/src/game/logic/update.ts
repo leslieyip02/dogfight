@@ -1,15 +1,24 @@
 import { EntityData, EntityType } from "../../pb/entities";
-import type { Event_DeltaEventData, Event_SnapshotEventData } from "../../pb/event";
+import type {
+  Event_DeltaEventData,
+  Event_SnapshotEventData,
+} from "../../pb/event";
 import type { Vector } from "../../pb/vector";
-import type Engine from "../Engine";
 import Asteroid from "../entities/Asteroid";
 import type { EntityMap } from "../entities/Entity";
 import Player from "../entities/Player";
 import Powerup from "../entities/Powerup";
 import Projectile from "../entities/Projectile";
-import { type AnimationStep, generatePlayerTrailAnimation } from "../graphics/animation";
+import {
+  type AnimationStep,
+  generatePlayerTrailAnimation,
+} from "../graphics/animation";
 import type { CanvasConfig } from "../graphics/context";
 
+/**
+ * The context to update.
+ * Contains a subset of fields from Engine to avoid passing the whole Engine.
+ */
 export interface UpdateContext {
   delta: Event_DeltaEventData;
   entities: EntityMap;
@@ -17,16 +26,20 @@ export interface UpdateContext {
   addAnimation: (animation: AnimationStep, isForeground: boolean) => void;
 }
 
+/**
+ * Forces the context to match the given snapshot.
+ * @param context the context to update
+ */
 export function syncEntities(
   snapshot: Event_SnapshotEventData | null,
-  game: Engine,
+  context: UpdateContext,
 ) {
   if (!snapshot) {
     return;
   }
 
   Object.values(snapshot.entities)
-    .forEach(data => handleEntityData(data, game));
+    .forEach(data => handleEntityData(data, context));
 }
 
 export function initDelta(): Event_DeltaEventData {
@@ -37,12 +50,22 @@ export function initDelta(): Event_DeltaEventData {
   };
 }
 
-export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEventData): Event_DeltaEventData {
+/**
+ * Combines two deltas. If next is more recent, it will overwrite current.
+ * @param current existing delta
+ * @param next incoming delta
+ */
+export function mergeDeltas(
+  current: Event_DeltaEventData,
+  next: Event_DeltaEventData,
+): Event_DeltaEventData {
   const shouldOverwrite = current.timestamp < next.timestamp;
   next.updated
     .forEach(entity => {
-      // TODO: is this necessary?
-      if (!shouldOverwrite && current.updated.some(existing => existing.id === entity.id)) {
+      // TODO: maybe the membership check can be rewritten
+      const shouldAdd = shouldOverwrite
+        || !current.updated.some(existing => existing.id === entity.id);
+      if (!shouldAdd) {
         return;
       }
       current.updated.push(entity);
@@ -53,6 +76,11 @@ export function mergeDeltas(current: Event_DeltaEventData, next: Event_DeltaEven
   return current;
 }
 
+/**
+ * Removes entities that are marked for removal within the given context.
+ * Will add a removal animation to the context if needed.
+ * @param context the context to update
+ */
 export function removeEntities(context: UpdateContext) {
   const { delta, entities, addAnimation } = context;
   delta.removed
@@ -70,6 +98,10 @@ export function removeEntities(context: UpdateContext) {
     });
 }
 
+/**
+ * Updates all entities within the given context.
+ * @param context the context to update
+ */
 export function updateEntities(context: UpdateContext) {
   const { delta } = context;
   delta.updated
@@ -77,6 +109,12 @@ export function updateEntities(context: UpdateContext) {
     .forEach(entityData => handleEntityData(entityData, context));
 }
 
+/**
+ * Updates an entity based on the given data.
+ * Creates the entity if it doesn't exist in the given context.
+ * @param data new data
+ * @param context the context to update
+ */
 export function handleEntityData(data: EntityData, context: UpdateContext) {
   const { id, type } = data;
   const { entities, canvasConfig, addAnimation } = context;
@@ -119,7 +157,15 @@ export function handleEntityData(data: EntityData, context: UpdateContext) {
   }
 }
 
-export function shouldCullEntity(position: Vector, canvasConfig: CanvasConfig): boolean {
+/**
+ * Check if an entity should be updated/drawn.
+ * @param position location of the entity
+ * @param canvasConfig canvas origin
+ */
+export function shouldCullEntity(
+  position: Vector,
+  canvasConfig: CanvasConfig,
+): boolean {
   return Math.abs(canvasConfig.x - position.x) > window.innerWidth
     || Math.abs(canvasConfig.y - position.y) > window.innerHeight;
 }

@@ -6,8 +6,19 @@ import Spritesheet from "./sprites";
 
 const PLAYER_TRAIL_LENGTH = 24;
 
+/**
+ * Represents a single animation step.
+ * At each step, some function body will draw to the p5.js instance.
+ * If there are subsequent frames, the function will return a new
+ * AnimationStep.
+ */
 export type AnimationStep = (instance: p5) => AnimationStep | null;
 
+/**
+ * Generator for animation steps.
+ * @param body drawing logic for one step
+ * @returns the next step if it exists, null otherwise
+ */
 export function generateAnimation(
   body: AnimationStep,
 ): AnimationStep | null {
@@ -19,6 +30,12 @@ export function generateAnimation(
   return step();
 }
 
+/**
+ * Generates the animation steps for explosions.
+ * @param name sprite name
+ * @param position origin of the explosion
+ * @returns the next step if there are still frames to draw, null otherwise
+ */
 export function generateExplosionAnimation(
   name: string,
   position: Vector,
@@ -47,6 +64,12 @@ export function generateExplosionAnimation(
   return generateAnimation(body);
 }
 
+/**
+ * Generates the animation steps for player trails.
+ * Keeps a record of previous player positions and interpolates them.
+ * @param playerRef weak reference to the player
+ * @returns the next step if player exists, null otherwise
+ */
 export function generatePlayerTrailAnimation(
   playerRef: WeakRef<Player>,
 ): AnimationStep | null {

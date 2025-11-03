@@ -98,7 +98,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   };
 
   mousePressed = () => {
-    this.input = handleMousePress(this.input, true);
+    this.input = handleMousePress(this.input);
   };
 
   init = async () => {

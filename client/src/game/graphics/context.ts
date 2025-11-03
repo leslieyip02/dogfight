@@ -18,12 +18,20 @@ export function initCanvasConfig(): CanvasConfig {
   };
 }
 
+/**
+ * The context to draw.
+ * Contains a subset of fields from Engine to avoid passing the whole Engine.
+ */
 export interface GraphicsGameContext {
   instance: p5;
   entities: EntityMap;
   canvasConfig: CanvasConfig;
 }
 
+/**
+ * The context to draw.
+ * Contains a subset of fields from Engine to avoid passing the whole Engine.
+ */
 export interface GraphicsGUIContext {
   instance: p5;
   entities: EntityMap;
