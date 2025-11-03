@@ -8,7 +8,7 @@ export interface Entity {
     position: Vector;
 
     update: (data: EntityData) => void;
-    remove: () => AnimationStep | null;
+    onRemove: () => AnimationStep | null;
 
     draw: (instance: p5, debug?: boolean) => void;
     drawIcon?: (instance: p5) => void;

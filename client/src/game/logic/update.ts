@@ -82,7 +82,7 @@ export function mergeDeltas(
  * @param context the context to update
  */
 export function removeEntities(context: UpdateContext) {
-  const { delta, entities, addAnimation } = context;
+  const { delta, entities, canvasConfig, addAnimation } = context;
   delta.removed
     .forEach(id => {
       const entity = entities[id];
@@ -90,9 +90,11 @@ export function removeEntities(context: UpdateContext) {
         return;
       }
 
-      const animation = entity.remove();
-      if (animation) {
-        addAnimation(animation, true);
+      if (!shouldCullEntity(entity.position, canvasConfig)) {
+        const animation = entity.onRemove();
+        if (animation) {
+          addAnimation(animation, true);
+        }
       }
       delete entities[id];
     });
@@ -159,6 +161,7 @@ export function handleEntityData(data: EntityData, context: UpdateContext) {
 
 /**
  * Check if an entity should be updated/drawn.
+ * Uses the window height and screen as boundaries.
  * @param position location of the entity
  * @param canvasConfig canvas origin
  */

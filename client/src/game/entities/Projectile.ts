@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
+import Audiosheet from "../audio/audio";
 import { generateExplosionAnimation } from "../graphics/animation";
 import { type AbilityFlag, isAbilityActive, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
 import type { Entity } from "./Entity";
@@ -42,7 +43,8 @@ class Projectile implements Entity {
     }
   };
 
-  remove = () => {
+  onRemove = () => {
+    Audiosheet.get("explosionSmall")?.play();
     return generateExplosionAnimation("explosionSmall", this.position);
   };
 

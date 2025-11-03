@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
+import Audiosheet from "../audio/audio";
 import { generateExplosionAnimation } from "../graphics/animation";
 import type { Entity } from "./Entity";
 
@@ -33,7 +34,8 @@ class Asteroid implements Entity {
     this.rotation = data.rotation;
   };
 
-  remove = () => {
+  onRemove = () => {
+    Audiosheet.get("explosionBig")?.play();
     return generateExplosionAnimation("explosionBig", this.position);
   };
 

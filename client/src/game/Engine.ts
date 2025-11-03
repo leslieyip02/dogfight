@@ -99,6 +99,10 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
 
   mousePressed = () => {
     this.input = handleMousePress(this.input);
+
+    if (this.getClientPlayer()) {
+      Audiosheet.get("shoot")?.play();
+    }
   };
 
   init = async () => {
@@ -155,7 +159,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   private handleInput = () => {
     this.input = handleMouseMove(this.input, this.instance);
 
-    const clientPlayer = this.entities[this.clientId] as Player;
+    const clientPlayer = this.getClientPlayer();
     const [input, event] = convertInputToEvent(this.input, this.clientId, !clientPlayer);
     if (event) {
       sendEvent(this.socket, event);
@@ -170,7 +174,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     this.delta.updated = [];
     this.delta.removed = [];
 
-    const clientPlayer = this.entities[this.clientId] as Player;
+    const clientPlayer = this.getClientPlayer();
     if (clientPlayer) {
       updateCanvasConfig(this.canvasConfig, clientPlayer);
     }

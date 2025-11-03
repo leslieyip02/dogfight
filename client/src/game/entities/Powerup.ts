@@ -2,6 +2,7 @@ import p5 from "p5";
 
 import type { EntityData } from "../../pb/entities";
 import type { Vector } from "../../pb/vector";
+import Audiosheet from "../audio/audio";
 import Spritesheet from "../graphics/sprites";
 import { type AbilityFlag, MULTISHOT_ABILITY_FLAG, SHIELD_ABILITY_FLAG, toAbilityName, WIDE_BEAM_ABILITY_FLAG } from "../logic/abilities";
 import type { Entity } from "./Entity";
@@ -39,7 +40,8 @@ class Powerup implements Entity {
     this.rotation = data.rotation;
   };
 
-  remove = () => {
+  onRemove = () => {
+    Audiosheet.get("pickup")?.play();
     return null;
   };
 

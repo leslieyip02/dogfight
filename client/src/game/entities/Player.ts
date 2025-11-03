@@ -56,17 +56,13 @@ class Player implements Entity {
     if (playerData) {
       if (this.score < playerData.score) {
         this.score = playerData.score;
-        Audiosheet.get("pickup")?.play();
-      }
-
-      if (this.flags != playerData.flags) {
-        this.flags = playerData.flags;
-        Audiosheet.get("pickup")?.play();
+        Audiosheet.get("score")?.play();
       }
     }
   };
 
-  remove = () => {
+  onRemove = () => {
+    Audiosheet.get("explosionBig")?.play();
     return generateExplosionAnimation("explosionBig", this.position);
   };
 
