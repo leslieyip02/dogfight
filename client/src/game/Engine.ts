@@ -38,6 +38,12 @@ import {
 
 const FPS = 60;
 
+/**
+ * Represents the game.
+ * Encapsulates updates and rendering for all entities.
+ * Implements context interfaces so that they can be passed to other functions
+ * easily without having to pass the entire class.
+ */
 class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   instance: p5;
   clientId: string;
@@ -73,6 +79,13 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     this.backgroundAnimations = [];
   }
 
+  // ==========================================================================
+  //  p5.js handlers
+  // ==========================================================================
+
+  /**
+   * See https://p5js.org/reference/p5/setup/.
+   */
   setup = async () => {
     this.instance.createCanvas(window.innerWidth, window.innerHeight);
     this.instance.frameRate(FPS);
@@ -80,6 +93,9 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     await Spritesheet.loadAll(this.instance);
   };
 
+  /**
+   * See https://p5js.org/reference/p5/draw/.
+   */
   draw = () => {
     this.handleUpdates();
     this.handleInput();
@@ -97,6 +113,9 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     drawRespawnPrompt(this);
   };
 
+  /**
+   * See https://p5js.org/reference/p5/mousePressed/.
+   */
   mousePressed = () => {
     this.input = handleMousePress(this.input);
 
@@ -105,28 +124,44 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     }
   };
 
+  // ==========================================================================
+  //  WebSocket handlers
+  // ==========================================================================
+
+  /**
+   * Initializes game state by fetching the latest snapshot.
+   * This should be called once the WebSocket connection is opened.
+   */
   init = async () => {
     await this.syncGameState();
   };
 
-  receive = (gameEvent: Event) => {
-    switch (gameEvent.type) {
+  /**
+   * Triages event handling to handler functions.
+   * @param event game data from the server
+   */
+  receive = (event: Event) => {
+    switch (event.type) {
     case EventType.EVENT_TYPE_JOIN:
-      this.handleJoin(gameEvent.joinEventData!);
+      this.handleJoin(event.joinEventData!);
       break;
 
     case EventType.EVENT_TYPE_QUIT:
-      this.handleQuit(gameEvent.quitEventData!);
+      this.handleQuit(event.quitEventData!);
       break;
 
     case EventType.EVENT_TYPE_DELTA:
-      this.handleDelta(gameEvent.deltaEventData!);
+      this.handleDelta(event.deltaEventData!);
       break;
 
     default:
       return;
     }
   };
+
+  // ==========================================================================
+  //  Getters (provides context to other modules)
+  // ==========================================================================
 
   getClientPlayer = () => {
     return this.entities[this.clientId] as Player;
@@ -141,6 +176,10 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     target.push(animation);
   };
 
+  // ==========================================================================
+  //  Private handlers
+  // ==========================================================================
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   private handleJoin = (_data: Event_JoinEventData) => {
     // TODO: maybe log a chat message
@@ -152,10 +191,18 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     // TODO: maybe log a chat message
   };
 
+  /**
+   * Reconciles the incoming delta with the current delta
+   * @param data incoming data
+   */
   private handleDelta = (data: Event_DeltaEventData) => {
     this.delta = mergeDeltas(this.delta, data);
   };
 
+  /**
+   * Processes user input, and sends an input event to the server.
+   * @param data incoming data
+   */
   private handleInput = () => {
     this.input = handleMouseMove(this.input, this.instance);
 
@@ -167,6 +214,11 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     this.input = input;
   };
 
+  /**
+   * Updates all entities.
+   * Remove entities marked for removal.
+   * If the client player exists, center the canvas around the player.
+   */
   private handleUpdates = () => {
     removeEntities(this);
     updateEntities(this);
@@ -180,6 +232,10 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     }
   };
 
+  /**
+   * Fetches a snapshot of the game's state from the server and sets the local
+   * state to match.
+   */
   private syncGameState = async () => {
     await fetchGameSnapshotData()
       .then((snapshot) => {
