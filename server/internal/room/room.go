@@ -11,8 +11,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const ROOM_CAPACITY = 32
-
 // A Room allows multiple clients to connect, and runs a single game instance.
 type Room struct {
 	id      string
@@ -127,14 +125,6 @@ func (r *Room) sendJoinEvent(id string, username string) error {
 	}
 	r.game.Outgoing <- message
 	return nil
-}
-
-// hasCapacity reports if more players could be added to the room.
-func (r *Room) hasCapacity() bool {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	return len(r.clients) < ROOM_CAPACITY
 }
 
 // getOccupancy returns the current number of connected players

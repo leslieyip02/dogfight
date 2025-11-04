@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"server/internal/id"
 	"server/internal/session"
@@ -34,19 +35,26 @@ type Master struct {
 	host string
 	port string
 
-	client              http.Client
-	hostOccupancies     map[string]uint32
-	roomOccupancies     map[string]uint32
+	client http.Client
+	secret []byte
+
+	roomCapacity        int // max number of clients that can be assigned
+	hostOccupancies     map[string]int
+	roomOccupancies     map[string]int
 	hostToRoomsRegistry map[string][]string // mapping of host to room IDs
 	roomToHostRegistry  map[string]string   // mapping of room ID to host
-	secret              []byte
 
 	mu     sync.Mutex
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func NewMaster(host string, port string, secret []byte) *Master {
+func NewMaster(
+	host string,
+	port string,
+	secret []byte,
+	roomCapacity int,
+) *Master {
 	client := http.Client{Timeout: HTTP_TIMEOUT}
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -54,12 +62,13 @@ func NewMaster(host string, port string, secret []byte) *Master {
 		host:                host,
 		port:                port,
 		client:              client,
-		hostOccupancies:     map[string]uint32{},
-		roomOccupancies:     map[string]uint32{},
+		secret:              secret,
+		roomCapacity:        roomCapacity,
+		hostOccupancies:     map[string]int{},
+		roomOccupancies:     map[string]int{},
 		hostToRoomsRegistry: map[string][]string{},
 		roomToHostRegistry:  map[string]string{},
 		mu:                  sync.Mutex{},
-		secret:              secret,
 		ctx:                 ctx,
 		cancel:              cancel,
 	}
@@ -135,6 +144,7 @@ func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+	log.Printf("preparing to send client to %s in room %s", host, roomId)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -174,36 +184,45 @@ func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Master) getHost(roomId *string) (string, string, error) {
-	if roomId == nil {
-		return m.assignHost()
+	if roomId != nil {
+		return m.lookupHost(*roomId)
 	}
+	return m.assignHost()
 
+}
+
+func (m *Master) lookupHost(roomId string) (string, string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	host, found := m.roomToHostRegistry[*roomId]
+	host, found := m.roomToHostRegistry[roomId]
 	if !found {
-		return "", "", fmt.Errorf("room %s not found", *roomId)
+		return "", "", fmt.Errorf("room %s not found", roomId)
 	}
-	return host, *roomId, nil
+	if m.roomOccupancies[roomId] >= m.roomCapacity {
+		return "", "", fmt.Errorf("room %s is full", roomId)
+	}
+	return host, roomId, nil
 }
 
 func (m *Master) assignHost() (string, string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Look for any available rooms
 	for roomId, host := range m.roomToHostRegistry {
-		if m.roomOccupancies[roomId] < 32 {
+		if m.roomOccupancies[roomId] < int(m.roomCapacity) {
 			return host, roomId, nil
 		}
 	}
 
+	// Create a new room if there are no available rooms
 	roomId, err := id.NewShortId()
 	if err != nil {
 		return "", "", err
 	}
 
-	host, err := m.getVacantHost()
+	host, err := m.chooseHost()
 	if err != nil {
 		return "", "", err
 	}
@@ -242,12 +261,21 @@ func (m *Master) createRoom(host string, roomId string) error {
 	return nil
 }
 
-func (m *Master) getVacantHost() (string, error) {
-	// TODO: this is just dummy code that returns the first host
-	for host := range m.hostOccupancies {
-		return host, nil
+func (m *Master) chooseHost() (string, error) {
+	// Least connection
+	var chosen *string = nil
+	least := math.MaxInt
+	for host, occupancy := range m.hostOccupancies {
+		if occupancy < least {
+			chosen = &host
+			least = occupancy
+		}
 	}
-	return "", fmt.Errorf("no available hosts")
+
+	if chosen == nil {
+		return "", fmt.Errorf("no hosts available")
+	}
+	return *chosen, nil
 }
 
 func (m *Master) probeWorkers() {
@@ -299,10 +327,10 @@ func (m *Master) probe(host string) {
 	defer m.mu.Unlock()
 
 	// Overwrite occupancies with the most recent status
-	var hostOccupancy uint32 = 0
+	hostOccupancy := 0
 	for _, roomStatus := range body.RoomStatuses {
-		m.roomOccupancies[roomStatus.RoomId] = roomStatus.Occupancy
-		hostOccupancy += roomStatus.Occupancy
+		m.roomOccupancies[roomStatus.RoomId] = int(roomStatus.Occupancy)
+		hostOccupancy += int(roomStatus.Occupancy)
 	}
 	m.hostOccupancies[host] = hostOccupancy
 }
