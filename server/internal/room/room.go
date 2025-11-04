@@ -18,9 +18,10 @@ type Room struct {
 	id      string
 	game    *game.Game
 	clients map[string]*Client
-	mu      sync.Mutex
-	ctx     context.Context
-	cancel  context.CancelFunc
+
+	mu     sync.Mutex
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func newRoom(id string) *Room {
@@ -49,7 +50,7 @@ func (r *Room) InitClient(clientId string, username string, conn *websocket.Conn
 }
 
 func (r *Room) init() {
-	r.game.Run(r.ctx)
+	go r.game.Run(r.ctx)
 	go r.broadcast()
 }
 

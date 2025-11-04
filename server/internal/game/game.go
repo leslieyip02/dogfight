@@ -143,41 +143,38 @@ func (g *Game) GetDelta() *pb.Event {
 // Run starts the game loop.
 func (g *Game) Run(ctx context.Context) {
 	ticker := time.NewTicker(time.Second / constants.FPS)
+	defer ticker.Stop()
 
 	for _, entity := range g.spawner.InitEntities() {
 		g.entities[entity.GetId()] = entity
 		g.updated[entity.GetId()] = entity
 	}
 
-	go func() {
-		defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
 
-		for {
-			select {
-			case <-ctx.Done():
-				return
+		case <-ticker.C:
+			g.update()
 
-			case <-ticker.C:
-				g.update()
+		case message := <-g.Incoming:
+			g.Outgoing <- message
 
-			case message := <-g.Incoming:
-				g.Outgoing <- message
+			var event pb.Event
+			proto.Unmarshal(message, &event)
 
-				var event pb.Event
-				proto.Unmarshal(message, &event)
+			switch event.Type {
+			case pb.EventType_EVENT_TYPE_RESPAWN:
+				data := event.GetRespawnEventData()
+				g.respawnPlayer(data.GetId())
 
-				switch event.Type {
-				case pb.EventType_EVENT_TYPE_RESPAWN:
-					data := event.GetRespawnEventData()
-					g.respawnPlayer(data.GetId())
-
-				case pb.EventType_EVENT_TYPE_INPUT:
-					data := event.GetInputEventData()
-					g.input(data)
-				}
+			case pb.EventType_EVENT_TYPE_INPUT:
+				data := event.GetInputEventData()
+				g.input(data)
 			}
 		}
-	}()
+	}
 }
 
 // input passes input event data to the corresponding Player.
