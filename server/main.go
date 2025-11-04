@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"server/room"
+	"server/internal/room"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

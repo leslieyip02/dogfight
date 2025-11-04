@@ -2,7 +2,7 @@ package room
 
 import (
 	"context"
-	"server/game"
+	"server/internal/game"
 	"server/pb"
 
 	"sync"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"server/id"
+	"server/internal/id"
 
 	"google.golang.org/protobuf/proto"
 )

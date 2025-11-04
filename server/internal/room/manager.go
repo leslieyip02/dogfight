@@ -2,7 +2,7 @@ package room
 
 import (
 	"fmt"
-	"server/id"
+	"server/internal/id"
 	"sync"
 )
 

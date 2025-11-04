@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"server/game/constants"
-	"server/game/geometry"
-	"server/id"
+	"server/internal/game/constants"
+	"server/internal/game/geometry"
+	"server/internal/id"
 )
 
 const (

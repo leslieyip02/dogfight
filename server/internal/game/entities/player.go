@@ -2,8 +2,8 @@ package entities
 
 import (
 	"math"
-	"server/game/geometry"
-	"server/id"
+	"server/internal/game/geometry"
+	"server/internal/id"
 	"server/pb"
 )
 

@@ -1,8 +1,8 @@
 package entities
 
 import (
-	"server/game/constants"
-	"server/game/geometry"
+	"server/internal/game/constants"
+	"server/internal/game/geometry"
 	"server/pb"
 )
 

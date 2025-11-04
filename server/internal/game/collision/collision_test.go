@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 	"math/rand/v2"
-	"server/game/entities"
-	"server/game/geometry"
+	"server/internal/game/entities"
+	"server/internal/game/geometry"
 	"slices"
 	"testing"
 )

@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"server/game/geometry"
+	"server/internal/game/geometry"
 	"server/pb"
 )
 

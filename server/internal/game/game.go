@@ -3,9 +3,9 @@ package game
 import (
 	"context"
 	"log"
-	"server/game/collision"
-	"server/game/constants"
-	"server/game/entities"
+	"server/internal/game/collision"
+	"server/internal/game/constants"
+	"server/internal/game/entities"
 	"server/pb"
 	"sync"
 	"time"

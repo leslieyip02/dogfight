@@ -2,8 +2,8 @@ package collision
 
 import (
 	"math"
-	"server/game/entities"
-	"server/game/geometry"
+	"server/internal/game/entities"
+	"server/internal/game/geometry"
 	"slices"
 )
 
