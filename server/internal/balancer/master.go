@@ -144,10 +144,13 @@ func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	log.Printf("preparing to send client to %s in room %s", host, roomId)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.roomOccupancies[roomId] >= m.roomCapacity {
+		http.Error(w, fmt.Sprintf("room %s is full", roomId), http.StatusConflict)
+		return
+	}
 
 	// These occupancies will desync when players leave the room,
 	// but will be synced again through periodic status probes
@@ -198,9 +201,6 @@ func (m *Master) lookupHost(roomId string) (string, string, error) {
 	host, found := m.roomToHostRegistry[roomId]
 	if !found {
 		return "", "", fmt.Errorf("room %s not found", roomId)
-	}
-	if m.roomOccupancies[roomId] >= m.roomCapacity {
-		return "", "", fmt.Errorf("room %s is full", roomId)
 	}
 	return host, roomId, nil
 }
