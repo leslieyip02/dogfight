@@ -16,8 +16,13 @@ cd client
 npm run build
 ```
 
-### Start Server
+## Start Server
 ```
 cd server
-go run main.go
+
+# load balancer
+go run cmd/master/main.go
+
+# game server
+go run cmd/worker/main.go
 ```

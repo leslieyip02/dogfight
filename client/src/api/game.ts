@@ -3,14 +3,12 @@ import {
   Event_SnapshotEventData,
 } from "../pb/event";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-export async function fetchSnapshot(): Promise<Event_SnapshotEventData | null> {
+export async function fetchSnapshot(host: string): Promise<Event_SnapshotEventData | null> {
   const token = localStorage.getItem("jwt");
   if (!token) {
     return Promise.reject(null);
   }
-  return await fetch(`${API_URL}/room/snapshot?token=${token}`)
+  return await fetch(`http://${host}/api/room/snapshot?token=${token}`)
     .then(response => response.arrayBuffer())
     .then(buffer => {
       const message = new Uint8Array(buffer);

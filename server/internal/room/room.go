@@ -7,6 +7,7 @@ import (
 
 	"sync"
 
+	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -34,6 +35,17 @@ func newRoom(id string) *Room {
 		ctx:     ctx,
 		cancel:  cancel,
 	}
+}
+
+func (r *Room) InitClient(clientId string, username string, conn *websocket.Conn) {
+	conn.SetCloseHandler(func(code int, text string) error {
+		r.remove(clientId)
+		return nil
+	})
+
+	client := newClient(clientId, username, conn)
+	r.add(client)
+	r.connect(client)
 }
 
 func (r *Room) init() {
@@ -122,4 +134,12 @@ func (r *Room) hasCapacity() bool {
 	defer r.mu.Unlock()
 
 	return len(r.clients) < ROOM_CAPACITY
+}
+
+// getPlayerCount returns the current number of connected players
+func (r *Room) getPlayerCount() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return len(r.clients)
 }

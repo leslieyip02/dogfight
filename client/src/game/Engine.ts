@@ -47,6 +47,7 @@ const FPS = 60;
 class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   instance: p5;
   clientId: string;
+  host: string;
   socket: WebSocket;
 
   entities: EntityMap;
@@ -60,6 +61,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
   constructor(
     instance: p5,
     clientId: string,
+    host: string,
     socket: WebSocket,
   ) {
     this.instance = instance;
@@ -68,6 +70,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
     this.instance.mousePressed = this.mousePressed;
 
     this.clientId = clientId;
+    this.host = host;
     this.socket = socket;
 
     this.entities = {};
@@ -237,7 +240,7 @@ class Engine implements GraphicsGameContext, GraphicsGUIContext, UpdateContext {
    * state to match.
    */
   private syncGameState = async () => {
-    await fetchGameSnapshotData()
+    await fetchGameSnapshotData(this.host)
       .then((snapshot) => {
         syncEntities(snapshot, this);
       });

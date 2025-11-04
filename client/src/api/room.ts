@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const ROOT_HOST = import.meta.env.VITE_ROOT_HOST;
 
 export type JoinRequest = {
     username: string;
@@ -7,6 +7,7 @@ export type JoinRequest = {
 
 export type JoinResponse = {
     clientId: string;
+    host: string;
     token: string;
 }
 
@@ -20,7 +21,7 @@ export async function joinRoom(username: string, roomId: string): Promise<JoinRe
     body: JSON.stringify(body),
   };
 
-  return await fetch(`${API_URL}/room/join`, payload)
+  return await fetch(`http://${ROOT_HOST}/api/join`, payload)
     .then(async response => {
       if (!response.ok) {
         const message = await response.text();

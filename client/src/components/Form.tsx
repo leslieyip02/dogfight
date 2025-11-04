@@ -10,9 +10,10 @@ import Spritesheet from "../game/graphics/sprites";
 
 type Props = {
   setClientId: (clientId: string) => void;
+  setHost: (host: string) => void;
 };
 
-const Form: React.FC<Props> = ({ setClientId }) => {
+const Form: React.FC<Props> = ({ setClientId, setHost }) => {
   const [username, setUsername] = useState<string>(generateUsername("-"));
   const [roomId, setRoomId] = useState<string>("");
 
@@ -28,6 +29,7 @@ const Form: React.FC<Props> = ({ setClientId }) => {
     await joinRoom(username, roomId)
       .then(response => {
         setClientId(response.clientId);
+        setHost(response.host);
       })
       .catch((error: Error) => {
         // TODO: feels a bit hacky
