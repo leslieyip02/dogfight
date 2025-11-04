@@ -116,8 +116,7 @@ func (w *Worker) HandleSnapshot(rw http.ResponseWriter, r *http.Request) {
 
 	rw.Header().Set("Content-Type", "application/octet-stream")
 	if _, err = rw.Write(body); err != nil {
-		message := "unable to get room state"
-		http.Error(rw, message, http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -169,5 +168,21 @@ func (w *Worker) HandleCreate(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (w *Worker) HandleStatus(rw http.ResponseWriter, r *http.Request) {
-	// TODO: implement
+	status := w.lobby.GetStatus()
+	if status == nil {
+		http.Error(rw, "unable to get status", http.StatusInternalServerError)
+		return
+	}
+
+	body, err := proto.Marshal(status)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/octet-stream")
+	if _, err = rw.Write(body); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

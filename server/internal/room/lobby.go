@@ -52,14 +52,21 @@ func (l *Lobby) GetSnapshot(roomId string) *pb.Event {
 	return room.game.GetSnapshot()
 }
 
-// GetSnapshot gets the total player count over all rooms.
-func (l *Lobby) GetPlayerCount() int {
+func (l *Lobby) GetStatus() *pb.StatusResponse {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	count := 0
-	for _, room := range l.rooms {
-		count += room.getPlayerCount()
+	roomStatuses := make([]*pb.StatusResponse_RoomStatus, len(l.rooms))
+	i := 0
+	for roomId, room := range l.rooms {
+		roomStatuses[i] = &pb.StatusResponse_RoomStatus{
+			RoomId:    roomId,
+			Occupancy: room.getOccupancy(),
+		}
+		i++
 	}
-	return count
+
+	return &pb.StatusResponse{
+		RoomStatuses: roomStatuses,
+	}
 }

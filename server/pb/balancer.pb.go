@@ -117,6 +117,102 @@ func (x *CreateRequest) GetRoomId() string {
 	return ""
 }
 
+type StatusResponse struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	RoomStatuses  []*StatusResponse_RoomStatus `protobuf:"bytes,1,rep,name=roomStatuses,proto3" json:"roomStatuses,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusResponse) Reset() {
+	*x = StatusResponse{}
+	mi := &file_balancer_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusResponse) ProtoMessage() {}
+
+func (x *StatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_balancer_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusResponse.ProtoReflect.Descriptor instead.
+func (*StatusResponse) Descriptor() ([]byte, []int) {
+	return file_balancer_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StatusResponse) GetRoomStatuses() []*StatusResponse_RoomStatus {
+	if x != nil {
+		return x.RoomStatuses
+	}
+	return nil
+}
+
+type StatusResponse_RoomStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomId        string                 `protobuf:"bytes,1,opt,name=roomId,proto3" json:"roomId,omitempty"`
+	Occupancy     uint32                 `protobuf:"varint,2,opt,name=occupancy,proto3" json:"occupancy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusResponse_RoomStatus) Reset() {
+	*x = StatusResponse_RoomStatus{}
+	mi := &file_balancer_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusResponse_RoomStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusResponse_RoomStatus) ProtoMessage() {}
+
+func (x *StatusResponse_RoomStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_balancer_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusResponse_RoomStatus.ProtoReflect.Descriptor instead.
+func (*StatusResponse_RoomStatus) Descriptor() ([]byte, []int) {
+	return file_balancer_proto_rawDescGZIP(), []int{2, 0}
+}
+
+func (x *StatusResponse_RoomStatus) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *StatusResponse_RoomStatus) GetOccupancy() uint32 {
+	if x != nil {
+		return x.Occupancy
+	}
+	return 0
+}
+
 var File_balancer_proto protoreflect.FileDescriptor
 
 const file_balancer_proto_rawDesc = "" +
@@ -126,7 +222,13 @@ const file_balancer_proto_rawDesc = "" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\tR\x04port\"'\n" +
 	"\rCreateRequest\x12\x16\n" +
-	"\x06roomId\x18\x01 \x01(\tR\x06roomIdB\x05Z\x03/pbb\x06proto3"
+	"\x06roomId\x18\x01 \x01(\tR\x06roomId\"\x9d\x01\n" +
+	"\x0eStatusResponse\x12G\n" +
+	"\froomStatuses\x18\x01 \x03(\v2#.dogfight.StatusResponse.RoomStatusR\froomStatuses\x1aB\n" +
+	"\n" +
+	"RoomStatus\x12\x16\n" +
+	"\x06roomId\x18\x01 \x01(\tR\x06roomId\x12\x1c\n" +
+	"\toccupancy\x18\x02 \x01(\rR\toccupancyB\x05Z\x03/pbb\x06proto3"
 
 var (
 	file_balancer_proto_rawDescOnce sync.Once
@@ -140,17 +242,20 @@ func file_balancer_proto_rawDescGZIP() []byte {
 	return file_balancer_proto_rawDescData
 }
 
-var file_balancer_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_balancer_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_balancer_proto_goTypes = []any{
-	(*RegisterRequest)(nil), // 0: dogfight.RegisterRequest
-	(*CreateRequest)(nil),   // 1: dogfight.CreateRequest
+	(*RegisterRequest)(nil),           // 0: dogfight.RegisterRequest
+	(*CreateRequest)(nil),             // 1: dogfight.CreateRequest
+	(*StatusResponse)(nil),            // 2: dogfight.StatusResponse
+	(*StatusResponse_RoomStatus)(nil), // 3: dogfight.StatusResponse.RoomStatus
 }
 var file_balancer_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: dogfight.StatusResponse.roomStatuses:type_name -> dogfight.StatusResponse.RoomStatus
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_balancer_proto_init() }
@@ -164,7 +269,7 @@ func file_balancer_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_balancer_proto_rawDesc), len(file_balancer_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

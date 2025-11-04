@@ -136,10 +136,10 @@ func (r *Room) hasCapacity() bool {
 	return len(r.clients) < ROOM_CAPACITY
 }
 
-// getPlayerCount returns the current number of connected players
-func (r *Room) getPlayerCount() int {
+// getOccupancy returns the current number of connected players
+func (r *Room) getOccupancy() uint32 {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return len(r.clients)
+	return uint32(len(r.clients))
 }

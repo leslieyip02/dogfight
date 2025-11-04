@@ -11,3 +11,12 @@ message RegisterRequest {
 message CreateRequest {
     string roomId = 1;
 }
+
+message StatusResponse {
+    repeated RoomStatus roomStatuses = 1;
+
+    message RoomStatus {
+        string roomId = 1;
+        uint32 occupancy = 2;
+    }
+}

@@ -2,6 +2,7 @@ package balancer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -11,11 +12,17 @@ import (
 	"server/internal/session"
 	"server/pb"
 	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/proto"
+)
+
+const (
+	HTTP_TIMEOUT   = 5 * time.Second
+	PROBE_INTERVAL = 60 * time.Second
 )
 
 func NewRegisterRequest(host string) *pb.RegisterRequest {
@@ -25,16 +32,18 @@ func NewRegisterRequest(host string) *pb.RegisterRequest {
 }
 
 type Master struct {
-	url  string
 	host string
 	port string
 
 	client          http.Client
-	hostOccupancies map[string]int
-	roomOccupancies map[string]int
+	hostOccupancies map[string]uint32
+	roomOccupancies map[string]uint32
 	roomRegistry    map[string]string // mapping of room ID to host
-	mu              sync.Mutex
 	secret          []byte
+
+	mu     sync.Mutex
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func NewMaster(host string, port string) *Master {
@@ -44,16 +53,20 @@ func NewMaster(host string, port string) *Master {
 		log.Fatalf("JWT_SECRET must be set")
 	}
 
+	client := http.Client{Timeout: HTTP_TIMEOUT}
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &Master{
-		url:             fmt.Sprintf("%s%s", host, port),
 		host:            host,
 		port:            port,
-		client:          http.Client{},
-		hostOccupancies: map[string]int{},
-		roomOccupancies: map[string]int{},
+		client:          client,
+		hostOccupancies: map[string]uint32{},
+		roomOccupancies: map[string]uint32{},
 		roomRegistry:    map[string]string{},
 		mu:              sync.Mutex{},
 		secret:          []byte(secret),
+		ctx:             ctx,
+		cancel:          cancel,
 	}
 }
 
@@ -69,7 +82,9 @@ func (m *Master) Serve() {
 	r.Post("/api/join", m.HandleJoin)
 	r.Put("/internal/register", m.HandleRegister)
 
-	log.Printf("server is running on %s", m.url)
+	go m.probeWorkers()
+
+	log.Printf("server is running on http://%s%s", m.host, m.port)
 	if err := http.ListenAndServe(m.port, r); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
@@ -229,38 +244,58 @@ func (m *Master) getVacantHost() (string, error) {
 	return "", fmt.Errorf("no available hosts")
 }
 
-// func (m *Master) probeWorkers() {
-// 	// TODO: implement
-// }
+func (m *Master) probeWorkers() {
+	ticker := time.NewTicker(PROBE_INTERVAL)
+	defer ticker.Stop()
 
-// func (m *Master) getWorkerStatus(url string) error {
-// 	// TODO: integrate
-// 	request, err := http.NewRequest(
-// 		"GET",
-// 		fmt.Sprintf("%s/status", url),
-// 		nil,
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
+	for {
+		select {
+		case <-m.ctx.Done():
+			return
 
-// 	response, err := m.client.Do(request)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if response.StatusCode != http.StatusOK {
-// 		return fmt.Errorf("unexpected status code %v", response.StatusCode)
-// 	}
+		case <-ticker.C:
+			for host := range m.hostOccupancies {
+				go m.probe(host)
+			}
+		}
+	}
+}
 
-// 	defer response.Body.Close()
+func (m *Master) probe(host string) {
+	url := fmt.Sprintf("http://%s/internal/status", host)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("failed to get status from %s", host)
+		return
+	}
 
-// 	body := &StatusResponse{}
-// 	err = json.NewDecoder(response.Body).Decode(body)
-// 	if err != nil {
-// 		return err
-// 	}
+	response, err := m.client.Do(request)
+	if err != nil || response.StatusCode != http.StatusOK {
+		log.Printf("failed to get status from %s", host)
+		return
+	}
 
-// 	log.Printf("%s has %d players", url, body.PlayerCount)
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Printf("failed to read status from %s", host)
+		return
+	}
 
-// 	return nil
-// }
+	body := pb.StatusResponse{}
+	err = proto.Unmarshal(data, &body)
+	if err != nil {
+		log.Printf("failed to parse status from %s", host)
+		return
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var hostOccupancy uint32 = 0
+	for _, roomStatus := range body.RoomStatuses {
+		m.roomOccupancies[roomStatus.RoomId] = roomStatus.Occupancy
+		hostOccupancy += roomStatus.Occupancy
+		log.Printf("room %s has %d players", roomStatus.RoomId, roomStatus.Occupancy)
+	}
+	m.hostOccupancies[host] = hostOccupancy
+}
