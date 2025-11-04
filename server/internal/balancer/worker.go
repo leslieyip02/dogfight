@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"server/internal/room"
 	"server/internal/session"
 	"server/pb"
@@ -15,16 +14,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/proto"
 )
-
-var corsHandler = cors.Handler(cors.Options{
-	AllowedOrigins:   []string{"http://localhost:5173"},
-	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-	AllowCredentials: true,
-})
 
 type Worker struct {
 	host string
@@ -34,50 +25,51 @@ type Worker struct {
 	secret []byte
 }
 
-func NewWorker(host string, port string) *Worker {
-	godotenv.Load()
-	secret, found := os.LookupEnv("JWT_SECRET")
-	if !found {
-		log.Fatalf("JWT_SECRET must be set")
-	}
-
+func NewWorker(host string, port string, secret []byte) *Worker {
 	return &Worker{
 		host:   host,
 		port:   port,
 		lobby:  room.NewLobby(),
-		secret: []byte(secret),
+		secret: secret,
 	}
 }
 
-func RegisterWorker(host string, port string) (*Worker, error) {
+func RegisterWorker(host string, port string) error {
 	body, err := proto.Marshal(&pb.RegisterRequest{
 		Host: host,
 		Port: port,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	url := "http://localhost:5173/internal/register"
 	request, err := http.NewRequest("PUT", url, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	request.Header.Add("Content-Type", "application/json")
 
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if response.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("unexpected status code %v", response.StatusCode)
+		return fmt.Errorf("unexpected status code %v", response.StatusCode)
 	}
 
-	return NewWorker(host, port), nil
+	return nil
 }
 
 func (w *Worker) Serve() {
+	corsHandler := cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+	})
+
 	r := chi.NewRouter()
 	r.Use(corsHandler)
 	r.Use(middleware.Logger)

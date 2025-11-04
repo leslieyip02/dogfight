@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"server/internal/id"
 	"server/internal/session"
 	"server/pb"
@@ -16,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
+	"github.com/go-chi/cors"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -35,42 +34,45 @@ type Master struct {
 	host string
 	port string
 
-	client          http.Client
-	hostOccupancies map[string]uint32
-	roomOccupancies map[string]uint32
-	roomRegistry    map[string]string // mapping of room ID to host
-	secret          []byte
+	client              http.Client
+	hostOccupancies     map[string]uint32
+	roomOccupancies     map[string]uint32
+	hostToRoomsRegistry map[string][]string // mapping of host to room IDs
+	roomToHostRegistry  map[string]string   // mapping of room ID to host
+	secret              []byte
 
 	mu     sync.Mutex
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func NewMaster(host string, port string) *Master {
-	godotenv.Load()
-	secret, found := os.LookupEnv("JWT_SECRET")
-	if !found {
-		log.Fatalf("JWT_SECRET must be set")
-	}
-
+func NewMaster(host string, port string, secret []byte) *Master {
 	client := http.Client{Timeout: HTTP_TIMEOUT}
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Master{
-		host:            host,
-		port:            port,
-		client:          client,
-		hostOccupancies: map[string]uint32{},
-		roomOccupancies: map[string]uint32{},
-		roomRegistry:    map[string]string{},
-		mu:              sync.Mutex{},
-		secret:          []byte(secret),
-		ctx:             ctx,
-		cancel:          cancel,
+		host:                host,
+		port:                port,
+		client:              client,
+		hostOccupancies:     map[string]uint32{},
+		roomOccupancies:     map[string]uint32{},
+		hostToRoomsRegistry: map[string][]string{},
+		roomToHostRegistry:  map[string]string{},
+		mu:                  sync.Mutex{},
+		secret:              secret,
+		ctx:                 ctx,
+		cancel:              cancel,
 	}
 }
 
 func (m *Master) Serve() {
+	corsHandler := cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+	})
+
 	r := chi.NewRouter()
 	r.Use(corsHandler)
 	r.Use(middleware.Logger)
@@ -134,11 +136,13 @@ func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: this should be reported by the workers
 	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// These occupancies will desync when players leave the room,
+	// but will be synced again through periodic status probes
 	m.hostOccupancies[host]++
 	m.roomOccupancies[roomId]++
-	m.mu.Unlock()
 
 	clientId, err := id.NewShortId()
 	if err != nil {
@@ -177,7 +181,7 @@ func (m *Master) getHost(roomId *string) (string, string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	host, found := m.roomRegistry[*roomId]
+	host, found := m.roomToHostRegistry[*roomId]
 	if !found {
 		return "", "", fmt.Errorf("room %s not found", *roomId)
 	}
@@ -188,7 +192,7 @@ func (m *Master) assignHost() (string, string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	for roomId, host := range m.roomRegistry {
+	for roomId, host := range m.roomToHostRegistry {
 		if m.roomOccupancies[roomId] < 32 {
 			return host, roomId, nil
 		}
@@ -208,7 +212,9 @@ func (m *Master) assignHost() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	m.roomRegistry[roomId] = host
+
+	m.roomToHostRegistry[roomId] = host
+	m.hostToRoomsRegistry[host] = append(m.hostToRoomsRegistry[host], roomId)
 	return host, roomId, nil
 }
 
@@ -254,6 +260,7 @@ func (m *Master) probeWorkers() {
 			return
 
 		case <-ticker.C:
+			// Probe workers asynchronously
 			for host := range m.hostOccupancies {
 				go m.probe(host)
 			}
@@ -291,11 +298,11 @@ func (m *Master) probe(host string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Overwrite occupancies with the most recent status
 	var hostOccupancy uint32 = 0
 	for _, roomStatus := range body.RoomStatuses {
 		m.roomOccupancies[roomStatus.RoomId] = roomStatus.Occupancy
 		hostOccupancy += roomStatus.Occupancy
-		log.Printf("room %s has %d players", roomStatus.RoomId, roomStatus.Occupancy)
 	}
 	m.hostOccupancies[host] = hostOccupancy
 }
