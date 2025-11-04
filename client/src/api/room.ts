@@ -13,7 +13,13 @@ export async function joinRoom(username: string, roomId: string): Promise<JoinRe
   };
 
   return await fetch(`http://${ROOT_HOST}/api/join`, payload)
-    .then(response => response.arrayBuffer())
+    .then(async response => {
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message);
+      }
+      return response.arrayBuffer();
+    })
     .then(buffer => {
       const message = new Uint8Array(buffer);
       const joinResponse = JoinResponse.decode(message);
