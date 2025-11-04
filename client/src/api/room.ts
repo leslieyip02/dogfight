@@ -1,15 +1,6 @@
+import { JoinRequest, JoinResponse } from "../pb/join";
+
 const ROOT_HOST = import.meta.env.VITE_ROOT_HOST;
-
-export type JoinRequest = {
-    username: string;
-    roomId?: string;
-}
-
-export type JoinResponse = {
-    clientId: string;
-    host: string;
-    token: string;
-}
 
 export async function joinRoom(username: string, roomId: string): Promise<JoinResponse> {
   const body: JoinRequest = {
@@ -18,19 +9,15 @@ export async function joinRoom(username: string, roomId: string): Promise<JoinRe
   };
   const payload = {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JoinRequest.encode(body).finish(),
   };
 
   return await fetch(`http://${ROOT_HOST}/api/join`, payload)
-    .then(async response => {
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "unknown error");
-      }
-      return response.json();
-    })
-    .then(response => {
-      localStorage.setItem("jwt", response.token);
-      return response;
+    .then(response => response.arrayBuffer())
+    .then(buffer => {
+      const message = new Uint8Array(buffer);
+      const joinResponse = JoinResponse.decode(message);
+      localStorage.setItem("jwt", joinResponse.token);
+      return joinResponse;
     });
 }

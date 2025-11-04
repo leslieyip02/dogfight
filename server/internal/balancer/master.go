@@ -2,22 +2,24 @@ package balancer
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"server/internal/id"
 	"server/internal/session"
+	"server/pb"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"google.golang.org/protobuf/proto"
 )
 
-func NewRegisterRequest(host string) *RegisterRequest {
-	return &RegisterRequest{
+func NewRegisterRequest(host string) *pb.RegisterRequest {
+	return &pb.RegisterRequest{
 		Host: host,
 	}
 }
@@ -74,10 +76,16 @@ func (m *Master) Serve() {
 }
 
 func (m *Master) HandleRegister(w http.ResponseWriter, r *http.Request) {
-	var request RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		message := "unable to parse register request"
-		http.Error(w, message, http.StatusBadRequest)
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var request pb.RegisterRequest
+	err = proto.Unmarshal(data, &request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -92,9 +100,16 @@ func (m *Master) HandleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
-	var request JoinRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "unable to parse room join request", http.StatusBadRequest)
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var request pb.JoinRequest
+	err = proto.Unmarshal(data, &request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -122,14 +137,19 @@ func (m *Master) HandleJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := JoinResponse{
+	body, err := proto.Marshal(&pb.JoinResponse{
 		ClientId: clientId,
 		Host:     host,
 		Token:    token,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		message := "unable to write body"
-		http.Error(w, message, http.StatusInternalServerError)
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	if _, err = w.Write(body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -153,7 +173,6 @@ func (m *Master) assignHost() (string, string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	log.Printf("checking roomRegistry: %v", m.roomRegistry)
 	for roomId, host := range m.roomRegistry {
 		if m.roomOccupancies[roomId] < 32 {
 			return host, roomId, nil
@@ -179,7 +198,7 @@ func (m *Master) assignHost() (string, string, error) {
 }
 
 func (m *Master) createRoom(host string, roomId string) error {
-	body, err := json.Marshal(CreateRequest{
+	body, err := proto.Marshal(&pb.CreateRequest{
 		RoomId: roomId,
 	})
 	if err != nil {

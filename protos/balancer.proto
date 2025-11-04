@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dogfight;
+option go_package = "/pb";
+
+message RegisterRequest {
+    string host = 1;
+    string port = 2;
+}
+
+message CreateRequest {
+    string roomId = 1;
+}

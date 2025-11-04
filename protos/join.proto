@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package dogfight;
+option go_package = "/pb";
+
+message JoinRequest {
+    string username = 1;
+    optional string roomId = 2;
+}
+
+message JoinResponse {
+    string clientId = 1;
+    string host = 2;
+    string token = 3;
+}

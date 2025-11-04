@@ -6,6 +6,11 @@ protoc \
     --plugin=client/node_modules/.bin/protoc-gen-ts_proto \
     --proto_path=protos \
     --ts_proto_out=client/src/pb \
+    protos/entities.proto protos/event.proto protos/join.proto protos/vector.proto
+
+protoc \
+    --plugin=client/node_modules/.bin/protoc-gen-ts_proto \
+    --proto_path=protos \
     --go_out=server \
     protos/*.proto
 ```

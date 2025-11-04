@@ -2,13 +2,14 @@ package balancer
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"server/internal/room"
 	"server/internal/session"
+	"server/pb"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -49,7 +50,7 @@ func NewWorker(host string, port string) *Worker {
 }
 
 func RegisterWorker(host string, port string) (*Worker, error) {
-	body, err := json.Marshal(RegisterRequest{
+	body, err := proto.Marshal(&pb.RegisterRequest{
 		Host: host,
 		Port: port,
 	})
@@ -150,10 +151,16 @@ func (w *Worker) HandleWS(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (w *Worker) HandleCreate(rw http.ResponseWriter, r *http.Request) {
-	var request CreateRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		message := "unable to parse create request"
-		http.Error(rw, message, http.StatusBadRequest)
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var request pb.CreateRequest
+	err = proto.Unmarshal(data, &request)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
