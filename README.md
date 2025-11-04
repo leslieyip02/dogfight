@@ -1,6 +1,8 @@
-# Getting Started
+# <img src="./client/public/sprites/player/alpha.png" style="width: 2rem; height: 2rem;" /> dogfight
 
-## Generate Code
+## Getting Started
+
+### Generate Code
 ```
 protoc \
     --plugin=client/node_modules/.bin/protoc-gen-ts_proto \
@@ -15,13 +17,13 @@ protoc \
     protos/*.proto
 ```
 
-## Start Client
+### Start Client
 ```
 cd client
 npm run build
 ```
 
-## Start Server
+### Start Server
 ```
 cd server
 
@@ -29,5 +31,7 @@ cd server
 go run cmd/master/main.go
 
 # game server
-go run cmd/worker/main.go
+go run cmd/worker/main.go -port=5174
+go run cmd/worker/main.go -port=5175
+...
 ```
