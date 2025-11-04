@@ -58,6 +58,7 @@ class Player implements Entity {
         this.score = playerData.score;
         Audiosheet.get("score")?.play();
       }
+      this.flags = playerData.flags;
     }
   };
 
